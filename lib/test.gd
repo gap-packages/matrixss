@@ -59,5 +59,7 @@ DeclareGlobalFunction("MatrixSchreierSimsTest");
 ###############################################################################
 DeclareGlobalFunction("MatrixSchreierSimsBenchmark");
 
+DeclareGlobalFunction("MatrixSchreierSimsSetBenchmark");
+
 ###############################################################################
 #E

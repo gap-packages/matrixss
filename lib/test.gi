@@ -19,6 +19,55 @@
 Revision.("matrixss/lib/test_gi") := 
   "@(#)$Id$";
 
+MATRIXSS_GetRandomGenSet :=
+  function(field, dimension, length)
+    local generators;
+    
+    generators := [];
+    while length > 0 do
+        Add(generators, RandomInvertibleMat(dimension, field));
+        length := length - 1;
+    od;
+    return Immutable(generators);
+end;
+
+MATRIXSS_BenchmarkRandomSets :=
+  function(maxDegree, maxFieldSize, maxGenSetSize, nRunsPerType) 
+    local degree, power, primeNr, prime, length, runs, generators, field, list;
+    
+    list := [];
+    primeNr := 1;
+    while primeNr <= 168 and Primes[primeNr] <= maxFieldSize do
+        prime := Primes[primeNr];
+        
+        power := 1;
+        while Primes[primeNr]^power <= maxFieldSize do
+            
+            field := GaloisField(prime, power);
+            for degree in [2 .. maxDegree] do
+
+                length := 1;
+                while length <= maxGenSetSize do
+                    
+                    runs := 1;
+                    Add(list, [field, degree]);
+                    while runs <= nRunsPerType do
+                        generators := 
+                          MATRIXSS_GetRandomGenSet(field, degree, length);
+                        Add(list[Length(list)], generators);
+                        runs := runs + 1;
+                    od;                    
+                    length := length + 1;
+                od;
+            od;
+            power := power + 1;
+        od;
+        primeNr := primeNr + 1;
+    od;
+    
+    return list;
+end;
+                    
 ###############################################################################
 ##
 #F MATRIXSS_GetTestGroups(maxDegree, maxFieldSize)
@@ -140,6 +189,31 @@ MATRIXSS_TimedCall := function(call, args)
     CallFuncList(call, args);
     return Runtime() - time;
 end;
+
+InstallGlobalFunction(MatrixSchreierSimsSetBenchmark, 
+        function(maxDegree, maxFieldSize, maxLength, nRunsPerType)
+        local sets, time, i, j;
+    
+    sets := MATRIXSS_BenchmarkRandomSets(maxDegree, maxFieldSize, maxLength,
+                    nRunsPerType);
+    
+    for i in [1 .. Length(sets)] do
+        time := 0;
+        for j in [3 .. Length(sets[i])] do
+            MATRIXSS_DebugPrint(1, ["Group with gen set ", sets[i][j]]);
+            MATRIXSS_DebugPrint(1, ["Group identity : ", 
+                    One(GL(sets[i][2], sets[i][1]))]);
+            time := time + MATRIXSS_TimedCall(Size,
+                            [Group(sets[i][j], One(GL(sets[i][2], 
+                                    sets[i][1])))]);
+        od;
+        time := time / (j - 2);
+        time := Int(time + 1/2);
+        Print(Size(sets[i][1]), "\t", sets[i][2], "\t", 
+              Length(sets[i][3]), "\t", time, "\n");
+    od;
+    Print("Benchmark completed\n");
+end);             
 
 InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
     local groups, group, size1, size2;
