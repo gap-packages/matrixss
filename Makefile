@@ -56,7 +56,10 @@ $(CHECK_SUMS): ChangeLog
 	md5sum `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest` > $(MD5)
 	sha1sum --text `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest` > $(SHA1)
 
-ChangeLog: 
+NEWS: doc/www/news.html
+	html2text -style pretty < $< > $@
+
+ChangeLog: NEWS
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
 deb: $(PACKAGES)
