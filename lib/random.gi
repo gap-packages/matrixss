@@ -157,18 +157,21 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 sgsGroup := Group(List(partialSGS, i -> i[1]), identity);
                 
                 MATRIXSS_DebugPrint(3, ["Dropout level : ", dropoutLevel]);
-                
-                # Update partial SGS at each level
-                for level in [1 .. dropoutLevel - 1] do
-                    AddSet(ssInfo[level].partialSGS, residue);
-                    AddSet(ssInfo[level].partialSGS, newInverseGenerator);
-                od;
-                
+                                
                 # Extend base if needed
                 if dropoutLevel > Length(ssInfo) then
                     MATRIXSS_ExtendBase(ssInfo, residue, identity);
                 fi;
                                 
+                # Update partial SGS at each level
+                for level in [1 .. dropoutLevel - 1] do
+                    if ssInfo[level].action(ssInfo[level].partialBase,
+                               residue[1]) = ssInfo[level].partialBase then
+                        AddSet(ssInfo[level].partialSGS, residue);
+                        AddSet(ssInfo[level].partialSGS, newInverseGenerator);
+                    fi;
+                od;
+                
                 # Recompute Schreier trees
                 UpdateSchreierTrees(ssInfo, dropoutLevel, partialSGS, 
                         identity);

@@ -116,7 +116,9 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 
                 # Map relations to current free group
                 relations := [];
-                gens2 := GeneratorsOfGroup(ssInfo[level].freeGroup);
+                #gens2 := GeneratorsOfGroup(ssInfo[level].freeGroup);
+                gens2 := ssInfo[level].genMap.FreeGenerators;
+                
                 for element in ssInfo[level].relations do
                     gens1 := GeneratorsOfGroup(element[2]);
                     
