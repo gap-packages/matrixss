@@ -39,13 +39,13 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
 ##
 ## The main Schreier-Sims function, which is called for each level.
 ## \beginitems    
-## ssInfo & main information structure for the current Schreier-Sims run
+## `ssInfo' & main information structure for the current Schreier-Sims run
 ##    
-## partialSGS & given partial strong generating set
+## `partialSGS' & given partial strong generating set
 ##    
-## level & the level of the call to Schreier-Sims
+## `level' & the level of the call to Schreier-Sims
 ##
-## identity & the group identity
+## `identity' & the group identity
 ## \enditems
 ##
 ###############################################################################

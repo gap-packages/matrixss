@@ -49,7 +49,7 @@ Revision.("matrixss/lib/code_gd") :=
 ##                        line.
 ##
 ## `CleverBasePoints' & Choose an initial list of base points using 
-##                      BasisVectorsForMatrixAction, which is due to
+##                      `BasisVectorsForMatrixAction', which is made by
 ##                      O'Brien and Murray.
 ## \enditems
 ##

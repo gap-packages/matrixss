@@ -44,9 +44,9 @@ end;
 ## The action of a group element (a matrix) on a point (a row vector).
 ## The action is from the right 
 ## \beginitems
-## point & The point (row vector) to act on.
+## `point' & The point (row vector) to act on.
 ##
-## element & The group element (matrix) that acts.
+## `element' & The group element (matrix) that acts.
 ## \enditems
 ##
 ###############################################################################
@@ -60,9 +60,9 @@ MATRIXSS_PointAction := OnRight;
 ## The one-dimensional subspace corresponding to the point is represented
 ## by the corresponding normed row vector
 ## \beginitems
-## point & The point to act on. Must be a *normed* row vector.
+## `point' & The point to act on. Must be a *normed* row vector.
 ##
-## element & The group element (matrix) that acts.
+## `element' & The group element (matrix) that acts.
 ## \enditems
 ##
 ###############################################################################
@@ -486,12 +486,12 @@ end;
 ##
 ## Check if an element belongs to a group, using sifting
 ## \beginitems
-## ssInfo & Main information structure about our stabiliser chain. The Schreier
+## `ssInfo' & Main information structure about our stabiliser chain. The Schreier
 ##          trees is used during the sifting.
 ##
-## element & the element to check for membership 
+## `element' & the element to check for membership 
 ##
-## identity & group identity
+## `identity' & group identity
 ## \enditems
 ##
 ###############################################################################
@@ -538,14 +538,14 @@ end;
 ## also expresses the sifted group element as a word in the generators of a 
 ## given free group.
 ## \beginitems
-## ssInfo & Main information structure about our stabiliser chain. The Schreier
-##          trees is used during the sifting.
+## `ssInfo' & Main information structure about our stabiliser chain. 
+##            The Schreier trees is used during the sifting.
 ##
-## element & the element to check for membership 
+## `element' & the element to check for membership 
 ##
-## identity & group identity
+## `identity' & group identity
 ##
-## freeGroup & the free group in which the sifted element will be expressed
+## `freeGroup' & the free group in which the sifted element will be expressed
 ## \enditems
 ##
 ###############################################################################
@@ -949,7 +949,7 @@ end;
 ## package is loaded.
 ##
 ###############################################################################
-if MATRIXSS_TEST = fail then
+if IsBound(MATRIXSS_TEST) = fail then
     InstallMethod(Size, "for finite matrix groups", 
             [IsMatrixGroup and IsFinite], function(G)
         local ret, orbit, order;

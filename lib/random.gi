@@ -23,7 +23,7 @@ Revision.("matrixss/lib/random_gi") :=
 
 ###############################################################################
 ##
-#M StabChainMatrixGroup(G)
+#A StabChainMatrixGroup(G)
 ##
 ## An implementation of the Schreier-Sims algorithm, for matrix groups,
 ## probabilistic version. See "StabChainMatrixGroup!general" for general information
@@ -32,22 +32,22 @@ Revision.("matrixss/lib/random_gi") :=
 ## In addition to the general Options of the attribute `StabChainMatrixGroup',
 ## the probabilistic algorithm is aware of the following:
 ## \beginitems
-## Probability & (lower bound for) probability of correct solution, which
+## `Probability' & (lower bound for) probability of correct solution, which
 ##                    defaults to 3/4
 ##
-## Verify & Boolean parameter which signifies if the base and SGS computed
+## `Verify' & Boolean parameter which signifies if the base and SGS computed
 ##          using the random Schreir-Sims algorithm should be verified
 ##          using the Schreier-Todd-Coxeter-Sims algorithm.
 ##          Defaults to `false.'
 ##
-## OrderLowerBound & Lower bound for the order of `G', must be >= 1.
+## `OrderLowerBound' & Lower bound for the order of `G', must be $\geq$ 1.
 ##                   Defaults to 1.
 ##
-## OrderUpperBound & Upper bound for the order of `G', or 0 if unknown.
+## `OrderUpperBound' & Upper bound for the order of `G', or 0 if unknown.
 ##                   Defaults to 0.
 ##
 ## Note that if the order of `G' is known, so that 
-## `OrderLowerBound' = `OrderUpperBound' = |G|
+## `OrderLowerBound' = `OrderUpperBound' = `Size(G)'
 ## then the randomized algorithm always produces a correct base and SGS, so
 ## there is no need of verification. Also, the verification will extend the
 ## given base and SGS to a complete base and SGS if needed.
@@ -158,7 +158,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
 ##    
 ## `identity' & the group identity
 ##    
-## `low_order' & lower bound on the group order (must be >= 1)
+## `low_order' & lower bound on the group order (must be $\geq$ 1)
 ##    
 ## `high_order' & upper bound on the group order, or 0 if not available
 ##
