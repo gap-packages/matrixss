@@ -2,7 +2,7 @@ Source: gap-matrix-schreiersims
 Section: math
 Priority: optional
 Maintainer: Henrik Bäärnhielm <redstar@abc.se>
-Build-Depends: debhelper (>= 4.0.0), tetex-bin, gap-online-help (>= 4r4p3-1), tetex-extra
+Build-Depends: debhelper (>= 4.0.0), tetex-bin [i386], gap-online-help (>= 4r4p3-1), tetex-extra [i386]
 Standards-Version: 3.6.1.0
 
 Package: gap-matrix-schreiersims
