@@ -1,16 +1,5 @@
 Matrix Schreier-Sims Release Notes
 ==================================
-Release date : 2004-08-19
+Release date : 2004-10-06
 
-The so-called Verify routine by Sims has been implemented, from the
-description in Seress book. This seems to be a better strong
-generating test than the STCS algorithm, and one can now choose
-between them with an Option when using the probabilistic
-algorithm. The Verify algorithm is still neither cleaned up nor
-optimised in any way, so it is not fast, but it appears to be both
-sound and complete.
-
-The probabilistic algorithm now again uses the GAP function
-PseudoRandom to generate random group elements, since further testing
-has indicated that this is the fastest method, even though we have to
-calculate inverse matrices for the elements returned by this function.
+Unimportant changes. Release is mainly for syncing the main release files with te Debian package.

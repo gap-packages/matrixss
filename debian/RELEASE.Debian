@@ -1,5 +1,5 @@
 Matrix Schreier-Sims Debian Release Notes
 =========================================
-Release date : 2004-09-30
+Release date : 2004-10-06
 
-Fixed packaging issues to comply with Debian policy.
+The buildman.pe should not be needed when building the package.

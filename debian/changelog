@@ -1,3 +1,9 @@
+gap-matrix-schreiersims (0.9.20041006-1) unstable; urgency=low
+
+  * The buildman.pe should not be needed when building the package.
+
+ -- Henrik Bäärnhielm <redstar@abc.se>  Thu, 10 Oct 2004 22:34:35 +0000
+
 gap-matrix-schreiersims (0.9.20040929-1) unstable; urgency=low
 
   * Debian directory is now not included in .orig.tar.gz
