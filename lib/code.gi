@@ -26,7 +26,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
           NewBasePoint, ProjectiveNewBasePoint, Membership, OrbitElement, 
           GetSchreierTreeEdge, GetOrbitSize, GetSchreierGenerator, 
           GetPartialBaseSGS, ExtendBase, NewBasePoint2, IsIdentity,
-          ProjectiveIsIdentity,
+          ProjectiveIsIdentity, IsConstantList,
           # Local variables
           ssInfo, generators, base, trees, points, element, gens, list, level,
           normedPoints;
@@ -62,11 +62,24 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         return element = identity;
     end;
     
-    ProjectiveIsIdentity := function(element, identity)
-        local order;
+    IsConstantList := function(list)
+        local i;
         
-        order := ProjectiveOrder(element);
-        return order[1] = 1;
+        for i in [2 .. Length(list)] do
+            if not list[i] = list[1] then
+                return false;
+            fi;
+        od;
+        return true;
+    end;
+    
+    ProjectiveIsIdentity := function(element, identity)
+        if IsDiagonalMat(element) and 
+           IsConstantList(DiagonalOfMat(element)) then
+            return true;
+        else
+            return false;
+        fi;
     end;
     
     # return all points (as a list) in the orbit of the point 
