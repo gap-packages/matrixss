@@ -1,3 +1,9 @@
+matrixss (0.0.20040810-1) unstable; urgency=low
+
+  * Added nearly linear time algorithm.
+
+ -- Henrik Bäärnhielm <redstar@abc.se>  Tue, 10 Aug 2004 16:28:35 +0100
+
 matrixss (0.0.20040730-1) unstable; urgency=low
 
   * Added manual.
