@@ -22,7 +22,7 @@ MATRIXSS_TEST := true;;
 LoadPackage("matrixss");;
 
 SetAssertionLevel(2);
-MATRIXSS_DEBUGLEVEL := 1x;;
+MATRIXSS_DEBUGLEVEL := 1;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
 ReadTest("tst/test.tst");;
 QUIT;;
