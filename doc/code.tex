@@ -503,14 +503,14 @@ Return a random subproduct of `elements'.
 
 
 
+These are also core function, but of slightly less importance, or mainly of technical nature.
+
 \>`MATRIXSS_SubProdGroups' V
 
 A Dictionary of SymmetricGroups, used when permuting random subproducts.
 
 
 
-
-These are also core function, but of slightly less importance, or mainly of technical nature.
 
 \>MATRIXSS_CopySchreierTree( tree, dictinfo ) F
 
@@ -1118,6 +1118,20 @@ The classical groups are `GL', `SL', `GO' and `SO'. The sporadic groups are
 
 
 
+\>MATRIXSS_TimedCall( call, args ) F
+
+Runs the specified function with arguments and return the running time in 
+milliseconds, as given by Runtime, see "ref:Runtime" in the reference 
+manual.
+\beginitems
+`call' & function to call
+
+`args' & list of arguments to `call'
+\enditems
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%E  code.msk  . . . . . . . . . . . . . . . . . . . . . . . . . .ends here
+%E  code.msk  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here

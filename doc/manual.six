@@ -66,3 +66,4 @@ F 2.7. MatrixSchreierSimsTest
 F 2.7. MatrixSchreierSimsBenchmark
 F 2.7. MATRIXSS_GetTestGroups
 F 2.7. MATRIXSS_GetBenchmarkGroups
+F 2.7. MATRIXSS_TimedCall

@@ -66,6 +66,7 @@
 \makelabel{matrixss:MatrixSchreierSimsBenchmark}{2.7.2}
 \makelabel{matrixss:MATRIXSS_GetTestGroups}{2.7.3}
 \makelabel{matrixss:MATRIXSS_GetBenchmarkGroups}{2.7.4}
+\makelabel{matrixss:MATRIXSS_TimedCall}{2.7.5}
 \makelabel{matrixss:Bibliography}{}
 \setcitlab {baarnhielm04}{B{\accent 127a}{\accent 127a}04}
 \setcitlab {butler91}{But91}
