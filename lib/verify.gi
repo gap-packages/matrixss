@@ -31,9 +31,9 @@ MATRIXSS_BaseChange := function(ssInfo, partialSGS, level, identity)
     fi;
     MakeImmutable(SGS);
     
-    MATRIXSS_DebugPrint(2, ["Orbit size 1 : ", 
+    MATRIXSS_DebugPrint(4, ["Orbit size 1 : ", 
             MATRIXSS_GetOrbitSize(ssInfo[level].schreierTree.Tree)]);
-    MATRIXSS_DebugPrint(2, ["Orbit size 2 : ", 
+    MATRIXSS_DebugPrint(4, ["Orbit size 2 : ", 
             MATRIXSS_GetOrbitSize(ssInfo[level + 1].schreierTree.Tree)]);
     
     orbitSize := MATRIXSS_GetOrbitSize(ssInfo[level].schreierTree.Tree) * 
@@ -51,7 +51,7 @@ MATRIXSS_BaseChange := function(ssInfo, partialSGS, level, identity)
               ssInfo[level].action, ssInfo[level].hash, identity);
     orbitSize := orbitSize / 
                  MATRIXSS_GetOrbitSize(ssInfo[level].schreierTree.Tree);
-    MATRIXSS_DebugPrint(2, ["Wanted orbit size : ", orbitSize]);
+    MATRIXSS_DebugPrint(3, ["Wanted orbit size : ", orbitSize]);
     Assert(1, IsInt(orbitSize));
     
     orbit := MATRIXSS_GetOrbit(ssInfo[level].schreierTree.Tree);
@@ -110,25 +110,27 @@ MATRIXSS_BaseChange := function(ssInfo, partialSGS, level, identity)
            orbitSize);
 end;
 
-MATRIXSS_StabiliserGens := function(ssInfo, partialSGS, point, identity)
+MATRIXSS_StabiliserGens := function(ssInfo, partialSGS, point, action, 
+                                   dictinfo, identity)
     local ssInfoNew, generators, preBase, postBase, level, generator, SGS,
-          ssStruct;
+          ssStruct, i;
     
     MATRIXSS_DebugPrint(2, ["Fetching generators for stabiliser of ", point]);
     
     ssInfoNew := ShallowCopy(ssInfo);
     generators := ShallowCopy(partialSGS);
+    level := 0;
     for level in [1 .. Length(ssInfoNew)] do
         ssInfoNew[level] := ShallowCopy(ssInfo[level]);
         #ssInfoNew[level].partialSGS := ShallowCopy(ssInfo[level].partialSGS);
         #generators := Difference(generators, ssInfoNew[level].partialSGS);
         if ForAll(generators, generator -> 
-                  ssInfoNew[level].action(point, generator[1]) = point) then 
+                  action(point, generator[1]) = point) then 
+            level := level - 1;
             break;
         fi;
         generators := ssInfoNew[level].partialSGS;
     od;
-    level := level - 1;
     
     if level = 0 then
         MATRIXSS_DebugPrint(2, ["Whole group stabilises point"]);
@@ -139,20 +141,31 @@ MATRIXSS_StabiliserGens := function(ssInfo, partialSGS, point, identity)
     #  ShallowCopy(ssInfo[level + 1].partialSGS);
     preBase := ssInfoNew{[1 .. level]};
     postBase := ssInfoNew{[level + 1 .. Length(ssInfoNew)]};
-    MATRIXSS_AugmentBase(preBase, point, identity);
+    MATRIXSS_AugmentBase(preBase, point, action, dictinfo, identity : 
+            AlternatingActions := fail);
     ssInfoNew := Concatenation(preBase, postBase);
+    
+    for i in [1 .. Length(ssInfoNew)] do
+        ssInfoNew[i] := ShallowCopy(ssInfoNew[i]);
+    od;
     
     generators := ShallowCopy(partialSGS);
     for ssStruct in ssInfoNew do
+        ssStruct.schreierTree := 
+          MATRIXSS_GetSchreierTree(fail, ssStruct.partialBase, 
+                  generators, [], ssStruct.action, ssStruct.hash, identity);
         ssStruct.partialSGS := [];
-        Perform(generators, function(generator) 
+        Perform(ShallowCopy(generators), function(generator) 
             if ssStruct.action(ssStruct.partialBase, 
                        generator[1]) = ssStruct.partialBase then 
                 AddSet(ssStruct.partialSGS, generator);
+            else
+                RemoveSet(generators, generator);
             fi;
         end);
     od;
     
+    generators := ShallowCopy(partialSGS);    
     while level > 0 do
         MATRIXSS_BaseChange(ssInfoNew, generators, level, identity);
         level := level - 1;
@@ -165,7 +178,7 @@ MATRIXSS_StabiliserGens := function(ssInfo, partialSGS, point, identity)
             AddSet(SGS, generator);
         fi;
     od;
-    Assert(1, SGS = ssInfoNew[1].partialSGS);
+    #Assert(1, SGS = ssInfoNew[1].partialSGS);
     
     return Immutable(SGS);
 end;    
@@ -180,13 +193,14 @@ MATRIXSS_DecomposeOrbit := function(schreierTree, root, generators, action,
     orbit := MATRIXSS_GetOrbit(schreierTree.Tree);
     point := root;
     index := 0;
-    MATRIXSS_DebugPrint(4, ["Original orbit size : ", Size(orbit)]);
+    MATRIXSS_DebugPrint(3, ["Original orbit size : ", Size(orbit)]);
     repeat
         tree := MATRIXSS_GetSchreierTree(fail, point, generators, generators, 
                         action, hash, identity);
         Add(orbits, Immutable(rec(SchreierTree := tree, Point := point)));
-        Perform(orbits, function(i) MATRIXSS_DebugPrint(4, ["Orbit size : ", Size(i.SchreierTree.Tree)]); end);
-        MATRIXSS_DebugPrint(4, ["Total size of decomposed orbits : ",
+        Perform(orbits, function(i) MATRIXSS_DebugPrint(4, ["Orbit size : ", 
+                Size(i.SchreierTree.Tree)]); end);
+        MATRIXSS_DebugPrint(3, ["Total size of decomposed orbits : ",
                 Sum(List(orbits, i -> Size(i.SchreierTree.Tree)))]);
         if Sum(List(orbits, i -> Size(i.SchreierTree.Tree))) = 
            Size(schreierTree.Tree) then
@@ -222,24 +236,27 @@ MATRIXSS_VerifySingleGenerator :=
     od;
     
     stabPoint := action(point, subGenerator[2]);
-    stabGens := MATRIXSS_StabiliserGens(ssInfo, SGS, stabPoint, identity);
+    stabGens := MATRIXSS_StabiliserGens(ssInfo, SGS, stabPoint, action, 
+                        hash, identity);
     subOrbits := [];
     subRepresentatives := [];
     stabRepresentatives := [];
-    for orbit in orbits do
+    for level in [1 .. Length(orbits)] do
         
-        MATRIXSS_DebugPrint(5,  ["Decomposing ", orbit.SchreierTree, 
-                " with root at ", orbit.Point, " with respect to ", 
+        MATRIXSS_DebugPrint(3,  ["Decomposing ", orbits[level].SchreierTree, 
+                " with root at ", orbits[level].Point, " with respect to ", 
                 stabGens]);
         
-        Add(subOrbits, MATRIXSS_DecomposeOrbit(orbit.SchreierTree, orbit.Point,
-                stabGens, action, hash, identity));
+        Add(subOrbits, MATRIXSS_DecomposeOrbit(orbits[level].SchreierTree, 
+                orbits[level].Point, stabGens, action, hash, identity));
         Add(subRepresentatives, []);
         Add(stabRepresentatives, []);
         for subOrbit in subOrbits[Length(subOrbits)] do
+            residue := MATRIXSS_OrbitElement(orbits[level].SchreierTree.Tree, 
+                               subOrbit.Point, action, identity);
             Add(subRepresentatives[Length(subRepresentatives)],
-                MATRIXSS_OrbitElement(orbit.SchreierTree.Tree, subOrbit.Point, 
-                        action, identity));
+                Immutable([representatives[level][1] * residue[1],
+                        residue[2] * representatives[level][2]]));
             Add(stabRepresentatives[Length(stabRepresentatives)],
                 MATRIXSS_OrbitElement(schreierTree.Tree, 
                         action(subOrbit.Point, subGenerator[1]), action, 
@@ -252,21 +269,21 @@ MATRIXSS_VerifySingleGenerator :=
     
     for level in [1 .. Length(orbits)] do
         orbitStabGens := MATRIXSS_StabiliserGens(ssInfo, SGS, 
-                                 orbits[level].Point, identity);
+                                 orbits[level].Point, action, hash, identity);
         for generator in orbitStabGens do
-            for representative in representatives do
-                residue := MATRIXSS_Membership(ssInfo, 
-                                   Immutable([representative[1] * 
-                                           generator[1] * representative[2], 
-                                           representative[1] * generator[2] *
-                                           representative[2]]),
-                                           identity);
-                if residue[1][1] <> identity then
-                    MATRIXSS_DebugPrint(2, ["Cond1, Residue found : ", 
-                            residue[1]]);
-                    return residue[1];
-                fi;
-            od;
+            residue := MATRIXSS_Membership(ssInfo, 
+                               Immutable([representatives[level][1] * 
+                                       generator[1] * 
+                                       representatives[level][2],
+                                       representatives[level][1] * 
+                                       generator[2] * 
+                                       representatives[level][2]]),
+                               identity);
+            if residue[1][1] <> identity then
+                MATRIXSS_DebugPrint(2, ["Cond1, Residue found : ", 
+                        residue[1]]);
+                return Immutable(residue[1]);
+            fi;
         od;
         
         for subLevel in [1 .. Length(subOrbits[level])] do
@@ -282,7 +299,7 @@ MATRIXSS_VerifySingleGenerator :=
             if residue[1][1] <> identity then
                 MATRIXSS_DebugPrint(2, ["Cond2, Residue found : ", 
                         residue[1]]);
-                return residue[1];
+                return Immutable(residue[1]);
             fi;
         od;
     od;
@@ -296,7 +313,7 @@ MATRIXSS_VerifySingleGenerator :=
         if residue[1][1] <> identity then
             MATRIXSS_DebugPrint(2, ["Cond3, Residue found : ", 
                     residue[1]]);
-            return residue[1];
+            return Immutable(residue[1]);
         fi;
     od;
     
@@ -306,16 +323,18 @@ end;
 MATRIXSS_IsBlockOfImprimitivity := 
   function(schreierTree, generators, block, action, identity)
     local orbit, partition, image, point, testPoint, representative,
-          generator, set;
+          generator, set, index;
     
     MATRIXSS_DebugPrint(2, ["Checking block of imprimitivity"]);
 
-    orbit := AsSet(ShallowCopy(MATRIXSS_GetOrbit(schreierTree)));
+    orbit := AsSet(ShallowCopy(MATRIXSS_GetOrbit(schreierTree.Tree)));
     orbit := Difference(orbit, block);
-    partition := [rec(Block := block, Element := identity)];
+    partition := [rec(Block := block, 
+                      Element := Immutable([identity, identity]))];
     repeat
+        MATRIXSS_DebugPrint(5, ["Orbit size : ", Length(orbit)]);
         testPoint := orbit[1];
-        representative := MATRIXSS_OrbitElement(schreierTree, testPoint,
+        representative := MATRIXSS_OrbitElement(schreierTree.Tree, testPoint,
                                   action, identity);
         image := [];
         for point in block do
@@ -323,34 +342,38 @@ MATRIXSS_IsBlockOfImprimitivity :=
             if not testPoint in orbit then
                 for image in partition do
                     if testPoint in image.Block then
+                        MATRIXSS_DebugPrint(3, ["Not a block"]);
                         return Immutable([representative[1] * image.Element[2],
                                        image.Element[1] * representative[2]]);
                     fi;
                 od;
             fi;
-            Add(image, point);
+            Add(image, testPoint);
         od;
         image := AsSet(image);
+        MATRIXSS_DebugPrint(5, ["Image size : ", Length(image)]);
         orbit := Difference(orbit, image);
-        Add(partition, rec(Block := image, Element := representative));
+        Add(partition, rec(Block := image, 
+                                    Element := Immutable(representative)));
     until IsEmpty(orbit);
     
     for block in partition do
-        image := [];
         for generator in generators do
+            image := [];
             for point in block.Block do
                 Add(image, action(point, generator[1]));
             od;
-        od;
-        image := rec(Block := AsSet(image), 
-                     Element := Immutable([block.Element[1] * generator[1],
-                             generator[2] * block.Element[2]]));
-        for set in partition do
-            if image.Block <> set.Block and 
-               not IsEmpty(Intersection(image.Block, set.Block)) then
-                return Immutable([image.Block[1] * set.Block[2],
-                               set.Block[1] * image.Block[2]]);
-            fi;
+            image := rec(Block := AsSet(image), 
+                         Element := Immutable([block.Element[1] * generator[1],
+                                 generator[2] * block.Element[2]]));
+            for set in partition do
+                if image.Block <> set.Block and 
+                   not IsEmpty(Intersection(image.Block, set.Block)) then
+                    MATRIXSS_DebugPrint(3, ["Gens not ok"]);
+                    return Immutable([image.Element[1] * set.Element[2],
+                                   set.Element[1] * image.Element[2]]);
+                fi;
+            od;
         od;
     od;
     
@@ -359,9 +382,9 @@ end;
     
 MATRIXSS_VerifyMultipleGenerators :=   
   function(generators, schreierTree, point, action, hash, subGenerators, 
-          ssInfo, SGS, identity)
+          ssInfo, SGS, identity, points, IsIdentity, field)
   local lastSchreierTree, level, residue, gens, ssInfoNew, orbit,
-        dictinfo, element;
+        dictinfo, element, newSchreierTree, testPoint, i;
     
     gens := Difference(generators, subGenerators);
     gens := Union(gens, AsSet([subGenerators[1]]));
@@ -377,15 +400,15 @@ MATRIXSS_VerifyMultipleGenerators :=
     fi;
     
     ssInfoNew := [rec(
-                      partialSGS := ShallowCopy(gens),
+                      partialSGS := SGS, 
                       partialBase := point,
                       action := action,
-                      points := ssInfo[1].points,
+                      points := points,
                       hash := hash,
                       schreierTree := schreierTree,
                       oldSGS := AsSSortedList([]),
                       relations := [],
-                      IsIdentity := ssInfo[1].IsIdentity)];
+                      IsIdentity := IsIdentity)];
     Append(ssInfoNew, ssInfo);
     
     for level in [2 .. Length(subGenerators)] do
@@ -408,23 +431,49 @@ MATRIXSS_VerifyMultipleGenerators :=
                                     action, hash, identity);
             
             # check if orbit of lastSchreierTree is a block of imprimitivity
-            orbit := ShallowCopy(MATRIXSS_GetOrbit(lastSchreierTree.Tree));
+            orbit := 
+              AsSet(ShallowCopy(MATRIXSS_GetOrbit(lastSchreierTree.Tree)));
             residue := MATRIXSS_IsBlockOfImprimitivity(
                                schreierTree, gens, 
-                               AsSet(orbit), action, identity);
+                               orbit, action, identity);
             if residue[1] <> identity then
-                return MATRIXSS_GetSchreierGenerator(ssInfo[1].schreierTree,
-                               residue, orbit[1], action, identity);
+                MATRIXSS_DebugPrint(2, ["Residue from primitivity check : ",
+                        residue]);
+                i := 1;
+                repeat
+                    testPoint := orbit[i];
+                    if MATRIXSS_IsPointInOrbit(lastSchreierTree.Tree,
+                               action(testPoint, residue[1])) then
+                        break;
+                    fi;
+                    i := i + 1;
+                until false;
+                return MATRIXSS_GetSchreierGenerator(lastSchreierTree.Tree,
+                               residue, testPoint, action, identity);
             fi;
-
-            dictinfo := [orbit, true];
-            schreierTree := MATRIXSS_GetSchreierTree(fail, orbit, gens, [],
-                                    OnSets, dictinfo, identity);
-            residue := MATRIXSS_VerifySingleGenerator(gens, schreierTree,
+            
+            # Ugly hack to make Dictionaries work correctly
+            # Make sure that the hash function uses the correct finite field,
+            # and not a smaller one. It happened earlier that the hash function
+            # chose the prime field instead of the whole field.
+            element := ShallowCopy(identity[1]);
+            element[1] := PrimitiveRoot(field);
+            dictinfo := [[element], true, [[element]]];
+            
+            MATRIXSS_DebugPrint(2, ["Schreier tree for point ", orbit]);
+            MATRIXSS_DebugPrint(2, ["Using dictinfo ", dictinfo]);
+            newSchreierTree := MATRIXSS_GetSchreierTree(fail, orbit, 
+                                       gens, [], OnSets, dictinfo, identity);
+            
+            MATRIXSS_DebugPrint(2, ["Verifying single gen"]);
+            residue := MATRIXSS_VerifySingleGenerator(gens, newSchreierTree,
                                orbit, OnSets, dictinfo, subGenerators[level],
-                               ssInfoNew, ssInfoNew[1].partialSGS, identity);
+                               ssInfoNew, 
+                               ShallowCopy(Difference(gens, 
+                                       AsSet([subGenerators[level]]))), 
+                               identity);
             if residue[1] <> identity then
-                element := MATRIXSS_OrbitElement(lastSchreierTree, 
+                element := MATRIXSS_OrbitElement(lastSchreierTree.Tree, 
                                    action(point, residue[1]), action, 
                                    identity);
                 return Immutable([residue[1] * element[2],
@@ -455,13 +504,15 @@ MATRIXSS_VerifyLevel := function(ssInfo, partialSGS, level, identity)
                    ssInfo[level].action, ssInfo[level].hash,
                    Difference(SGS, ssInfo[level].partialSGS), 
                    ssInfo{[level + 1 .. Length(ssInfo)]}, 
-                   ssInfo[level].partialSGS, identity);
+                   ssInfo[level].partialSGS, identity, 
+                   ssInfo[level].points, ssInfo[level].IsIdentity,
+                   FieldOfMatrixGroup(Group(List(SGS, i -> i[1]), identity)));
 end;
 
 InstallGlobalFunction(MatrixSchreierSimsVerify, function(ssInfo, SGS, identity)
     local level, residue;
     
-    for level in Reversed([1 .. Length(ssInfo) - 1]) do
+    for level in Reversed([1 .. Length(ssInfo)]) do
         residue := MATRIXSS_VerifyLevel(ssInfo, SGS, level, identity);
         if residue[1] <> identity then
             MATRIXSS_DebugPrint(2, ["Residue found at level ", level]);

@@ -187,11 +187,12 @@ MATRIXSS_CreateInitialSchreierTree := function(root, dictinfo, identity)
     tree := CallFuncList(NewDictionary, dictinfo);
     
     # Make the root point to itself 
-    edge := Immutable([identity, identity]);
+    edge := [identity, identity];
     AddDictionary(tree, root, 
             Immutable(rec(Edge  := edge,
                           Depth := 0)));
     
+    MATRIXSS_DebugPrint(9, ["Tree: ", tree]);
     return rec(Tree := tree, Labels := [], Height := 0);
 end;
 
@@ -337,7 +338,7 @@ MATRIXSS_MonotoneTree := function(root, elements, action, identity, dictinfo)
             
             if not MATRIXSS_IsPointInOrbit(tree.Tree, newPoint) then
                 AddDictionary(tree.Tree, newPoint, rec(
-                        Edge  := element,
+                        Edge  := Immutable(ShallowCopy(element)),
                         Depth := depth));
                 Add(newPoints, newPoint);
             fi;
@@ -444,7 +445,7 @@ MATRIXSS_ExtendSchreierTree :=
     list := MATRIXSS_CopySchreierTree(oldTree.Tree, dictinfo);
     tree := list[1];
     orbit := ShallowCopy(list[2]);
-    labels := oldTree.Labels;
+    labels := ShallowCopy(oldTree.Labels);
     
     MATRIXSS_DebugPrint(4, ["Old orbit: ", orbit]);
     MATRIXSS_DebugPrint(4, ["Old gens: ", oldGenerators]);
@@ -452,7 +453,7 @@ MATRIXSS_ExtendSchreierTree :=
     
     if ValueOption("SimpleSchreierTree") = fail then
         height := 0;
-        labels := oldTree.Labels;
+        #labels := oldTree.Labels;
         repeat
             newPoints := [];
             for point in orbit do
@@ -466,7 +467,7 @@ MATRIXSS_ExtendSchreierTree :=
                         
                         if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
                             AddDictionary(tree, newPoint, 
-                                    rec(Edge := generator,
+                                    rec(Edge := Immutable(ShallowCopy(generator)),
                                                 Depth := edge.Depth + 1));
                             height := Maximum([height, edge.Depth + 1]);
                             Add(newPoints, newPoint);
@@ -501,7 +502,7 @@ MATRIXSS_ExtendSchreierTree :=
                             element[1] := element[1] * generator[1];
                             element[2] := generator[2] * element[2];
                             AddDictionary(tree, newPoint, 
-                                    Immutable(rec(Edge := element,
+                                    Immutable(rec(Edge := Immutable(element),
                                                   Depth := 1)));
                             Add(newPoints, newPoint);
                             AddSet(labels, generator);
@@ -514,7 +515,7 @@ MATRIXSS_ExtendSchreierTree :=
         height := 1;
     fi;          
     
-    return rec(Tree := tree, Labels := labels, Height := height);
+    return rec(Tree := tree, Labels := Immutable(labels), Height := height);
 end;    
 
 
@@ -545,7 +546,7 @@ MATRIXSS_ComputeSchreierTree :=
     local point, generator, newPoint, newPoints, orbit, element, 
           elements, level, newElements, orbitTree, depth, edge, height, ret,
           labels;
-    
+        
     orbit := MATRIXSS_GetOrbit(tree);
     depth := 0;
     Assert(1, Length(orbit) = 1, "Tree not empty!\n");
@@ -577,9 +578,9 @@ MATRIXSS_ComputeSchreierTree :=
             od;
             orbit := newPoints;
         until IsEmpty(orbit);
-        return rec(Tree := tree, Labels := labels, Height := 1);
+        return rec(Tree := tree, Labels := Immutable(labels), Height := 1);
     else
-        labels := generators;
+        labels := ShallowCopy(generators);
         repeat
             newPoints := [];
             depth := depth + 1;
@@ -590,8 +591,7 @@ MATRIXSS_ComputeSchreierTree :=
                     
                     if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
                         AddDictionary(tree, newPoint, 
-                                rec(Edge := 
-                                    generator,
+                                rec(Edge := Immutable(ShallowCopy(generator)),
                                     Depth := depth));
                         Add(newPoints, newPoint);
                     fi;
@@ -606,7 +606,8 @@ MATRIXSS_ComputeSchreierTree :=
                            [], action, identity, hash);
         fi;
         
-        return rec(Tree := tree, Labels := labels, Height := height);
+        return rec(Tree := tree, Labels := Immutable(labels), 
+                   Height := height);
     fi;
 end;    
 
@@ -1055,7 +1056,7 @@ MATRIXSS_RandomSchreierGenerator :=
                    action, identity);
 end;
 
-MATRIXSS_AugmentBase := function(ssInfo, newPoint, identity)
+MATRIXSS_AugmentBase := function(ssInfo, newPoint, action, hash, identity)
     local levelStruct, length;
     
     MATRIXSS_DebugPrint(3, ["Extending base"]);
@@ -1067,12 +1068,12 @@ MATRIXSS_AugmentBase := function(ssInfo, newPoint, identity)
       rec(
           partialSGS := [],
           partialBase := newPoint,
-          action := MATRIXSS_PointAction,
-          points := ssInfo[1].points,
-          hash := ssInfo[length].hash,
+          action := action,
+          points := hash[3],
+          hash := hash,
           schreierTree := MATRIXSS_CreateInitialSchreierTree(newPoint, 
-                  ssInfo[length].hash, identity),
-          oldSGS := AsSSortedList([]),
+                  hash, identity),
+          oldSGS := AsSet([]),
           relations := [],
           IsIdentity := MATRIXSS_IsIdentity);
     Add(ssInfo, levelStruct); 
@@ -1088,7 +1089,7 @@ MATRIXSS_AugmentBase := function(ssInfo, newPoint, identity)
               schreierTree := MATRIXSS_CreateInitialSchreierTree(
                       NormedRowVector(newPoint), ssInfo[length].hash, 
                       identity),
-              oldSGS := AsSSortedList([]),
+              oldSGS := AsSet([]),
               relations := [],
               IsIdentity := MATRIXSS_ProjectiveIsIdentity);
         Add(ssInfo, levelStruct); 
@@ -1121,7 +1122,8 @@ MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
     newPoint := MATRIXSS_NewBasePoint(badElement[1], identity, 
                         ssInfo[length].points);
     
-    MATRIXSS_AugmentBase(ssInfo, newPoint, identity);
+    MATRIXSS_AugmentBase(ssInfo, newPoint, MATRIXSS_PointAction, 
+            ssInfo[length].hash, identity);
 end;
 
 ###############################################################################
@@ -1206,7 +1208,8 @@ MATRIXSS_GetPartialBaseSGS :=
         gen := Immutable([element, Inverse(element)]);
         invGen := Immutable(Reversed(gen));
         level := 1;
-        while level <= Length(ssInfo) do
+        MATRIXSS_DebugPrint(3, ["Length of ssInfo : ", Length(ssInfo)]);
+        for level in [1 .. Length(ssInfo)] do
             MATRIXSS_DebugPrint(9, ["ssInfo at level ", level, " is ", 
                     ssInfo[level]]);
             point := ssInfo[level].partialBase;
@@ -1214,9 +1217,9 @@ MATRIXSS_GetPartialBaseSGS :=
                 AddSet(ssInfo[level].partialSGS, gen);
                 AddSet(ssInfo[level].partialSGS, invGen);
             else
+                level := level - 1;
                 break;
             fi;
-            level := level + 1;
         od;
         
         if level >= Length(ssInfo) then

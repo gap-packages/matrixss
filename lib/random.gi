@@ -109,6 +109,8 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
       local nIdentitySifts, element, strip, newInverseGenerator, level, order,
             point, sgsGroup;
         
+        UpdateSchreierTrees(ssInfo, Length(ssInfo), partialSGS, identity);
+        
         # Check if we are already done
         if highOrder > 0 or lowOrder > 1 then
            order := MatrixGroupOrderStabChain(ssInfo);
@@ -151,7 +153,9 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 AddSet(partialSGS, strip[1]);
                 AddSet(partialSGS, newInverseGenerator);
                 sgsGroup := Group(List(partialSGS, i -> i[1]), identity);
-        
+                
+                MATRIXSS_DebugPrint(3, ["Dropout level : ", strip[2]]);
+                
                 # Update partial SGS at each level
                 for level in [1 .. strip[2] - 1] do
                     AddSet(ssInfo[level].partialSGS, strip[1]);
@@ -268,30 +272,45 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
     
     Assert(1, identitySifts >= 1);
     
-    # Call Schreier-Sims algorithm for each level (starting from top)
+    # Call probabilistic Schreier-Sims algorithm 
     RandomSchreierSims(ssInfo, generators, identitySifts, Identity(G),
             lowOrder, highOrder);
-
+    
     MATRIXSS_DebugPrint(2, ["Random matrix Schreier-Sims done"]);
     MATRIXSS_DebugPrint(2, ["Order is : ", MatrixGroupOrderStabChain(ssInfo)]);
     
     if verify then
-        for level in [1 .. Length(ssInfo)] do
-            ssInfo[level].oldSGS := AsSSortedList([]); 
-            ssInfo[level].schreierTree := 
-              MATRIXSS_CreateInitialSchreierTree(
-                      ssInfo[level].partialBase, ssInfo[level].hash, 
-                      Identity(G));
-        od;
+        if ValueOption("STCS") <> fail then 
+            MATRIXSS_DebugPrint(2, ["Verifying using STCS"]);
             
-        MATRIXSS_DebugPrint(2, ["Verifying using STCS"]);
+            for level in [1 .. Length(ssInfo)] do
+                ssInfo[level].oldSGS := AsSet([]); 
+                ssInfo[level].schreierTree := 
+                  MATRIXSS_CreateInitialSchreierTree(
+                          ssInfo[level].partialBase, ssInfo[level].hash, 
+                          Identity(G));
+            od;
+            
         
-        # Call Schreier-Sims algorithm for each level (starting from top)
-        for level in Reversed([1 .. Length(ssInfo)]) do
-            MATRIXSS_SchreierToddCoxeterSims(ssInfo, generators, level, 
-                    Identity(G), cosetFactor);
-        od;
+            # Call Schreier-Sims algorithm for each level (starting from top)
+            for level in Reversed([1 .. Length(ssInfo)]) do
+                MATRIXSS_SchreierToddCoxeterSims(ssInfo, generators, level, 
+                        Identity(G), cosetFactor);
+            od;
+        else
+            repeat
+                element := MatrixSchreierSimsVerify(ssInfo, generators, 
+                                   Identity(G));
+                Assert(2, element.Level = 0, "Verification failed\n");
+                if element.Level > 0 then
+                    # Continue probabilistic Schreier-Sims...
+                    RandomSchreierSims(ssInfo, generators, identitySifts, 
+                            Identity(G), lowOrder, highOrder);
+                fi;
+            until element.Level = 0;
+        fi;
     fi;
+    
     MATRIXSS_DebugPrint(2, ["Order is : ", MatrixGroupOrderStabChain(ssInfo)]);
     
     return Immutable(rec(SchreierStructure := ssInfo, SGS := generators));
