@@ -18,10 +18,11 @@ Revision.("matrixss/lib/random_gi") :=
   "@(#)$Id$";
 
 # An implementation of the Schreier-Sims algorithm, for matrix groups
-InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
+InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2, 
+        function(G)
     local ssInfo, list, generators, level, points, element, RandomSchreierSims,
           identitySifts, UpdateSchreierTrees, ComputeOrder, Rattle, InitRattle,
-          ScrambleRattle, AddRattleGenerator;
+          ScrambleRattle, AddRattleGenerator, low_order, high_order, p, verify;
     
     # Updates the given Schreier trees w.r.t. to the given partial SGS
     UpdateSchreierTrees := function(ssInfo, dropoutLevel, partialSGS, identity)
@@ -213,15 +214,34 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
     end;
     
     ### MAIN Schreier-Sims 
+    
+    # Check if we want to use the random Schreier-Sims
+    if ValueOption("Random") = fail then
+        TryNextMethod();
+    fi;
+    
+    p := ValueOption("Probability");
+    verify := ValueOption("Verify");
+    low_order := ValueOption("OrderLowerBound");
+    high_order := ValueOption("OrderUpperBound");
+    
+    if p = fail or not IsRat(p) or p = 0 or p >= 1 then
+        p := 3/4;
+    fi;
+    
+    if verify = fail or not IsBool(verify) then
+        verify := false;
+    fi;
+    
+    if low_order = fail or not IsPosInt(low_order) then
+        low_order := 1;
+    fi;
+    
+    if high_order = fail or not IsPosInt(high_order) or 
+       high_order < low_order then
+        high_order := 0;
+    fi;
 
-    if not IsMatrixGroup(G) then
-        Error("<G> must be a matrix group");
-    fi;
-    
-    if not (p > 0 and p < 1) then
-        Error("<p> must be a probability, 0 < p < 1");
-    fi;
-    
     # Get initial set of generators, to be extended to a partial SGS
     generators := GeneratorsOfGroup(G);
     
@@ -279,9 +299,19 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
     
     # Call Schreier-Sims algorithm for each level (starting from top)
     RandomSchreierSims(ssInfo, generators, identitySifts, Identity(G), 
-            Order(G), Order(G), 2, 5);
+            low_order, high_order, 1000, 10);
     
     MATRIXSS_DebugPrint(2, ["Random matrix Schreier-Sims done"]);
+    
+    if verify then
+        MATRIXSS_DebugPrint(2, ["Verifying using STCS"]);
+        
+        # Call Schreier-Sims algorithm for each level (starting from top)
+        for level in Reversed([1 .. Length(ssInfo)]) do
+            MATRIXSS_SchreierToddCoxeterSims(ssInfo, generators, level, 
+                    Identity(G));
+        od;
+    fi;
     
     # Create output structure
     list := [[], generators, []];
