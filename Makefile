@@ -48,7 +48,7 @@ test:
 	gap -q < $(TEST_FILE)
 
 bench:
-	gap -q < $(BENCH_FILE)
+	gap -o 1g -K 2g -q < $(BENCH_FILE)
 
 profile:
 	gap -q < $(PROFILE_FILE)
