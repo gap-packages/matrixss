@@ -1,5 +1,5 @@
 # to create packages
-PACKAGE_FILES = Manifest
+PACKAGE_FILES = Manifest.text Manifest.bin
 CHECK_SUMS    = SHA1SUMS MD5SUMS
 DIR           := $(shell pwd)
 CUR_DIR       := $(notdir $(DIR))
@@ -53,8 +53,10 @@ release: upload www
 checksums: $(CHECK_SUMS)
 
 $(CHECK_SUMS): ChangeLog
-	md5sum `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest` > $(MD5)
-	sha1sum --text `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest` > $(SHA1)
+	md5sum `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.text` > $(MD5)
+	md5sum -b `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.bin` >> $(MD5)
+	sha1sum --text `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.text` > $(SHA1)
+	sha1sum --binary `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.bin` >> $(SHA1)
 
 NEWS: doc/www/news.html
 	html2text -style pretty < $< > $@
@@ -66,7 +68,10 @@ deb: $(PACKAGES)
 	cp tmp/$(PACKAGE).tar.gz tmp/matrixss/$(PACKAGE).orig.tar.gz
 	cvs-buildpackage -R $(DIR)/tmp -rfakeroot
 
-package: $(PACKAGES)
+manual: 
+	$(MAKE) -C doc $@
+
+package: manual $(PACKAGES)
 
 $(PACKAGES): ChangeLog checksums
 	mkdir --parents tmp/matrixss
@@ -75,9 +80,11 @@ $(PACKAGES): ChangeLog checksums
 	bzip2 --test --verbose tmp/$(PACKAGE).tar.bz2
 	gzip --best --force --verbose tmp/$(PACKAGE).tar
 	gzip --verbose --test tmp/$(PACKAGE).tar.gz
-	cd .. && cat $(CUR_DIR)/$(PACKAGE_FILES) | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -l -9 $(CUR_DIR)/tmp/$(PACKAGE).win.zip -@ && cd $(CUR_DIR)
+	cd .. && cat $(CUR_DIR)/Manifest.text | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -l -9 $(CUR_DIR)/tmp/$(PACKAGE).win.zip -@ && cd $(CUR_DIR)
+	cd .. && cat $(CUR_DIR)/Manifest.bin | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -9 $(CUR_DIR)/tmp/$(PACKAGE).win.zip -@ && cd $(CUR_DIR)
 	unzip -t tmp/$(PACKAGE).win.zip
-	cd .. && cat $(CUR_DIR)/$(PACKAGE_FILES) | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | perl -e '{ while(<>) { print; print "!TEXT!\n/END\n"; } }' | zoo achPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
+	cd .. && cat $(CUR_DIR)/Manifest.text | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | perl -e '{ while(<>) { print; print "!TEXT!\n/END\n"; } }' | zoo achPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
+	cd .. && cat $(CUR_DIR)/Manifest.bin | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | zoo ahPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
 	zoo xN tmp/$(PACKAGE).zoo
 
 upload:

@@ -2,8 +2,9 @@ Matrix Schreier-Sims Release Notes
 ==================================
 Release date : 2004-07-30
 
-A rudimentary manual has been created. The code is now more
-GAP-connected in the sense that the algorithms are methods of an
-operation StabChainMatrixGroup and the package installs a method for
-the Size attribute for finite matrix groups that uses that attribute
-to compute the order of a group.
+A rudimentary manual has been created, and it is both included in the
+package distribution and available from the package homepage. The code
+is now more GAP-connected in the sense that the algorithms are methods
+of an operation StabChainMatrixGroup and the package installs a method
+for the Size attribute for finite matrix groups that uses that
+attribute to compute the order of a group.
