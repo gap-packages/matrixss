@@ -11,6 +11,7 @@ build: build-stamp
 build-stamp:
 	$(MAKE) -C doc
 	gzip doc/manual.dvi
+	gzip doc/manual.toc
 	touch build-stamp
 
 clean:

@@ -1,2 +1,2 @@
 PackageInfo.g init.g read.g tst lib  usr/share/gap/pkg/matrixss
-doc/manual.toc doc/manual.mst doc/manual.six doc/manual.lab doc/manual.bbl doc/manual.dvi.gz doc/manual.pdf doc/*.tex usr/share/gap/pkg/matrixss/doc
+doc/manual.toc.gz doc/manual.mst doc/manual.six doc/manual.lab doc/manual.bbl doc/manual.dvi.gz doc/manual.pdf doc/*.tex usr/share/gap/pkg/matrixss/doc
