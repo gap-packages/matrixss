@@ -17,18 +17,28 @@ groups $\Sz(q)$ (where $q$ is a non-square power of $2$) and some Ree
 groups $\Ree(q)$ (where $q = 3^{1 + 2m}$ for some $m > 0$).
 
 The benchmark was carried out on quite standard PC, with an AMD Athlon
-CPU running at $2$ GHz and with $1$ GB of RAM. It is likely
+CPU running at $2$ GHz and with $1$ GB of physical RAM. It is likely
 that these were the only important parameters, since \GAP~is mainly
-CPU intensive, and there was enough of RAM to avoid any
-swapping, so the hard disk speed should be a negligible factor. The
+CPU intensive, and swapping was avoided duringd the benchmark, so the hard disk speed should be a negligible factor. The
 \GAP~installation tests gave a GAP4stones value of $194624$ and the computer
 was running the RedHat Linux operating system. 
 
-The details of the benchmark is shown in the appendix. For small groups, the existing algorithm was the faster one, but as the matrix and field size increased, our implementation became the faster one, and this indicates that the time complexity of our implementation is actually better. 
+The details of the benchmark is shown in the appendix. For most
+groups, the existing algorithm was the faster one, but for some groups
+our implementation was faster, most notably for the Suzuki groups. It
+should be noted that all running times for our implementation comes
+from using the same algorithm options, and it is possible to get
+better times, especially for the smaller groups, by elaborating with
+other options.
 
-In terms of memory, our implementation also seems to be much better.
-No rigorous memory benchmark has been performed, but during the
-benchmark, a simple inspection of the memory usage by the \GAP~process
-was carried out. This indicated that our implementation used about half the memory needed by the existing implementation, and when some tests with even larger field and matrix sizes was performed, the difference seemed even larger, since \GAP~actually ran out of memory when executing the existing implementation.
+In terms of memory, no rigorous benchmark has been performed, but
+during the above benchmark some simple checks of the amount of memory
+allocated by the \GAP~process were performed. It seemed that our
+implementation consumed less memory overall, and in some cases the
+difference was large. Indeed, since we wanted to avoid swapping during
+the benchmark, no larger Suzuki group than $\Sz(32)$ could be checked,
+since the existing implementation ran out of memory. Our
+implementation was far from having such problems, consuming no more
+than about $50$ MB for the Suzuki groups.
 
-The conclusion must therefore be that the project is quite a success.
+The conclusion must therefore be that the project is a small success.
