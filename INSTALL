@@ -4,7 +4,7 @@ Matrix Schreier-Sims Installation instructions
 The files should be put in a subdirectory "matrixss" to the gap "pkg"
 directory.
 
-In GAP, use the "RequirePackage" command to load the package, the
+In GAP, use the "LoadPackage" command to load the package, the
 package name being "matrixss". 
 
 See USAGE for a short introduction on how to use package in GAP.
