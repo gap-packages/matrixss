@@ -22,6 +22,8 @@ lib/test.gd
 lib/stcs.gi
 lib/stcs.gd
 tst/test.g
+tst/bench.g
+tst/profile.g
 tst/bench.tst
 tst/profile.tst
 tst/test.tst
