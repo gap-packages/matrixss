@@ -21,6 +21,25 @@ Release notes
 </tr>
 <tr>
 <td valign="top">
+<a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=261749" target="_top">matrixss-0.0.20040819</a></td>
+<td valign="top">Development release</td>
+<td>
+The so-called Verify routine by Sims has been implemented, from the
+description in Seress book. This seems to be a better strong
+generating test than the STCS algorithm, and one can now choose
+between them with an Option when using the probabilistic
+algorithm. The Verify algorithm is still neither cleaned up nor
+optimised in any way, so it is not fast, but it appears to be both
+sound and complete.<br>
+<br>
+The probabilistic algorithm now again uses the GAP function
+PseudoRandom to generate random group elements, since further testing
+has indicated that this is the fastest method, even though we have to
+calculate inverse matrices for the elements returned by this function.
+</td>
+</tr>
+<tr>
+<td valign="top">
 <a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=259473" target="_top">matrixss-0.0.20040810</a></td>
 <td valign="top">Development release</td>
 <td>
