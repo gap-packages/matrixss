@@ -149,3 +149,46 @@ developed. This has also been implemented in \GAP, and in this project
 it is possible to use that algorithm. However, it is not always a good
 idea to use it, since there is some overhead, and it is not certain
 that the orbit sizes will actually be smaller.
+
+\section{Further developments}
+
+The package contains implementations of two more advanced algorithms,
+the so-called \emph{Verify} routine by Sims, which is an algorithm for
+verifying if a proposed base and SGS are complete, and the nearly
+linear time algorithm for finding a base and an SGS. The complete
+descriptions of these algorithms are beyond the scope of this report,
+but for completeness we include brief accounts on them.
+
+\subsection{The Verify routine}
+
+This algorithm is due to Sims, and has never been published, but it is
+described in \cite{seress03}. Given a group $G = \gen{S}$ acting on
+the finite set $X$, a point $\alpha \in X$ and a subgroup $H = \gen{S^{\prime}} \leq G_{\alpha}$, it
+checks whether $H = G_{\alpha}$. If this is not the case, the
+algorithm computes $g \in G_{\alpha} \setminus H$ to witness that. To
+check a whole proposed base and SGS, one then uses the third case of
+Theorem \ref{thm_leon} and checks each level.
+
+The algorithm is quite involved, both theoretically and when it comes
+to implementing it. It has a recursive nature, inducting on $S \setminus
+S^{\prime}$, and it involves things like changing base points and
+computing block systems.
+
+\subsection{The nearly linear time algorithm}
+For permutation groups $G$ acting on $X$, there is an algorithm for
+computing a base and an SGS that runs in nearly linear time, ie linear
+in $\abs{X}$ except for some logarithmic factor of $\abs{X}$ and
+$\abs{G}$. It is the best known algorithm in terms of time complexity,
+and is described in \cite{seress91} as well as in \cite{seress03} and it
+is probabilistic. The complexity is achieved by using shallow
+Schreier trees, a fast probabilistic verification algorithm, and by
+sifting only a few randomly selected Schreier generators. Otherwise,
+the algorithm is quite similar to the algorithms we have described
+earlier for computing a base and an SGS.
+
+The random Schreier generators are computed using \emph{random
+  subproducts} which are described in \cite{seress03} as well as by
+selecting random group elements, and the algorithm relies on some
+theorems relating the number of Schreier generators to compute to the
+given probability of correctness.
+

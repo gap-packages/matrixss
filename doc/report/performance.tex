@@ -1,0 +1,30 @@
+\chapter{Performance}
+
+As observed earlier, one of the objectives of the project was to make
+an implementation that hopefully would be faster than the one already
+existing in \GAP. To determine if this objective was met, the
+implementation has been benchmarked and compared with the built-in
+\GAP~implementation.
+
+The algorithm has been used to compute a base and SGS for some matrix
+groups that are easy to construct in \GAP, and the generating sets
+that were used were the standard generating sets from the
+\GAP~library. The main test groups were classical groups: the general
+and special linear groups $\GL(d, q)$ and $\SL(d, q)$ and the general
+and special orthogonal groups $\GO(d, q)$ and $\SO(d, q)$, for various
+(small) $d$ and $q$. The algorithm were also tested on some Suzuki
+groups $\Sz(q)$ (where $q$ is a non-square power of $2$) and some Ree
+groups $\Ree(q)$ (where $q = 3^{1 + 2m}$ for some $m > 0$).
+
+The benchmark was carried out on quite standard PC, with an Intel Celeron
+CPU running at $1,7$ GHz and with $128$ MB of RAM. It is likely
+that these were the only important parameters, since \GAP~is mainly
+CPU intensive, and there seemed to be enough of RAM to avoid any
+swapping, so the hard disk speed should be a negligible factor. The computer
+was running the Debian GNU/Linux operating system. 
+
+The details of the benchmark is shown in the appendix. In general, it
+turned out that the existing algorithm was the faster one, but
+for some groups, the Suzuki groups for instance, our implementation
+was much faster. The conclusion must therefore be that the project actually
+is a success, however small.

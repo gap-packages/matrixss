@@ -6,12 +6,12 @@ We will now describe the Schreier-Sims algorithm, and the references we are usin
 The overall goal for work in group theory is to understand groups, and
 to answer various questions about groups. In particular, in CGT the
 interest is focused on questions of algorithmic nature, so given a
-group $G$ we are interested in algorithms for things like
+group $G$ we are interested in algorithms for things like the following:
 \begin{itemize}
 \item What is $\abs{G}$?
-\item We want to list all elements of $G$, without repetition.
+\item List all elements of $G$, without repetition.
 \item If $G \leq H$ and we are given an arbitrary $g \in H$, is it true that $g \in G$? This is referred to as \emph{the membership problem}.
-\item We want to generate a random $g \in G$.
+\item Generate a random $g \in G$.
 \item Is $G$ abelian (soluble, polycyclic, nilpotent)?
 \item Find representatives for the conjugacy classes of $G$.
 \item Find a composition series for $G$, including the (isomorphism classes of the) composition factors.
@@ -80,13 +80,13 @@ section we know that even if we have a base $(\alpha_1, \dotsc,
 \alpha_n)$ for $G$, with corresponding stabiliser chain $G \geq G^1
 \geq \dotsb G^n = 1$, we also need to find right transversals of the cosets of
 $G^{i + 1}$ in $G^i$ for $i = 1, \dotsc, n - 1$. But since these groups
-are stabilisers from the action on $X$, we can use
+are stabilisers from the action on $X$, we can use Proposition
 \ref{thm_orbit_stab} and instead find the orbits $\alpha_1^G,
 \alpha_2^{G^1}, \dotsc, \alpha_n^{G^{n - 1}}$. We will see that the orbits are straightforward to compute.
 
 The action of $G$ on $X$ can be represented by a labelled graph with
 labels from $S$, analogous to the Cayley graph $\C_S(G)$ of $G$ from
-\ref{def_cayley}. Let the vertices of the graph be $X$ and the edges
+Definition \ref{def_cayley}. Let the vertices of the graph be $X$ and the edges
 be $\{(p, p^g) \mid p \in X, g \in G\}$, where the edge $(p, p^g)$ is
 labelled by $g$. Obviously the orbits of the action are the connected
 components of this graph, so $\alpha_1^G$ is the component containing
@@ -100,15 +100,15 @@ considerably easier to store than graphs.
 
 \begin{deff} \label{def_bsgs}
   Let $G$ be a group acting on the finite set $X$ and let $\alpha \in
-  X$. A spanning tree for the component in the corresponding graph
-  containing $\alpha$, that is rooted at $\alpha$, is called a
+  X$. A spanning tree rooted at $\alpha$ for the component in the corresponding graph
+  containing $\alpha$ is called a
   \emph{Schreier tree} for the orbit $\alpha^G$.
 \end{deff}
 
 The Schreier tree can be computed by a simple breadth-first search of
-the component containing $\alpha_1$, and thus we have an algorithm for
+the component containing $\alpha$, and thus we have an algorithm for
 finding the orbits. However, it is of course not a computationally
-good idea to explictly generate the graph, then compute the conntected
+good idea to explictly generate the graph, then compute the connected
 components and finally find the Schreier trees. A breadth-first search
 to find the Schreier tree can be done without the graph itself, as
 demonstrated by \ref{alg:orbit}.
@@ -149,10 +149,10 @@ demonstrated by \ref{alg:orbit}.
 \refstepcounter{algorithm}
 \label{alg:orbit}
 \end{algorithm}
-We noted above that we used \ref{thm_orbit_stab} to store the orbits
+We noted above that we used Proposition \ref{thm_orbit_stab} to store the orbits
 instead of the coset representatives, but we still need the latter, so
-we must be able to compute them. That is straightforward to do when we
-have a Schreier tree, however.  Assume we have a Schreier tree $T =
+we must be able to compute them. Fortunately, that is straightforward to do when we
+have a Schreier tree.  Assume we have a Schreier tree $T =
 (V, E)$ for the orbit $\alpha^G$ for some point $\alpha \in X$. If $g
 \in G$ then $\alpha^g \in V$ and there is a path from $\alpha$ to
 $\alpha^g$ in $T$. Let $s_1, s_2, \dotsc, s_n$ be the labels of the
@@ -197,7 +197,7 @@ To more formally state the problem solved by the Schreier-Sims algorithm, the fo
   $B = (\alpha_1, \dotsc, \alpha_n)$ of $X$ and a generating set $S$ for $G$, such that no element of $S$ fixes all points of $B$, is called a \emph{partial base} and \emph{partial strong generating set}, respectively. 
 \end{deff}
 \begin{remark}
-A base and strong generating set as in \ref{def_bsgs} are called \emph{complete}.
+A base and strong generating set as in Definition \ref{def_bsgs} are called \emph{complete}.
 \end{remark}
 \begin{remark} \label{rmk_partial_bsgs}
   If we define $G^i = G_{\alpha_1, \dotsc, \alpha_i}$, $S^i = S \cap
@@ -209,7 +209,7 @@ G & \geq G^1 \geq \dotsb \geq G^n \\
 G & \geq H^1 \geq \dotsb \geq H^n = 1 
 \end{align}
 Moreover, $G^i \geq \gen{S^i} = H^i$ for $i = 1, \dotsc, n$ and if we
-have equality then, by \ref{def_bsgs}, $S$ and $B$ are complete. If $h
+have equality then, by Definition \ref{def_bsgs}, $S$ and $B$ are complete. If $h
 \in H^{i + 1} = \gen{S^{i + 1}} = \gen{S \cap G^{i + 1}}$ then $h = s_1 \dotsm s_k$ where $\alpha_{i + 1}^{s_j} = \alpha_{i + 1}$ for $j = 1, \dotsc, k$ so $\alpha_{i + 1}^h = \alpha_{i + 1}$ and therefore $h \in H^i_{\alpha_{i + 1}}$. Thus $H^{i + 1} \leq H^i_{\alpha_{i + 1}}$ for $i = 0, \dotsc, n - 1$.
 \end{remark}
 
@@ -236,11 +236,11 @@ solved by the Schreier-Sims algorithm.
 \end{enumerate}
 \end{theorem}
 \begin{proof}
-From \ref{rmk_partial_bsgs} we know that \eqref{leon80_1} and \eqref{leon80_2} are equivalent. Assuming \eqref{leon80_2} we have
+From Remark \ref{rmk_partial_bsgs} we know that \eqref{leon80_1} and \eqref{leon80_2} are equivalent. Assuming \eqref{leon80_2} we have
 \begin{equation}
 H^i_{\alpha_{i + 1}} = G^i_{\alpha_{i + 1}} = G^{i + 1} = H^{i + 1}
 \end{equation}
-for $i = 0, \dotsc, n - 1$ which is precisely \eqref{leon80_3}. If we instead assume \eqref{leon80_3} and also assume for induction that $G^i = H^i$ (the basis case $G = H^0 = G^0$ is ok) then
+for $i = 0, \dotsc, n - 1$ which is precisely \eqref{leon80_3}. If we instead assume \eqref{leon80_3} and also assume for induction that $G^i = H^i$ (the base case $G = H^0 = G^0$ is ok) then
 \begin{equation}
 G^{i + 1} = G^i_{\alpha_{i + 1}} = H^i_{\alpha_{i + 1}} = H^{i + 1}
 \end{equation}
@@ -249,7 +249,7 @@ so by induction we get $G^i = H^i$ for $i = 0, \dotsc, n$, which is \eqref{leon8
 Now assume \eqref{leon80_3} and note that from \ref{thm_orbit_stab} we
 have $[H^i : H^i_{\alpha_{i + 1}}] = \abs{\alpha_{i+1}^{H^i}}$, so
 since $H^i_{\alpha_{i + 1}} = H^{i + 1}$ we get \eqref{leon80_4}.
-Finally, assume \eqref{leon80_4}. From \ref{rmk_partial_bsgs} we know
+Finally, assume \eqref{leon80_4}. From Remark \ref{rmk_partial_bsgs} we know
 $H^i_{\alpha_{i + 1}} \geq H^{i + 1}$ so if we again use
 \ref{thm_orbit_stab} we get $\abs{\alpha_{i+1}^{H^i}} = [H^i : H^{i +
   1}] \geq [H^i : H^i_{\alpha_{i + 1}}] = \abs{\alpha_{i+1}^{H^i}}$
@@ -261,7 +261,10 @@ generating set, but Schreier-Sims algorithm requires a partial base
 and a partial strong generating set as input. Those are easy to
 compute, though, using \ref{alg:partial_bsgs}. The algorithm also
 makes sure that the partial strong generating set is closed under
-inverses, which makes some implementation issues more uniform. Later we will see how the function \texttt{NewBasePoint} that is used in \ref{alg:partial_bsgs} can be implemented when $G$ is a matrix group.
+inverses and does not contain the identity, which removes the need to
+consider some special cases later on. We will see how the function
+\texttt{NewBasePoint} that is used in \ref{alg:partial_bsgs} can be
+implemented when $G$ is a matrix group.
 
 \begin{algorithm} 
 \dontprintsemicolon
@@ -339,7 +342,7 @@ the orbit $\alpha^G$ using \ref{alg:orbit} then we know that
 $G_{\alpha}$ in $G$. 
 
 For $p \in X$, let $t(p) \in G$ denote the result of \ref{alg:trace}.
-Using the notation in \ref{schreiers_lemma} we then have $\bar{g} =
+Using the notation in Theorem \ref{schreiers_lemma} we then have $\bar{g} =
 t(\alpha^g)$ and the transversal is $\set{t(p) \mid p \in \alpha^G}$,
 so for $s \in S$ and $p \in \alpha^G$ the Schreier generator can be
 expressed as
@@ -569,7 +572,7 @@ generators considered, by making use of \ref{alg:membership}.
 
 Using
 the notation from Theorem \ref{thm_leon}, we want to show that
-$H^i_{\alpha_{i + 1}} = H^{i + 1}$ for eavch $i$, or equivalently that
+$H^i_{\alpha_{i + 1}} = H^{i + 1}$ for each $i$, or equivalently that
 all Schreier generators for $H^i$ are in $H^{i + 1}$. If we proceed
 from $i = n - 1, \dotsc, 0$ instead of the other way, then for $H^n = 1$ we obviously already have a base and strong generating set,
 so we can use \ref{alg:membership} to check if the Schreier generators
@@ -673,24 +676,23 @@ some $d \geq 1$ and some $q = p^r$ where $p$ is a prime number and $r
 \geq 1$. Here, $d$ is called the \emph{degree} of $G$ and is the
 number of rows (columns) of the matrices in $G$, and $q$ is the finite
 field size, ie $G$ contains matrices over $\GF(q) = \F_q$. In this
-setting, $G$ acts naturally and faithfully on the vector space $X = \F_q^d$ from the
-right by multiplication of a row vector with a matrix. We denote the standard base in $F_q^d$ by $e_1, e_2, \dotsc, e_d$.
+setting, $G$ acts faithfully from the right on the vector space $X = \F_q^d$, by multiplication of a row vector with a matrix. We denote the standard base in $\F_q^d$ by $\mathbf{e}_1, \mathbf{e}_2, \dotsc, \mathbf{e}_d$.
 
 What remains to specify is the algorithm \texttt{NewBasePoint}, which
 depends on the particular point set $X$ and the action that is used.
 To construct this algorithm, we observe that given a matrix $M \neq I
-\in G$, if $M_{ij} \neq 0$ for some $i \neq j$ then $e_i M \neq e_i$
-so the row vector $e_i$ is a point moved by $M$. If $M$ instead is
+\in G$, if $M_{ij} \neq 0$ for some $i \neq j$ then $\mathbf{e}_i M \neq \mathbf{e}_i$
+so the row vector $\mathbf{e}_i$ is a point moved by $M$. If $M$ instead is
 diagonal, but not a scalar matrix, then $M_{ii} \neq M_{jj}$ for some
-$i \neq j$, and $(e_i + e_j) M \neq e_i + e_j$ so this row vector is
+$i \neq j$, and $(\mathbf{e}_i + \mathbf{e}_j) M \neq \mathbf{e}_i + \mathbf{e}_j$ so this row vector is
 moved by $M$. Finally if $M$ is scalar, then $M_{11} \neq 1$ since $M
-\neq I$ and thus $e_1 M \neq e_1$. This translates directly into \ref{alg:new_base_point}.
+\neq I$ and thus $\mathbf{e}_1 M \neq \mathbf{e}_1$. This translates directly into \ref{alg:new_base_point}.
 
 \begin{algorithm} 
 \dontprintsemicolon
 \caption{\texttt{NewBasePoint}}
 \KwData{A matrix $M \neq I \in G \leq \GL(d, q)$.}
-\KwResult{A row vector $v \in \F_q^d$ such that $vM \neq v$}.
+\KwResult{A row vector $\mathbf{v} \in \F_q^d$ such that $\mathbf{v} M \neq \mathbf{v}$}.
 \SetKw{KwAnd}{and}
 \Begin
 {
@@ -700,7 +702,7 @@ moved by $M$. Finally if $M$ is scalar, then $M_{11} \neq 1$ since $M
     {
       \If{$i \neq j$ \KwAnd $M_{ij} \neq 0$}
       {
-        \Return{$e_i$}
+        \Return{$\mathbf{e}_i$}
       }
     }
   }
@@ -710,11 +712,11 @@ moved by $M$. Finally if $M$ is scalar, then $M_{11} \neq 1$ since $M
     {
       \If{$i \neq j$ \KwAnd $M_{ii} \neq M_{jj}$}
       {
-        \Return{$e_i + e_j$}
+        \Return{$\mathbf{e}_i + \mathbf{e}_j$}
       }
     }
   }
-  \Return{$e_1$}
+  \Return{$\mathbf{e}_1$}
 }
 \refstepcounter{algorithm}
 \label{alg:new_base_point}
@@ -725,7 +727,7 @@ We now analyse the time complexity of some of the given algorithms, but we
 will not be interested in space complexity. For the analysis we assume
 that the external functions \texttt{Tree}, \texttt{AddChild} and
 \texttt{EdgeLabel}, that depend on the particular datastructure used,
-take time $\Theta(1)$ This is a reasonable assumption and it is satisfied
+take $\Theta(1)$ time. This is a reasonable assumption and it is satisfied
 in the code for the project, which uses hash tables to implement the Schreier trees. We also assume that the datastructure
 used for sets is a sorted list, so that elements can be found, added and
 removed in logarithmic time using binary search. This assumption is
@@ -733,33 +735,32 @@ satisfied in \GAP.
 
 Moreover, since we are working in a matrix group $G = \gen{S} \leq
 \GL(d, q)$ that acts on the vector space $X = \F_q^d$, we know that
-the multiplication of two group elements takes time $\Theta(d^3)$ and
-that the action of a group element on a point takes time
-$\Theta(d^2)$, under the assumption that the multiplication of two
-elements from $\F_q$ takes time $\Theta(1)$. This assumption is
-reasonable since we are mostly interested in the case when $q$ is
-small, so that one field element can be stored in a machine word and manipulated in constant time. Then
+the multiplication of two group elements takes $\Theta(d^3)$ time and
+that the action of a group element on a point takes 
+$\Theta(d^2)$ time, under the assumption that the multiplication of two
+elements from $\F_q$ takes $\Theta(1)$ time. This assumption is
+reasonable since we are mostly interested in the case when $q$ is not too large, so that one field element can be stored in a machine word and manipulated in constant time. Then
 we also see that testing equality between two group elements takes
-time $\OR{d^2}$ and testing equality between two points takes time
-$\OR{d}$.
+$\OR{d^2}$ time and testing equality between two points takes 
+$\OR{d}$ time.
 
 Consider first \ref{alg:orbit}. We know that it is a breadth-first
 search and we know that a simple breadth-first search on a graph
-$\mathcal{G} = (V, E)$ takes time $\OR{\abs{V} + \abs{E}}$. In our case
+$\mathcal{G} = (V, E)$ takes $\OR{\abs{V} + \abs{E}}$ time. In our case
 we have $\abs{E} = \abs{V} \abs{S} = \abs{X} \abs{S}$, so the edges
 are dominating. We also see that line \ref{alg:orbit_innerloop1}
-takes time $\Theta(d^2)$ and line \ref{alg:orbit_innerloop2} takes
-time $\OR{\log{\abs{S}}}$ since the size of the set
+takes $\Theta(d^2)$ time and line \ref{alg:orbit_innerloop2} takes
+$\OR{\log{\abs{S}}}$ time since the size of the set
 \textsf{children} is bounded by $\abs{S}$. The former line is therefore dominating, and thus we have that
-\ref{alg:orbit} takes time $\OR{\abs{X}\abs{S} d^2}$.
+\ref{alg:orbit} takes $\OR{\abs{X}\abs{S} d^2}$ time.
 
 For \ref{alg:trace} we just note that in a tree with vertex set $V$,
 the depth of any node is bounded by $\abs{V}$. In our case the
 vertices of the Schreier tree is the points of the orbit, which may be
-the whole of $X$ is the action is transitive. Therefore we see that
+the whole of $X$ if the action is transitive. Therefore we see that
 \ref{alg:trace} takes time $\OR{\abs{X} d^4}$.
 
-It is obvious that \ref{alg:new_base_point} takes time $\OR{d^2}$, and
+It is obvious that \ref{alg:new_base_point} takes time $\OR{d^3}$, and
 it is also obvious that \ref{alg:get_schreier_gen} takes time
 $\OR{\abs{X} d^2 + d^3} = \OR{\abs{X} d^2}$. In \ref{alg:partial_bsgs}
 we see that line \ref{alg:partial_bsgs_innerloop2} takes time $\OR{1}$

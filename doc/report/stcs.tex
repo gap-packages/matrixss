@@ -1,0 +1,119 @@
+\chapter{The Schreier-Todd-Coxeter-Sims algorithm}
+
+Coset enumeration is one of the oldest algorithms in group theory, and
+it was first described in \cite{tc36}. Given a finitely presented
+group $G$ and $H \leq G$, the aim of coset enumeration is to construct
+the list of the cosets of $H$ in $G$, ie to find a set $X$ with a
+point $p \in X$ such that $G$ acts transitively on $X$ and such that
+$H = G_p$. The set $X$ is usually taken to be $\set{1, \dotsc, n}$ for
+some $n$ and $p = 1$. If the index of $H$ is not finite, then the algorithm will usually not terminate.
+
+The coset enumeration is a trial-and-error process, and quite a few
+strategies have been developed over the years. We will not be
+concerned about the actual algorithm, since it is beyond the scope of this report, and there is a good
+implementation in \GAP, which is used in this project. A more detailed
+description of coset enumeration can be found in \cite{sims98}.
+
+However, it is important to be aware of the overall structure of coset
+enumeration. It works by letting the elements of $G$ act on $X$ and
+introducing new cosets when necessary. Then it may happen that some
+cosets turn out to be the same and thus are identified in the list.
+The structure of the algorithm makes it possible to exit prematurely
+when a given number of cosets have been defined, and this can be used
+if one knows an upper bound on the number of cosets.
+
+In our case, we want to use the last case of Theorem \ref{thm_leon}.
+At level $i$ of Schreier-Sims algorithm, we know that the base and SGS
+are complete for higher levels, and want to verify that $H^{i + 1} =
+H^i_{\alpha_{i + 1}}$, which by the theorem is equivalent to $[H^i :
+H^{i + 1}] = \abs{\alpha_{i + 1}^{H^i}}$ and since we can compute a
+Schreier tree for $\alpha_{i + 1}^{H^i}$ we know the orbit size. Thus,
+if we can compute $[H^i : H^{i + 1}]$ using coset enumeration and it turns out to be equal the
+orbit size, it is unnecessary to compute any Schreier generators and
+check for membership.
+
+All this is formalised in \ref{alg:stcs} where we use the option to
+exit the coset enumeration after $M \abs{\alpha_{i + 1}^{H^i}}$ cosets have
+been defined, for some rational number $M \geq 1$, since this
+certainly is an upper bound. In our implementation, the number $M$ can
+be specified by the user, and the default is $M = 6/5$. This
+value comes from \cite{leon80}, where the algorithm was introduced and
+some experimentation was carried out to determine a good value of $M$.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{SchreierToddCoxeterSims}}
+\SetKwFunction{GetSchreierGenerator}{GetSchreierGenerator}
+\SetKwFunction{ComputeSchreierTree}{ComputeSchreierTree}
+\SetKwFunction{NewBasePoint}{NewBasePoint}
+\SetKwFunction{Membership}{Membership}
+\SetKwFunction{ToddCoxeter}{ToddCoxeter}
+\SetKwFunction{SchreierToddCoxeterSims}{SchreierToddCoxeterSims}
+\SetKwData{Tree}{tree}
+\SetKwData{Gens}{gens}
+\SetKwData{Gen}{gen}
+\SetKwData{Point}{point}
+\SetKwData{Table}{table}
+\SetKwData{Residue}{residue}
+\SetKwData{DropOut}{dropout}
+
+\KwData{A group $G$ acting on a finite set $X$, a partial base $B =
+  (\alpha_1, \dotsc, \alpha_k)$ and corresponding partial strong
+  generating set $S$ for $G$, an integer $1 \leq i \leq k$ such that
+  $H^{j - 1}_{\alpha_j} = H^j$ for $j = i + 1, \dotsc, k$, and
+  Schreier trees $T^{j - 1}$ for $\alpha_j^{H^{j - 1}}$ for $j = i + 1, \dotsc,
+  k$.}
+
+\KwResult{Possibly extended partial base $B = (\alpha_1, \dotsc,
+  \alpha_m)$ and corresponding partial strong generating $S$ set for
+  $G$ such that $H^{j - 1}_{\alpha_j} = H^j$ for $j = i, \dotsc,
+  m$ and Schreier trees $T^{j - 1}$ for $\alpha_j^{H^{j - 1}}$ for $j = i,
+  \dotsc, m$.}
+
+\tcc{Assumes the existence of a function \texttt{NewBasePoint}$(g)$ that returns a point $p \in X$ such that $p^g \neq p$.}
+\tcc{Assumes the existence of a function \texttt{ToddCoxeter}$(U_1, U_2, k)$ that performs coset enumeration on $G = \gen{U_1}$ and $H = \gen{U_2} \leq G$, exiting when $k$ cosets have been defined.}
+\Begin
+{
+  $\Gens := S^i$ \;
+  $T^{i - 1} := \ComputeSchreierTree(\Gens, \alpha_i)$ \;
+  \ForEach{$p \in \alpha_i^{H^{i - 1}}$}
+  {
+    \ForEach{$s \in \Gens$}
+    {
+      $\Table := \ToddCoxeter(S^i, S^{i + 1}, \abs{T^i} + 1)$ \;
+      \If{$\abs{\Table} = \abs{T^i}$}
+      {
+        \Return{$(B, S)$}
+      }
+      $\Gen := \GetSchreierGenerator(T^{i - 1}, p, s)$ \;
+      \If{$\Gen \neq 1$}
+      {
+        $(\Residue, \DropOut) := \Membership(T^i, \dotsc, T^k, \Gen)$ \;
+        \If{$\Residue \neq 1$}
+        {
+          $S := S \cup \set{\Gen, \Gen^{-1}}$ \;
+          \If{$\DropOut = k + 1$}
+          {
+            $\Point := \NewBasePoint(\Gen)$ \;
+            $B := B \cup \set{\Point}$ \;
+          }
+          \For{$j := r$ \KwTo $i + 1$}
+          {
+            $(B, S) := \SchreierToddCoxeterSims(B, S, j)$ \;
+          }
+        }
+      }    
+    }
+  }
+  \Return{$(B, S)$}
+}
+\refstepcounter{algorithm}
+\label{alg:stcs}
+\end{algorithm}
+
+The Schreier-Todd-Coxeter-Sims algorithm is known to perform
+particularly good when the input partial base and SGS are actually
+already complete. Thus, it can be used for \emph{verification} of the output
+from a probabilistic algorithm, and in this project it is mainly used
+in that way, to verify the output from the probabilistic algorithm
+described earlier.

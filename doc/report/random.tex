@@ -1,0 +1,208 @@
+\chapter{The probabilistic Schreier-Sims algorithm}
+It is well-known in computer science that probabilistic algorithms
+often turn out to be much simpler in structure than the corresponding
+deterministic algorithms for the same problem, while still producing
+good solutions. That the algoritms are simpler usually means that they
+can be made more efficient and are easier to implement. 
+
+On the other hand, the drawback with the probabilistic approach is
+that there is a non-zero probability that the algorithms in some sense
+can ''lie'', ie return incorrect solutions. An introduction to the
+subject and the various complexity classes can be found in
+\cite{papadimitriou94}.
+
+The probabilistic Schreier-Sims algorithm is a good example of this
+situation. It was first described in \cite{leon80}, and the idea comes from the following
+\begin{theorem} \label{thm_rand_schreier1}
+  Let $G$ be a group acting on the finite set $X$, and let $B =
+  (\alpha_1, \dotsc, \alpha_k)$ be a partial base and $S$ a partial
+  strong generating set for $G$. For $i = 1, \dotsc, n$, let $G^i =
+  G_{\alpha_1, \dotsc, \alpha_i}$, $S^i = S \cap G^i$, $H^i =
+  \gen{S^i}$, let $G = G^0 = H^0$ and let $T^i$ be a right transversal for the cosets of
+  $H^{i - 1}_{\alpha_i}$ in $H^{i - 1}$. Then $\abs{\prod_{i = 1}^n T^i}$ divides $\abs{G}$.
+\end{theorem}
+\begin{proof}
+Since $\abs{T^i} = [H^{i - 1} : H^{i - 1}_{\alpha_i}]$ we have 
+\begin{equation}
+\begin{split}
+\abs{G} &= \prod_{i = 1}^n [H^{i - 1} : H^i] = \prod_{i = 1}^n [H^{i - 1} : H^{i - 1}_{\alpha_i}] [H^{i - 1}_{\alpha_i} : H^i] = \\
+&= \left( \prod_{i = 1}^n \abs{T^i} \right) \left( \prod_{i = 1}^n [H^{i - 1}_{\alpha_i} : H^i] \right)
+\end{split}
+\end{equation}
+and thus the theorem follows.
+\end{proof}
+
+\begin{cl} \label{thm_random_schreier2}
+  Let $G$ be a group acting on the finite set $X$, and let $B =
+  (\alpha_1, \dotsc, \alpha_k)$ be a partial base and $S$ a partial
+  strong generating set for $G$. If $B$ and $S$ are not complete and $g \in G$ is a uniformly random element, then the probability that \ref{alg:membership} returns residue $r \neq 1$ when given $g$ is at least $1/2$.
+\end{cl}
+\begin{proof}
+  We see that even if $B$ and $S$ are not complete, we can compute
+  Schreier trees for the orbits $\alpha_{i + 1}^{H^i}$ for $i = 0,
+  \dotsc, n - 1$ and feed them to \ref{alg:membership} which then
+  tries to express $g$ in terms of the corresponding right
+  transversals $T^i$ for $[H^{i - 1} : H^{i - 1}_{\alpha_i}]$.
+  
+  Thus, \ref{alg:membership} checks if $g \in \prod_{i = 1}^n T^i$ and
+  by Theorem \ref{thm_rand_schreier1}, if $\prod_{i = 1}^n T^i$ is not
+  the whole $G$, then it contains at most half of the elements of $G$.
+  Therefore, since $g$ is uniformly random, we have $\Pr{g \notin
+    \prod_{i = 1}^n T^i} \geq 1/2$.
+\end{proof}
+
+This suggests a probabilistic algorithm for computing a base and a
+strong generating set. Given a partial base and partial strong
+generating set for $G$, compute Schreier trees and chose random
+elements uniformly from $G$. Use \ref{alg:membership} on each element,
+and if it returns a non-trivial residue, add it to the partial SGS,
+and possibly augment the base.
+
+If the base and SGS are complete, then of course the residue will be trivial. On the other hand, if the base and SGS are not complete, then by
+Corollary \ref{thm_random_schreier2}, the probability that $k$
+consecutive random elements have trivial residues is less than
+$2^{-k}$. We can thus choose a large enough $k$ for our purposes and
+assume that the base and SGS are complete when we have stripped $k$
+consecutive random elements to the identity. This is formalised in
+\ref{alg:random_schreier}.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{RandomSchreierSims}}
+\SetKwFunction{ComputeSchreierTree}{ComputeSchreierTree}
+\SetKwFunction{NewBasePoint}{NewBasePoint}
+\SetKwFunction{Random}{Random}
+\SetKwFunction{Membership}{Membership}
+\SetKwData{Tree}{tree}
+\SetKwData{Sifts}{sifts}
+\SetKwData{Element}{element}
+\SetKwData{Point}{point}
+\SetKwData{Residue}{residue}
+\SetKwData{DropOut}{dropout}
+
+\KwData{A group $G$ acting on a finite set $X$, a partial base $B =
+  (\alpha_1, \dotsc, \alpha_k)$ and corresponding partial strong
+  generating set $S$ for $G$, an integer $m \geq 1$ and Schreier trees $T^{j - 1}$ for $\alpha_i^{H^{i - 1}}$ for $i = 1, \dotsc, k$.}
+
+\KwResult{Possibly extended partial base $B = (\alpha_1, \dotsc,
+  \alpha_n)$ and corresponding partial strong generating $S$ set for
+  $G$ such that $m$ consecutive random elements have been stripped to identity with respect to $B$ and $S$.}
+
+\tcc{Assumes the existence of a function \texttt{NewBasePoint}$(g)$ that returns a point $p \in X$ such that $p^g \neq p$.}
+\tcc{Assumes the existence of a function \texttt{Random}$(G)$ that returns a uniformly random element from the group $G$.}
+\Begin
+{
+  $\Sifts := 0$ \;
+  \While{$\Sifts < m$}
+  {
+    $\Element := \Random(G)$ \;
+    $(\Residue, \DropOut) := \Membership(T^1, \dotsc, T^k, \Element)$ \;
+    \eIf{$\Residue \neq 1$}
+    {
+      $S := S \cup \set{\Element, \Element^{-1}}$ \;
+      \If{$\DropOut = k + 1$}
+      {
+        $\Point := \NewBasePoint(\Element)$ \;
+        $B := B \cup \set{\Point}$ \;
+        $k := k + 1$ \;
+      }
+      
+      \For{$i := 1$ \KwTo $k$}
+      {
+        $T^i := \ComputeSchreierTree(S^i, \alpha_i)$ \;
+      }
+      $\Sifts := 0$ \;
+    }
+    {
+      $\Sifts := \Sifts + 1$ \;
+    }
+  }
+  \Return{$(B, S)$}
+}
+\refstepcounter{algorithm}
+\label{alg:random_schreier}
+\end{algorithm}
+
+Indeed, \ref{alg:random_schreier} is simpler than \ref{alg:ss} and
+implementations are usually faster. However, it is not clear how the
+algorithm \texttt{Random} should be constructed. First of all, we need
+random bits, and the generation of pseudo-random bits is an old
+problem in computer science, see \cite{papadimitriou94} and \cite{knuth97}, which we will not dwell into. Instead, we will assume that uniformly random bits are available.
+
+\section{Random group elements}
+
+The generation of random group elements is also difficult in general,
+and an introduction to the topic can be found in \cite{babai96}. If
+one knows a base and strong generating set one can easily generate
+random elements by using the factorisation described in section
+\ref{section:bsgs}, select random elements from each transversal and
+multiply them. In our case we do not yet have a base and an SGS, since that is what we are trying to compute, and
+then the only known algorithm that can \emph{provably} generate (almost)
+uniformly random group elements is described in \cite{babai91} and
+runs in time $\OR{d^{10} (\log{q})^5}$ for subgroups of $\GL(d, q)$, and
+this is too slow for our purposes.
+
+The practical algorithms are instead \emph{heuristics}, see
+\cite{kann99}, for which there are no \emph{proven} guarantees for any
+uniformly randomness, but instead experimentation and statistical
+analysis has shown them to be good. It appears that the most
+successful algorithm is the \emph{product replacement} algorithm, also
+called ''Shake'', which is originally an idea by Charles Leedham-Green and
+Leonard Soicher, and is described in \cite{lg95}. 
+
+We will not dwell deeper into the analysis of this algorithm, but
+the algorithm itself is quite simple. Given a group $G =
+\gen{g_1, \dotsc, g_n}$, the ''Shake'' algorithm maintains a global
+variable $S = (a_1, \dotsc, a_m) \in G^m$ for some $m \geq n$, and
+then each call to \ref{alg:shake} returns a proposed random group
+element.
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{Shake}}
+\SetKwFunction{RandomInteger}{RandomInteger}
+\SetKwData{State}{state}
+
+\KwData{The global state $S = (a_1, \dotsc, a_m) \in G^m$}
+
+\KwResult{An element in $G$ that hopefully is a good approximation of a uniformly random element from $G$.}
+
+\tcc{Assumes the existence of a function \texttt{RandomInteger}($k$) that returns a uniformly random integer from the set $\set{0, \dotsc, k}$}
+\Begin
+{
+  $i := \RandomInteger(m)$ \;
+  \Repeat{$i \neq j$}
+  {
+    $j := \RandomInteger(m)$ \;
+  }
+  \eIf{$\RandomInteger(1) = 0$}
+  {
+    $b := a_i a_j$ \;
+  }
+  {
+    $b  := a_j a_i$ \;
+  }
+  $a_i := b$ \;
+  \Return{$b$}
+}
+\refstepcounter{algorithm}
+\label{alg:shake}
+\end{algorithm}
+
+Evidently, the algorithm is very cheap in terms of time and space. The
+questions that remain are how the state $S$ should be initialised and
+how $m$ should be chosen, and the ability of the algorithm to generate
+uniformly random group elements are highly dependent on the answers.
+In \cite{lg95} the suggestion is that $m = \max (10, 2n + 1)$ and that
+$S$ is initialised to contain the generators $g_1, \dotsc, g_n$, the
+rest being identity elements. Moreover, the state should be
+initiliased by calling \ref{alg:shake} a number $K$ of times and
+discarding the results, and the suggestion is that $K \geq 60$.
+
+In \cite{niemeyer01} this algorithm is also described, as well as a
+variant of it, called ''Rattle'', which is due to Leedham-Green. The
+algorithms are compared and ''Rattle'' is found to be slightly better,
+but its running time is a bit higher. In \GAP, there is an
+implementation of the ''Shake'' algorithm, which is used in this
+project. An implementation of ''Rattle'' was also made, but it turned
+out that it was not efficient enough.
+

@@ -25,7 +25,7 @@ graphs we are interested in.
 \end{remark}
 
 \begin{deff} \label{def_graph_misc}
-Let $G = (V, E)$ is a graph, a sequence $v = v_1, v_2, \dotsc, v_n =
+If $G = (V, E)$ is a graph, a sequence $v = v_1, v_2, \dotsc, v_n =
   u$ of vertices of $G$ such that $(v_i, v_{i + 1}) \in E$ for $i = 1,
   \dotsc, n - 1$ is called a \emph{walk} from $v$ to $u$. The \emph{length} of a walk $v = v_1, \dotsc, v_k = u$ is $k - 1$. If $v = u$
   then the walk is called a \emph{cycle}. If all vertices in the walk are
@@ -38,10 +38,6 @@ A graph $G^{\prime} = (V^{\prime}, E^{\prime})$ is a \emph{subgraph} of a graph 
 
 \begin{deff} \label{def_tree}
 A \emph{tree} is a connected graph without cycles. A \emph{rooted tree} is a tree $T = (V, E)$ where a vertex $r \in V$ have been specified as the \emph{root}.
-\end{deff}
-
-\begin{deff} 
-Let $T = (V, E)$ be a rooted tree with root $r \in V$. The \emph{depth} of a node $x \in V$ is the length of the path from $x$ to $r$. The \emph{height} of $T$ is the maximum depth of any node.
 \end{deff}
 
 \begin{deff}
@@ -59,6 +55,10 @@ vertices can be joined by a unique path, then $G$ is a tree.
 \begin{pr}
 Every graph has a spanning tree.
 \end{pr}
+
+\begin{deff} 
+Let $T = (V, E)$ be a rooted tree with root $r \in V$. The \emph{depth} of a node $x \in V$ is the length of the path from $x$ to $r$. The \emph{height} of $T$ is the maximum depth of any node.
+\end{deff}
 
 \begin{deff}
 If $G = (V, E)$ is a graph, then a \emph{labelling} of $G$ is a function $w : E \to L$ where $L$ is some set of ''labels''. A \emph{labelled graph} is a graph with a corresponding labelling.
@@ -112,7 +112,7 @@ for each $g \in G$, is a bijection. In particular, $\abs{p^G} = [G : G_p]$.
 When it comes to computer science, our standard reference is
 \cite{clr90} where all basic computer science notions that are used here can be
 found. First of all, complexity analysis of algorithms and its
-asymptotic notation, in particular the $\OR{}$-notation, is assumed to be
+asymptotic notation, in particular the $\OR$-notation, is assumed to be
 known. Basic graph algorithms like breadth-first search, computation
 of connected compontents and spanning tree algorithms are also assumed to be known.
 
