@@ -25,9 +25,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
           ComputeSchreierTree, ExtendSchreierTree, SchreierSims, 
           NewBasePoint, ProjectiveNewBasePoint, Membership, OrbitElement, 
           GetSchreierTreeEdge, GetOrbitSize, GetSchreierGenerator, 
-          GetPartialBaseSGS, ExtendBase, NewBasePoint2, IsIdentity,
-          ProjectiveIsIdentity, IsConstantList, CreateInitialSchreierTree,
-          CopySchreierTree,
+          GetPartialBaseSGS, ExtendBase, IsIdentity, ProjectiveIsIdentity, 
+          IsConstantList, CreateInitialSchreierTree, CopySchreierTree,
     # Local variables
           ssInfo, list, generators, level, points, element;
 
@@ -40,51 +39,23 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     end;
 
     # The action of a group element (a matrix) on a point (a row vector)
-    # The action is from the right
-    PointAction := function(element, point)
-        if not IsMatrix(element) or not IsRowVector(point) then
-            DebugPrint(1, ["Element : ", element]);
-            DebugPrint(1, ["Point : ", point]);
-            Error("<element> must be a matrix and <point> must be a row vector");
-        fi;
-        
-        return point * element;
-    end;
+    # The action is from the right 
+    PointAction := OnRight;
     
     # The projective action of a matrix on a row vector
     # The one-dimensional subspace corresponding to the point is represented
     # by the corresponding normed row vector
-    ProjectiveAction := function(element, point)
-        return NormedRowVector(PointAction(element, 
-                       NormedRowVector(point)));
-    end;
+    ProjectiveAction := OnLines;
     
     # Identity check when using the PointAction
     IsIdentity := function(element, identity)
         return element = identity;
     end;
-    
-    # Checks if all list elements are equal
-    IsConstantList := function(list)
-        local i;
         
-        for i in [2 .. Length(list)] do
-            if list[i] <> list[1] then
-                return false;
-            fi;
-        od;
-        return true;
-    end;
-    
     # Identity check when using projective action (all scalar matrices are
     # considered equal to the identity)
     ProjectiveIsIdentity := function(element, identity)
-        if IsDiagonalMat(element) and 
-           IsConstantList(DiagonalOfMat(element)) then
-            return true;
-        else
-            return false;
-        fi;
+      return ForAll(identity, i -> i = OnLines(i, element));
     end;
     
     # return all points (as a list) in the orbit of the point 
@@ -96,7 +67,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
 
     # Check if a given point is in the orbit defined by the given Schreier tree
     IsPointInOrbit := function(schreierTree, point)
-        if not IsBool(GetHashEntry(schreierTree, point)) then
+        if not IsBool(LookupDictionary(schreierTree, point)) then
             return true;
         else
             return false;
@@ -106,7 +77,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     # Get the label of the edge originating at the given point, and directed 
     # towards the root of the given Schreier tree
     GetSchreierTreeEdge := function(schreierTree, point)
-        return GetHashEntry(schreierTree, point);
+        return LookupDictionary(schreierTree, point);
     end;
 
     # Get size of orbit defined by the given Schreier tree
@@ -115,31 +86,30 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     end;
     
     # Create a Schreier tree containing only the root
-    CreateInitialSchreierTree := function(root, hash, identity)
+    CreateInitialSchreierTree := function(root, dictinfo, identity)
         local tree;
         
         # Create Schreier vector
-        tree := SparseHashTable(hash);
+	tree := NewDictionary(dictinfo[1], dictinfo[2], dictinfo[3]);
         
         # Make the root point to itself 
-        AddHashEntry(tree, root, Immutable([identity, identity]));
+        AddDictionary(tree, root, Immutable([identity, identity]));
         
         return tree;
     end;
     
     # Creates a copy of a whole Schreier tree
-    CopySchreierTree := function(tree, hash)
+    CopySchreierTree := function(tree, dictinfo)
         local copyTree, keys, value, key;
         
         # Make a copy of the hashtable
         # A simple ShallowCopy does not work for hash tables, so we must copy
         # all keys and values explicitly
-        copyTree := SparseHashTable(hash);
+        copyTree := NewDictionary(dictinfo[1], dictinfo[2], dictinfo[3]);
         keys := HashKeyEnumerator(tree);
         for key in keys do
-            value := GetHashEntry(tree, key);
-            #SetHashEntryAtLastIndex(copyTree, value);
-            AddHashEntry(copyTree, key, value);
+            value := LookupDictionary(tree, key);
+            AddDictionary(copyTree, key, value);
         od;
         
         return [copyTree, keys];
@@ -147,10 +117,10 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         
     # Extends an existing Schreier tree by a given set of generators
     ExtendSchreierTree := 
-      function(oldTree, generators, oldGenerators, action, hash)
+      function(oldTree, generators, oldGenerators, action, dictinfo)
       local tree, point, generator, newPoint, newPoints, orbit, list, element;
      
-      list := CopySchreierTree(oldTree, hash);
+      list := CopySchreierTree(oldTree, dictinfo);
       tree := list[1];
       orbit := ShallowCopy(list[2]);
       
@@ -167,10 +137,10 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                     # Add edges for all new points and new generators
                       if not IsPointInOrbit(oldTree, point) or
                          not generator in oldGenerators then
-                          newPoint := action(generator[1], point);
+                          newPoint := action(point, generator[1]);
                           
                           if not IsPointInOrbit(tree, newPoint) then
-                              AddHashEntry(tree, newPoint, generator);
+                              AddDictionary(tree, newPoint, generator);
                               Add(newPoints, newPoint);
                           fi;
                       fi;
@@ -187,7 +157,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                     # Add edges for all new points and new generators
                       if not IsPointInOrbit(oldTree, point) or
                          not generator in oldGenerators then
-                          newPoint := action(generator[1], point);
+                          newPoint := action(point, generator[1]);
                           
                           # Make Schreier tree have height 1
                           if not IsPointInOrbit(tree, newPoint) then
@@ -195,7 +165,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                                                  point));
                               element[1] := element[1] * generator[1];
                               element[2] := generator[2] * element[2];
-                              AddHashEntry(tree, newPoint, Immutable(element));
+                              AddDictionary(tree, newPoint, 
+                                      Immutable(element));
                               Add(newPoints, newPoint);
                           fi;
                       fi;
@@ -221,10 +192,10 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
               for point in orbit do
                   for generator in generators do
                       
-                      newPoint := action(generator[1], point);
+                      newPoint := action(point, generator[1]);
                       
                       if not IsPointInOrbit(tree, newPoint) then
-                          AddHashEntry(tree, newPoint, generator);
+                          AddDictionary(tree, newPoint, generator);
                           Add(newPoints, newPoint);
                       fi;
                   od;
@@ -237,7 +208,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
               for point in orbit do
                   for generator in generators do
                       
-                      newPoint := action(generator[1], point);
+                      newPoint := action(point, generator[1]);
                       
                       # Make Schreier tree have height 1
                       if not IsPointInOrbit(tree, newPoint) then
@@ -245,7 +216,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                                              point));
                           element[1] := element[1] * generator[1];
                           element[2] := generator[2] * element[2];
-                          AddHashEntry(tree, newPoint, Immutable(element));
+                          AddDictionary(tree, newPoint, Immutable(element));
                           Add(newPoints, newPoint);
                       fi;
                   od;
@@ -278,7 +249,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                     return element;
                 fi;
                 
-                point := action(edge[2], point);
+                point := action(point, edge[2]);
                 element[1] := edge[1] * element[1];
                 element[2] := element[2] * edge[2];
             until false;
@@ -309,8 +280,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
             DebugPrint(9, ["residue: ", residue[1], "\nbase: ", 
                     ssInfo[level].partialBase, "\naction", 
                     ssInfo[level].action]);
-            point := ssInfo[level].action(residue[1], 
-                             ssInfo[level].partialBase);
+            point := ssInfo[level].action(ssInfo[level].partialBase, 
+                             residue[1]);
             
             if not IsPointInOrbit(ssInfo[level].schreierTree, point) then
                 return [Immutable(residue), level];
@@ -328,7 +299,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         
     # Find a point not in base that is moved by element
     # (element fixes the base)
-    NewBasePoint := function(element, action, identity, field)
+    NewBasePoint := function(element, identity, field)
         local basis, point, basePoint, i, j, length;
         
         DebugPrint(3, ["Matrix that fixes whole base: ", element]);
@@ -387,7 +358,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         element1 := OrbitElement(schreierTree, point, action,
                             identity, IsIdentity);
         element2 := OrbitElement(schreierTree, 
-                            action(generator[1], point), action, identity,
+                            action(point, generator[1]), action, identity,
                             IsIdentity);
         
         edge := element1[1] * generator[1] * element2[2];
@@ -410,9 +381,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         length := Length(ssInfo);
         
         # Find new base point
-        newPoint := NewBasePoint(badElement[1],
-                            ssInfo[length].action, 
-                            identity, ssInfo[length].points);
+        newPoint := NewBasePoint(badElement[1], identity, 
+                            ssInfo[length].points);
         
         DebugPrint(3, ["Extending base"]);
         
@@ -426,7 +396,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
               hash := ssInfo[length].hash,
               schreierTree := CreateInitialSchreierTree(newPoint, 
                       ssInfo[length].hash, identity),
-              oldSGS := AsSortedList([]),
+              oldSGS := AsSSortedList([]),
               IsIdentity := IsIdentity);
         Add(ssInfo, levelStruct); 
 
@@ -441,7 +411,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                   schreierTree := CreateInitialSchreierTree(
                           NormedRowVector(newPoint), ssInfo[length].hash, 
                           identity),
-                  oldSGS := AsSortedList([]),
+                  oldSGS := AsSSortedList([]),
                   IsIdentity := ProjectiveIsIdentity);
             Add(ssInfo, levelStruct); 
         fi;
@@ -456,7 +426,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         local generator, point, orbit, strip, schreierGenerator, element, 
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
               newPoint, oldSchreierTree, field, newBasePoint, oldOrbit,
-              newInverseGenerator, newSGS;
+              newInverseGenerator, newSGS, cosetTable, list, TC1, TC2;
         
         DebugPrint(2, ["Schreier-Sims at level ", level]);
         
@@ -516,7 +486,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                 # Avoid rechecking Schreier generators
                 if not IsPointInOrbit(oldSchreierTree, point) or 
                    not generator in ssInfo[level].oldSGS then
-                    
+                                        
                     # Compute Schreier generator g for current level
                     schreierGenerator := 
                       GetSchreierGenerator(ssInfo[level].schreierTree,
@@ -608,8 +578,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     # identity - the group identity
     GetPartialBaseSGS := 
       function(generators, ssInfo, identity, field)
-        local newPoint, element, gen, invGen, newSGS, level, hash, levelStruct,
-              point;
+        local newPoint, element, gen, invGen, newSGS, level, dictinfo, 
+              levelStruct, point;
         
         newSGS := [];
         
@@ -629,7 +599,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                 DebugPrint(9, ["ssInfo at level ", level, " is ", 
                         ssInfo[level]]);
                 point := ssInfo[level].partialBase;
-                if ssInfo[level].action(element, point) = point then
+                if ssInfo[level].action(point, element) = point then
                     AddSet(ssInfo[level].partialSGS, gen);
                     AddSet(ssInfo[level].partialSGS, invGen);
                 else
@@ -645,11 +615,9 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                     ExtendBase(ssInfo, gen, identity);
                 else              
                     # Get initial point
-                    newPoint := NewBasePoint(gen[1], PointAction, 
-                                        identity, field);
+                    newPoint := NewBasePoint(gen[1], identity, field);
                     
-                    hash := SparseIntKey(field, newPoint);
-                    Assert(1, not IsBool(hash));
+                    dictinfo := [newPoint, true, field];
                     
                     levelStruct := 
                       rec(
@@ -657,10 +625,11 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                           partialBase := newPoint,
                           action := PointAction,
                           points := field,
-                          hash := hash,
+                          hash := dictinfo,
                           schreierTree := 
-                          CreateInitialSchreierTree(newPoint, hash, identity),
-                          oldSGS := AsSortedList([]),
+                          CreateInitialSchreierTree(newPoint, dictinfo, 
+                                  identity),
+                          oldSGS := AsSSortedList([]),
                           IsIdentity := IsIdentity);
                     Add(ssInfo, levelStruct); 
 
@@ -671,12 +640,12 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                               partialBase := NormedRowVector(newPoint),
                               action := ProjectiveAction,
                               points := NormedRowVectors(field),
-                              hash := hash,
+                              hash := dictinfo,
                               schreierTree := 
                               CreateInitialSchreierTree(
-                                      NormedRowVector(newPoint), hash, 
+                                      NormedRowVector(newPoint), dictinfo, 
                                       identity),
-                              oldSGS := AsSortedList([]),
+                              oldSGS := AsSSortedList([]),
                               IsIdentity := ProjectiveIsIdentity);
                         
                         Add(ssInfo, levelStruct); 
