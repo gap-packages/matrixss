@@ -20,21 +20,21 @@ RequirePackage("matrixss");;
 SetAssertionLevel(0);
 MATRIXSS_DEBUGLEVEL := 1;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
-#ProfileFunctions(["MATRIXSS_ComputeSchreierTree",
-#        "MATRIXSS_GetOrbit",
-#        "MATRIXSS_GetOrbitSize",
-#        "MATRIXSS_GetSchreierTreeEdge",
-#        "MATRIXSS_GetSchreierTrees",
-#        "MATRIXSS_IsPointInOrbit",
-#        "MATRIXSS_MSSAction",
-#        "MATRIXSS_Membership2",
-#        "MATRIXSS_NewBasePoint",
-#        "MATRIXSS_OrbitElement",
-#        "MATRIXSS_SchreierSims",
-#        "MATRIXSS_SchreierTree",
-#        "MATRIXSS_Stabiliser"]);
+ProfileFunctions([MATRIXSS_ComputeSchreierTree,
+        MATRIXSS_GetOrbit,
+        MATRIXSS_GetOrbitSize,
+        MATRIXSS_GetSchreierTreeEdge,
+        MATRIXSS_IsPointInOrbit,
+        MATRIXSS_MSSAction,
+        MATRIXSS_Membership,
+        MATRIXSS_NewBasePoint,
+        MATRIXSS_OrbitElement,
+        MATRIXSS_SchreierSims,
+        MATRIXSS_GetPartialBaseSGS,
+        MATRIXSS_GetSchreierGenerator,
+        MATRIXSS_SchreierTree]);
 ProfileOperationsAndMethods(true);
 ProfileGlobalFunctions(true);
 ReadTest("tst/matrixss.tst");;
 DisplayProfile();
-#QUIT;;
+QUIT;;
