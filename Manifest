@@ -13,6 +13,14 @@ read.g
 PackageInfo.g
 lib/code.gi
 lib/code.gd
+lib/standard.gi
+lib/standard.gd
+lib/random.gi
+lib/random.gd
+lib/test.gi
+lib/test.gd
+lib/stcs.gi
+lib/stcs.gd
 tst/test.g
 tst/bench.tst
 tst/profile.tst

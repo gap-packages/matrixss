@@ -10,24 +10,37 @@
 
 <table>
 <tr>
-<th>2004-07-03</th>
+<th valign="top"> 2004-07-07</th>
+<td>
+Made an implementation of random element generation using the Rattle algorithm
+by Leedham-Green, to avoid using GAP:s built-in algorithm (which is Shake). 
+This way some inverse matrix calculations are avoided.<br>
+<br>
+Also included is a not yet finished implementation of 
+Schreier-Todd-Coxeter-Sims algorithm, which uses coset enumeration to possibly 
+decrease the number of Schreier generators that are considered at each level 
+of the standard Schreier-Sims algorithm.
+</td>
+</tr>
+<tr>
+<th valign="top">2004-07-03</th>
 <td>
     Implemented a simple (and yet slow) version of the random
     Schreier-Sims algorithm, as first described by Leon. The algorithm
     does not use any verification but takes as input a probability and
     tries to achieve at least this probability of correctness. However,
     since the group elements are probably not taken from a uniform
-    distribution (it uses GAP:s PseudoRandom function) there is not
-    theoretical guarantee of any probability.
-
+    distribution (it uses GAP:s PseudoRandom function) there is no
+    theoretical guarantee of any probability.<br>
+<br>
     The stopping conditions used are simple: when a number of consecutive
-    random elements sifts to identity the algorithm terminates, and the
+    random elements sift to identity the algorithm terminates, and the
     number is calculated from the given probability. If lower and/or upper
     bounds on the group order are known, they are used in the algorithm.
 </td>
 </tr>
 <tr>
-<th>2004-06-29</th>
+<th valign="top">2004-06-29</th>
 <td>
 Added more Options to control when some features of the algorthim
 are used, sine it seems that, in particular, the tricks of extending
@@ -48,7 +61,7 @@ using a strategy of O'Brien and Murray.
 </td>
 </tr>
 <tr>
-<th>2004-06-24</th>
+<th valign="top">2004-06-24</th>
 <td>
     The trick of using alternating actions at different levels of the 
     algorthim has now been implemented. Each base point in the initial partial 
@@ -57,13 +70,13 @@ using a strategy of O'Brien and Murray.
 </td>
 </tr>
 <tr>
-<th>2004-02-09</th>
+<th valign="top">2004-02-09</th>
 <td>Implemented a more efficient version, using explicit levels and the trick
     of stripping Schreier generators. Code seems to be more than twice as fast.
 </td>
 </tr>
 <tr>
-<th>2004-01-17</th>
+<th valign="top">2004-01-17</th>
 <td>A seemingly working version of Schreier-Sims has now been implemented. 
     It is the standard naive version without any optimisations.
 </td>

@@ -19,5 +19,6 @@ Revision.("matrixss/read_g") :=
 # Read package code
 ReadPkg("matrixss", "lib/code.gi");
 ReadPkg("matrixss", "lib/standard.gi");
+ReadPkg("matrixss", "lib/stcs.gi");
 ReadPkg("matrixss", "lib/random.gi");
 ReadPkg("matrixss", "lib/test.gi");

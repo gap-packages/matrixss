@@ -20,28 +20,44 @@ Release notes
 </th>
 </tr>
 <tr>
+<td valign="top">
+<a href="https://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=251369" target="_top">matrixss-dev20040707</a></td>
+<td valign="top">Development release</td>
 <td>
-<a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=250647" target="_top">matrixss-dev20040703</a></td>
-<td>Development release</td>
+    Made an implementation of random element generation using the Rattle 
+    algorithm by Leedham-Green, to avoid using GAP:s built-in algorithm 
+    (which is Shake). This way some inverse matrix calculations are avoided.
+
+    Also included is a not yet finished implementation of 
+    Schreier-Todd-Coxeter-Sims algorithm, which uses coset enumeration to 
+    possibly decrease the number of Schreier generators that are considered at 
+    each level of the standard Schreier-Sims algorithm.
+</td>
+</tr>
+<tr>
+<td valign="top">
+matrixss-dev20040703
+</td>
+<td valign="top">Development release</td>
 <td>
     Implemented a simple (and yet slow) version of the random
     Schreier-Sims algorithm, as first described by Leon. The algorithm
     does not use any verification but takes as input a probability and
     tries to achieve at least this probability of correctness. However,
     since the group elements are probably not taken from a uniform
-    distribution (it uses GAP:s PseudoRandom function) there is not
+    distribution (it uses GAP:s PseudoRandom function) there is no
     theoretical guarantee of any probability.
 
     The stopping conditions used are simple: when a number of consecutive
-    random elements sifts to identity the algorithm terminates, and the
+    random elements sift to identity the algorithm terminates, and the
     number is calculated from the given probability. If lower and/or upper
     bounds on the group order are known, they are used in the algorithm.
 </td>
 </tr>
 <tr>
-<td>
+<td valign="top">
 <a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=249607" target="_top">matrixss-dev20040629</a></td>
-<td>Development release</td>
+<td valign="top">Development release</td>
 <td>
 Added more Options to control when some features of the algorthim
 are used, sine it seems that, in particular, the tricks of extending
@@ -52,9 +68,9 @@ using a strategy of O'Brien and Murray.
 </td>
 </tr>
 <tr>
-<td>
+<td valign="top">
 <a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=248740" target="_top">matrixss-dev20040626</a></td>
-<td>Development release</td>
+<td valign="top">Development release</td>
 <td>
     Added an Option to flatten the Schreier trees at creation time (make
     them have height 1), so that later only a single hash lookup is needed to
@@ -64,8 +80,9 @@ using a strategy of O'Brien and Murray.
 </td>
 </tr>
 <tr>
-<td><a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=248181" target="_top">matrixss-dev20040624</a></td>
-<td>Development release</td>
+<td valign="top">
+<a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=248181" target="_top">matrixss-dev20040624</a></td>
+<td valign="top">Development release</td>
 <td>The trick of using alternating actions at different levels of the algorthim 
 has now been implemented. Each base point in the initial partial base is
 preceded by the one-dimensional subspace (ie the line) containing it, and the
@@ -73,13 +90,15 @@ projective action of the group is used on this line.
 </td>
 </tr>
 <tr>
-<td><a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=215759" target="_top">matrixss-dev20040209</a></td>
-<td>Early development release</td>
+<td valign="top">
+<a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=215759" target="_top">matrixss-dev20040209</a></td>
+<td valign="top">Early development release</td>
 <td> A much faster implementation.</td>
 </tr>
 <tr>
-<td><a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=210580" target="_top">matrixss-dev20040117</a></td>
-<td>Early development release</a></td>
+<td valign="top">
+<a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=210580" target="_top">matrixss-dev20040117</a></td>
+<td valign="top">Early development release</a></td>
 <td> The algorithm seems to work, but the implementation has not been optimised in any way and is still extremely slow.</td>
 </tr>
 </table>
