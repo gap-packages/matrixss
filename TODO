@@ -1,7 +1,5 @@
 Matrix Schreier-Sims TODO
 =========================
 
-- Check for simple optimisations, remove unnecessary work.
-- Implement the well-known method of not regenerating Schreier generators.
-- Try the trick from Hulpke (originally from Butler) involving other actions,
-  such as projective action.
+- Code must be optimised
+
