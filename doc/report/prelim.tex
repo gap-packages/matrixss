@@ -1,0 +1,119 @@
+\chapter{Preliminaries}
+The definitions and statements in this section are assumed to be
+known, but we state them anyway, since authors often use different
+notation and sometimes put slightly different meaning to some of the
+following concepts (eg. the exact definition of graphs tend to
+vary). 
+
+\section{Graph theory}
+First some graph theory, where we follow \cite{biggs89}.
+
+\begin{deff} \label{def_graph}
+A \emph{directed graph} is an ordered pair $G = (V, E)$ where $V$ is a finite non-empty set, the \emph{vertices} of $G$ and $E \subseteq V \times V$ is the \emph{edges} of $G$.
+\end{deff}
+\begin{remark}
+  A graph in the sense of \ref{def_graph} is sometimes called a
+  \emph{combinatorial graph} in the literature, to emphasize that they
+  are not \emph{metric graphs} in the sense of \cite{bridson99}. As we
+  are interested only in finite graphs and not in geometry, we do not
+  make use of this nomenclature.
+\end{remark}
+
+\begin{remark}
+The definition implies that our graphs have no multiple edges, but may have loops. We will henceforth omit the word ''directed'' since these are the only
+graphs we are interested in.
+\end{remark}
+
+\begin{deff} \label{def_graph_misc}
+Let $G = (V, E)$ is a graph, a sequence $v = v_1, v_2, \dotsc, v_n =
+  u$ of vertices of $G$ such that $(v_i, v_{i + 1}) \in E$ for $i = 1,
+  \dotsc, n - 1$ is called a \emph{walk} from $v$ to $u$. If $v = u$
+  then the walk is called a \emph{cycle}. If all vertices in the walk are
+  distinct, it is called a \emph{path}. If every pair of distinct vertices in $G$ can be joined by a path, then $G$ is \emph{connected}.
+\end{deff}
+
+\begin{deff}
+A graph $G^{\prime} = (V^{\prime}, E^{\prime})$ is a \emph{subgraph} of a graph $G = (V, E)$ if $V^{\prime} \subseteq V$ and $E^{\prime} \subseteq E$.
+\end{deff}
+
+\begin{deff} \label{def_tree}
+A \emph{tree} is a connected graph without cycles. A \emph{rooted tree} is a tree $T = (V, E)$ where a vertex $r \in V$ have been specified as the \emph{root}.
+\end{deff}
+
+\begin{deff}
+If $G = (V, E)$ is a graph, then a tree $T$ is a \emph{spanning tree} of $G$ if $T$ is a subgraph of $G$ and $T$ have vertex set $V$.
+\end{deff}
+
+The following are elementary and the proofs are omitted.
+\begin{pr}
+In a tree $T = (V, E)$ we have $\abs{E} = \abs{V} - 1$ and there
+exists a \emph{unique} path between every pair of distinct
+vertices. Conversely, if $G$ is a graph where every pair of distinct
+vertices can be joined by a unique path, then $G$ is a tree.
+\end{pr}
+
+\begin{pr}
+Every graph has a spanning tree.
+\end{pr}
+
+\begin{deff}
+If $G = (V, E)$ is a graph, then a \emph{labelling} of $G$ is a function $w : E \to L$ where $L$ is some set of ''labels''. A \emph{labelled graph} is a graph with a corresponding labelling.
+\end{deff}
+
+\section{Group theory}
+Now some group theory, where we follow our standard references \cite{bb96} and \cite{rose78}.
+\begin{note}
+All groups in this report are assumed to be finite.
+\end{note}
+
+\begin{deff} \label{def_cayley}
+If $G = \gen{S}$ is a group, then the \emph{Cayley graph} $\C_G(S)$ is the graph with vertex set $G$ and edges $E = \set{ (g, sg) \mid g \in G, s \in S}$.
+\end{deff}
+
+\begin{deff}
+An \emph{action} of a group $G$ on a finite set $X$ is a homomorphism
+$\lambda : G \to \Sym{X}$ (where $\Sym{X}$ is the group of
+permutations on $X$). If $\lambda$ is injective, the action is
+\emph{faithful}. 
+\end{deff}
+\begin{remark}
+Following a convention in computational group theory, actions are from the right, and $\lambda(g)x$ is abbreviated with $x^g$, for $g \in G$ and $x \in X$. The elements of $X$ are called \emph{points}. Note that some of the rules for exponents hold since we have an action, eg $(x^g)^h = x^{gh}$.
+\end{remark}
+
+\begin{deff}
+Let $G$ be a group acting on the finite set $X$. For each point
+$\alpha \in X$, the \emph{orbit} of $\alpha$ is $\alpha^G = \set{\beta
+\in X \mid \beta = \alpha^g, g \in G}$ and the \emph{stabiliser} of
+$\alpha$ is $G_{\alpha} = \set{g \in G \mid \alpha^g = \alpha}$.
+\end{deff}
+
+The following are elementary and the proofs are omitted.
+\begin{pr}
+Let $G$ be a group acting on the finite set $X$. For each $p \in X$ we have $G_p \leq G$, and so we can define inductively 
+\begin{equation}
+G_{\alpha_1, \alpha_2, \dotsc, \alpha_n} = (G_{\alpha_1, \alpha_2, \dotsc, \alpha_{n - 1}})_{\alpha_n}
+\end{equation}
+where $n > 1$ and $\alpha_1, \dotsc, \alpha_n \in X$.
+\end{pr}
+
+\begin{pr} \label{thm_orbit_stab}
+Let $G$ be a group acting on the finite set $X$. For each $p \in X$, the map $\mu_p : G / G_p \to p^G$ given by
+\begin{equation}
+G_p g \mapsto p^g
+\end{equation}
+for each $g \in G$, is a bijection. In particular, $\abs{p^G} = [G : G_p]$.
+\end{pr}
+
+\section{Computer science}
+When it comes to computer science, our standard reference is
+\cite{clr90} where all basic computer science notions can be
+found. First of all, complexity analysis of algorithms and its
+asymptotic notation, in particular the $O$-notation, is assumed to be
+known. Basic graph algorithms like breadth-first search, computation
+of connected compontents and spanning tree algorithms are also assumed to be known.
+
+Hash tables will likewise be used without further explanation. Even
+though the code in the project does not use hashing explicitly, but
+rely on \GAP~for that, it is worth mentioning that, to the author's
+knowledge, the best general-purpose hash function known to humanity is
+described in \cite{jenkins97}.

@@ -1,0 +1,42 @@
+\chapter{Introduction}
+The following report makes up one the two parts of a project in
+computational group theory, the other part being a software package
+for the computer system \GAP~(see \cite{GAP}), which can be found on
+the WWW at the URL given on the title page. This text will describe the mathematics that
+provide the foundations of the package, including the algorithms used and their complexity,
+and also some of the more computer science oriented aspects, like what
+datastructures that were used, and how the implementation was done.
+
+Computational group theory (CGT) is an area of research on the border
+between group theory and theoretical computer science, and work in CGT
+is often of both theoretical (mathematical) and practical
+(programming) nature, leading to both theoretical results
+(mathematical theorems and proofs) and practical results (software),
+and this project is no exception. Introductory surveys of CGT can be
+found in \cite{sims98}, \cite{seress97}, \cite{neubuser95} and \cite{cannon92}.
+
+The aim of the project was to make a \GAP~package with an
+implementation of Schreier-Sims algorithm for matrix groups. The Schreier-Sims algorithm computes a base and a strong generating set for a group, and an
+implementation of this fundamental algorithm is already included in the
+standard \GAP~distribution, but that implementation always first
+computes a faithful action (permutation representation) of the given
+group and then executes the algorithm on the resulting permutation
+group. The idea for this project was to restrict attention to matrix
+groups, and implement a version of the algorithm which works with the
+matrices directly, and see if one can obtain a more efficient
+implementation this way. Since the Schreier-Sims algorithm does not run in polynomial time for the matrix groups, it is of interest to optim
+
+A survey of computational matrix group theory can be found in
+\cite{niemeyer01}. It should be noted that we are only interested in
+finite groups, ie matrix groups over finite fields, and therefore
+there is no need to worry about any noncomputability or undecidability
+issues.
+
+We will begin with a quick reference of the basic concepts from group
+theory and computer science that are being used, before moving on to the description of
+the Schreier-Sims algorithm. The algorithm will be described in some
+detail, and then we will turn to the variants of the algorithm that have also
+been implemented in the project: the random (ie. probabilistic)
+Schreier-Sims algorithm and the Schreier-Todd-Coxeter-Sims algorithm.
+
+It must be mentioned that a report similar to this one is \cite{murray93}, from which a fair amount inspiration comes.
