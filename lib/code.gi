@@ -485,53 +485,109 @@ InstallGlobalFunction(MatrixGroupOrder, function(G)
     return order;
 end);
 
-InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
-    local degree, power, size1, size2, primeNr, prime, 
-          deg_time, prime_time, field_time, test_time;
+MATRIXSS_GetTestGroups := 
+  function(maxFieldSize, maxMatrixSize) 
+    local degree, power, primeNr, prime, groups, groupTypes, type;
     
-    test_time := Runtime();
+    groupTypes := 
+      Immutable([GeneralLinearGroup, SpecialLinearGroup, GeneralUnitaryGroup,
+              SpecialUnitaryGroup, GeneralOrthogonalGroup, 
+              SpecialOrthogonalGroup]);
+                          
+    groups := [];
+    
     degree := 2;
-    while degree <= maxDegree do
-        deg_time := Runtime();
-        MATRIXSS_DebugPrint(1, ["Checking orders for degree : ", degree]);
-        
+    while degree <= maxMatrixSize do
         primeNr := 1;
         while primeNr <= 168 and Primes[primeNr] <= maxFieldSize do
-            prime_time := Runtime();
             prime := Primes[primeNr];
-            MATRIXSS_DebugPrint(1, ["\tChecking orders for prime : ", prime]);
             
             power := 1;
             while Primes[primeNr]^power <= maxFieldSize do
-                field_time := Runtime();
-                MATRIXSS_DebugPrint(1, ["\t\tChecking order for field size : ", 
-                        prime^power]);
-                
-                size1 := Order(GL(degree, prime^power));
-                size2 := MatrixGroupOrder(GL(degree, prime^power));
-            
-                if not size1 = size2 then
-                    Print("Prime = ", prime, " power = ", power, "\n");
-                    Print("Degree = ", degree, "\n");
-                    Error("Order difference!");
-                fi;
+                for type in groupTypes do
+                    if (type = GO or type = SO) and IsEvenInt(degree) then
+                        Add(groups, type(1, degree, prime^power));
+                        Add(groups, type(-1, degree, prime^power));
+                    else
+                        Add(groups, type(degree, prime^power));
+                    fi;
+                od;
                 
                 power := power + 1;
-                MATRIXSS_DebugPrint(1, ["\t\tTime for this field size : ", 
-                        Runtime() - field_time]);
             od;
             
             primeNr := primeNr + 1;
-            MATRIXSS_DebugPrint(1, ["\tTime for this prime : ", 
-                    Runtime() - prime_time]);
         od;
         
         degree := degree + 1;
-        MATRIXSS_DebugPrint(1, ["Time for this degree : ", Runtime() - deg_time]);
+    od;
+    
+    return groups;
+end;
+
+MATRIXSS_GetBenchmarkGroups := 
+  function(maxClassicalGroupFieldSize, maxClassicalGroupDegree,
+          maxReeGroupSize, maxSuzukiSize)
+  local groups, size;
+    
+    groups := MATRIXSS_GetTestGroups(maxClassicalGroupFieldSize,
+                      maxClassicalGroupDegree);
+    
+    size := 1;
+    while 3^(1 + 2 * size) <= maxReeGroupSize do
+        Add(groups, ReeGroup(3^(1 + 2 * size)));
+        size := size + 1;
+    od;
+    
+    size := 3;
+    while 2^size <= maxSuzukiSize do
+        Add(groups, SuzukiGroup(2^size));
+        size := size + 2;
+    od;
+    
+    return groups;
+end;
+
+InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
+    local groups, group, size1, size2;
+    
+    groups := MATRIXSS_GetTestGroups(maxDegree, maxFieldSize);
+    
+    for group in groups do
+        Print("Checking group : ", group, "\n");
+        
+        size1 := Order(group);
+        size2 := MatrixGroupOrder(group);
+            
+        if not size1 = size2 then
+            Print("Correct order: ", size1);
+            Print("Computed order: ", size2);
+            Error("Order difference!");
+        fi;
     od;
     
     Print("No order differences\n");
+    return true;
+end);
+
+InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(maxDegree, maxFieldSize, maxReeSize, maxSuzukiSize)
+    local groups, group, test_time, size, group_time;
+    
+    test_time := Runtime();
+    groups := MATRIXSS_GetBenchmarkGroups(maxDegree, maxFieldSize, 
+                      maxReeSize, maxSuzukiSize);
+    
+    for group in groups do
+        Print("Checking group : ", group, "\n");
+        
+        group_time := Runtime();
+        size := MatrixGroupOrder(group);
+        Print("Time for this group : ", Runtime() - group_time, "\n");        
+    od;
+    
     Print("Total time for test : ", Runtime() - test_time, "\n");
+    
+    Print("Benchmark completed\n");
     return true;
 end);
 

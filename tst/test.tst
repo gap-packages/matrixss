@@ -1,6 +1,6 @@
 ###############################################################################
 ##
-#W    test.g    The Matrix Schreier-Sims package                
+#W    test.tst The Matrix Schreier-Sims package                
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
@@ -13,13 +13,9 @@
 #H    @(#)$Id$
 ###############################################################################
 
-Revision.("matrixss/tst/test_g") := 
-  "@(#)$Id$";;
+gap> START_TEST("$Id$");
 
-RequirePackage("matrixss");;
+gap> MatrixSchreierSimsTest(3, 3);
+No order differences
 
-SetAssertionLevel(0);
-MATRIXSS_DEBUGLEVEL := 1;;
-SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
-ReadTest("tst/test.tst");;
-QUIT;;
+gap> STOP_TEST("test.tst", 10000);

@@ -23,11 +23,20 @@ Revision.("matrixss/lib/code_gd") :=
 DeclareGlobalFunction("MatrixGroupOrder");
 
 # Compares results of the above function with the Order function for a bunch
-# of general linear groups
+# of classical matrix groups
 # Input:
-#      maxDegree - maximum GL degree to be tested
-#      maxFieldSize - maximum GL finite field size to be tested
+#      maxDegree - maximum matrix size to be tested
+#      maxFieldSize - maximum finite field size to be tested
 DeclareGlobalFunction("MatrixSchreierSimsTest");
+
+# Check speed of routines against some classical groups and Ree groups
+#
+# Input:
+#      maxDegree - maximum matrix size for classical groups to be tested
+#      maxFieldSize - maximum finite field size to be tested
+#      maxReeSize - maximum ReeGroup size
+#      maxSuzukiSize - maximum SuzukiGroup size
+DeclareGlobalFunction("MatrixSchreierSimsBenchmark");
 
 # The Schreier-Sims algorithm for matrix groups
 # Input:

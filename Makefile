@@ -16,8 +16,10 @@ WEB_PATH      = /home/groups/m/ma/matrixss/htdocs
 SCP_USER      = redstar_
 WEB_FILES     = doc/www/*.html README PackageInfo.g ChangeLog
 
-# to perform test
+# to perform test/benchmark
 TEST_FILE     = tst/test.g
+BENCH_FILE    = tst/bench.g
+PROFILE_FILE  = tst/profile.g
 
 # package default name
 ifeq ($(PACKAGE),)
@@ -32,6 +34,12 @@ all:
 
 test:
 	gap -q < $(TEST_FILE)
+
+bench:
+	gap -q < $(BENCH_FILE)
+
+profile:
+	gap -q < $(PROFILE_FILE)
 
 release: upload www
 

@@ -1,10 +1,10 @@
 ###############################################################################
 ##
-#W    test.g    The Matrix Schreier-Sims package                
+#W    bench.tst The Matrix Schreier-Sims package                
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
-#H    Dev start : 2004-01-24 
+#H    Dev start : 2004-03-22 
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
@@ -13,13 +13,9 @@
 #H    @(#)$Id$
 ###############################################################################
 
-Revision.("matrixss/tst/test_g") := 
-  "@(#)$Id$";;
+gap> START_TEST("$Id$");
 
-RequirePackage("matrixss");;
+gap> MatrixSchreierSimsBenchmark(4, 4, 0, 32);
+Benchmark completed
 
-SetAssertionLevel(0);
-MATRIXSS_DEBUGLEVEL := 1;;
-SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
-ReadTest("tst/test.tst");;
-QUIT;;
+gap> STOP_TEST("bench.tst", 10000);
