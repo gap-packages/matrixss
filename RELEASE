@@ -1,0 +1,8 @@
+Matrix Schreier-Sims Release Notes
+==================================
+Release date : 2004-06-24
+
+The trick of using alternating actions at different levels of the algorthim 
+has now been implemented. Each base point in the initial partial base is
+preceded by the one-dimensional subspace (ie the line) containing it, and the
+projective action of the group is used on this line.
