@@ -1,0 +1,10 @@
+Document: gap-matrix-schreiersims-doc
+Title: Manual for matrixss
+Author: Henrik B‰‰rnhielm
+Abstract: The manual for the package gap-matrix-schreiersims
+ Included is a short description of how the package is used, and documentation
+ for all the functions in the code.
+Section: math
+
+Format: dvi
+Files: /usr/share/doc/gap-matrix-schreiersims/doc/manual.dvi.gz
