@@ -9,4 +9,4 @@ installs a function "MatrixGroupOrder" which computes the order of a
 matrix group, using the version of Schreier-Sims that is supplied in
 this package.
 
-In the subdirectory "tst" there is a GAP file "test.g" which performs some tests of the package. 
+In the subdirectory "tst" there is a GAP file "test.g" which performs some tests of the package.
