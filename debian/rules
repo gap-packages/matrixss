@@ -24,6 +24,7 @@ binary-indep: build install
 	dh_testdir
 	dh_testroot
 	dh_installdocs
+	dh_link /usr/share/gap/pkg/matrixss/doc /usr/share/doc/matrixss/doc
 	dh_installchangelogs 
 	dh_link
 	dh_compress
