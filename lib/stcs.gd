@@ -17,5 +17,7 @@
 Revision.("matrixss/lib/stcs_gd") := 
   "@(#)$Id$";
 
+DeclareGlobalFunction("SchreierToddCoxeterSims");
+
 ###############################################################################
 #E
