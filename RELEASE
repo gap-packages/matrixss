@@ -1,10 +1,19 @@
 Matrix Schreier-Sims Release Notes
 ==================================
-Release date : 2004-07-30
+Release date : 2004-08-10
 
-A rudimentary manual has been created, and it is both included in the
-package distribution and available from the package homepage. The code
-is now more GAP-connected in the sense that the algorithms are methods
-of an operation StabChainMatrixGroup and the package installs a method
-for the Size attribute for finite matrix groups that uses that
-attribute to compute the order of a group.
+An algorithm highly inspired by the nearly linear time algorithm,
+described in Seress book as well as in the 1991 paper by Babai et al,
+has been implemented. Some parts of the nearly linear time algorithm
+has not yet been implemented though, in particular the "short Schreier
+trees". The implementation is still very slow, though, so the fastest
+version is still the standard deterministic algorithm.
+
+Other changes include the use of random subproducts in the
+probabilistic algorithm, instead of random elements computed using the
+Rattle algorithm. The representation of Schreier trees has been
+somewhat augmented, to include the depth of each node, as well as the
+height of the tree. There is a possibility to create shallow Schreier
+trees, which are guaranteed to have at most logarithmic depth. These
+changes are described in Seress book as well as in the above paper,
+and are needed in the nearly linear time algorithm.

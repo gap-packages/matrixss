@@ -1,9 +1,22 @@
-
-PPrroojjeecctt NNeewwss
-
+********** PPrroojjeecctt NNeewwss **********
 The dates are given in the format YYYY-MM-DD. More details can be found in the
-ChangeLog.
+_C_h_a_n_g_e_L_o_g.
+22000044--0088--1100 An algorithm highly inspired by the nearly linear time algorithm,
+           described in Seress book as well as in the 1991 paper by Babai et
+           al, has been implemented. Some parts of the nearly linear time
+           algorithm has not yet been implemented though, in particular the
+           "short Schreier trees". The implementation is still very slow,
+           though, so the fastest version is still the standard deterministic
+           algorithm.
 
+           Other changes include the use of random subproducts in the
+           probabilistic algorithm, instead of random elements computed using
+           the Rattle algorithm. The representation of Schreier trees has been
+           somewhat augmented, to include the depth of each node, as well as
+           the height of the tree. There is a possibility to create shallow
+           Schreier trees, which are guaranteed to have at most logarithmic
+           depth. These changes are described in Seress book as well as in the
+           above paper, and are needed in the nearly linear time algorithm.
 22000044--0077--3300 A rudimentary manual has been created, and it is both included in
            the package distribution and available from the package homepage.
            The code is now more GAP-connected in the sense that the algorithms
@@ -65,4 +78,3 @@ ChangeLog.
 22000044--0011--1177 A seemingly working version of Schreier-Sims has now been
            implemented. It is the standard naive version without any
            optimisations.
-
