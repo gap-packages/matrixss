@@ -15,7 +15,7 @@
 
 gap> START_TEST("$Id$");
 
-gap> MatrixSchreierSimsTest(3, 3);
+gap> MatrixSchreierSimsTest(5, 5 : SimpleSchreierTree);
 No order differences
 
 gap> STOP_TEST("test.tst", 10000);

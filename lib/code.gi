@@ -114,32 +114,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     GetOrbitSize := function(schreierTree)
         return Size(schreierTree);
     end;
-
-    # Helper function for SchreierTree.
-    ComputeSchreierTree := function(generators, tree, root, action)
-        local newElement, childElements, generator, child, elements, element;
-        
-        elements := [root];
-        repeat
-            childElements := [];
-            for element in elements do
-                for generator in generators do
-                    newElement := action(generator[1], element);
-                    
-                    # check that the element is not already in the 
-                    # Schreier tree (do not create cycles)
-                    if not IsPointInOrbit(tree, newElement) then
-                        AddHashEntry(tree, newElement, generator);
-                        Add(childElements, newElement);
-                    fi;
-                od;    
-            od;
-            elements := childElements;
-        until IsEmpty(elements);
-        
-        return tree;
-    end;      
     
+    # Create a Schreier tree containing only the root
     CreateInitialSchreierTree := function(root, hash, identity)
         local tree;
         
@@ -147,7 +123,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         tree := SparseHashTable(hash);
         
         # Make the root point to itself 
-        AddHashEntry(tree, root, [identity, identity]);
+        AddHashEntry(tree, root, Immutable([identity, identity]));
         
         return tree;
     end;
@@ -169,10 +145,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     # Extends an existing Schreier tree by a given set of generators
     ExtendSchreierTree := 
       function(oldTree, generators, oldGenerators, action, hash)
-      local tree, point, generator, newPoint, newPoints, orbit, list;
-      
-      # Make the root point to itself 
-      #AddHashEntry(oldTree, root, [identity, identity]);
+      local tree, point, generator, newPoint, newPoints, orbit, list, element;
       
       list := CopySchreierTree(oldTree, hash);
       tree := list[1];
@@ -182,50 +155,55 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
       DebugPrint(4, ["Old gens: ", oldGenerators]);
       DebugPrint(4, ["Gens    : ", generators]);
       
-      repeat
-          newPoints := [];
-          for point in orbit do
-              for generator in generators do
-                  
-                  # Add edges for all new points and new generators
-                  if not IsPointInOrbit(oldTree, point) or
-                     not generator in oldGenerators then
-                      newPoint := action(generator[1], point);
+      if ValueOption("SimpleSchreierTree") = fail then
+          repeat
+              newPoints := [];
+              for point in orbit do
+                  for generator in generators do
                       
-                      if not IsPointInOrbit(tree, newPoint) then
-                          AddHashEntry(tree, newPoint, generator);
-                          Add(newPoints, newPoint);
+                    # Add edges for all new points and new generators
+                      if not IsPointInOrbit(oldTree, point) or
+                         not generator in oldGenerators then
+                          newPoint := action(generator[1], point);
+                          
+                          if not IsPointInOrbit(tree, newPoint) then
+                              AddHashEntry(tree, newPoint, generator);
+                              Add(newPoints, newPoint);
+                          fi;
                       fi;
-                  fi;
+                  od;
               od;
-          od;
-          orbit := newPoints;
-      until IsEmpty(orbit);
-      
+              orbit := newPoints;
+          until IsEmpty(orbit);
+      else
+          repeat
+              newPoints := [];
+              for point in orbit do
+                  for generator in generators do
+                      
+                    # Add edges for all new points and new generators
+                      if not IsPointInOrbit(oldTree, point) or
+                         not generator in oldGenerators then
+                          newPoint := action(generator[1], point);
+                          
+                          # Make Schreier tree have height 1
+                          if not IsPointInOrbit(tree, newPoint) then
+                              element := ShallowCopy(GetSchreierTreeEdge(tree, 
+                                                 point));
+                              element[1] := element[1] * generator[1];
+                              element[2] := generator[2] * element[2];
+                              AddHashEntry(tree, newPoint, Immutable(element));
+                              Add(newPoints, newPoint);
+                          fi;
+                      fi;
+                  od;
+              od;
+              orbit := newPoints;
+          until IsEmpty(orbit);
+      fi;          
+          
       return tree;
   end;    
-
-    # Computes a Schreier tree 
-    # root - root of the Schreier tree
-    # generators - generators for group
-    # points - point set where root comes from
-    # action - the action used to create the tree
-    # hash - hash function to be used
-    #
-    # This is just a computation of a spanning tree for a connected component
-    SchreierTree := 
-      function(generators, points, root, action, identity, hash)
-        local tree;
-        
-        # Create Schreier vector
-        tree := SparseHashTable(hash);
-        
-        # Make the root point to itself 
-        AddHashEntry(tree, root, [identity, identity]);
-        
-        # Fill Schreier vector
-        return Immutable(ComputeSchreierTree(generators, tree, root, action));
-    end;
 
     # Compute the group element that connects the root of the Schreier tree to
     # a given point
@@ -235,22 +213,32 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
       function(schreierTree, point, action, identity, IsIdentity)
         local element, edge;
         
-        # the group element and its inverse
-        element := [identity, identity];
-        
-        repeat
+        if ValueOption("SimpleSchreierTree") = fail then
+            # the group element and its inverse
+            element := [identity, identity];
+            
+            repeat
+                edge := GetSchreierTreeEdge(schreierTree, point);
+                
+                Assert(1, not IsBool(edge), "Point not in orbit!\n");
+                
+                if IsIdentity(edge[1], identity) then
+                    return element;
+                fi;
+                
+                point := action(edge[2], point);
+                element[1] := edge[1] * element[1];
+                element[2] := element[2] * edge[2];
+            until false;
+        else
+            # In this case the tree has height 1, so we are done with one
+            # single lookup
+            
             edge := GetSchreierTreeEdge(schreierTree, point);
-            
+                
             Assert(1, not IsBool(edge), "Point not in orbit!\n");
-            
-            if IsIdentity(edge[1], identity) then
-                return element;
-            fi;
-            
-            point := action(edge[2], point);
-            element[1] := edge[1] * element[1];
-            element[2] := element[2] * edge[2];
-        until false;
+            return edge;
+        fi;
     end;
 
     # check if an element belongs to a group, using sifting
@@ -273,7 +261,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                              ssInfo[level].partialBase);
             
             if not IsPointInOrbit(ssInfo[level].schreierTree, point) then
-                return [residue, level];
+                return [Immutable(residue), level];
             fi;
             
             word := OrbitElement(ssInfo[level].schreierTree, point, 
@@ -283,7 +271,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
             residue[2] := word[1] * residue[2];
         od;
         
-        return [residue, Length(ssInfo) + 1];
+        return [Immutable(residue), Length(ssInfo) + 1];
     end; 
         
     # Find a point not in base that is moved by element
@@ -411,10 +399,11 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
               newPoint, oldSchreierTree, field, newBasePoint, oldOrbit;
         
+        DebugPrint(6, ["Schreier-Sims at level ", level]);
+        
         action := ssInfo[level].action;
         field  := ssInfo[level].points;
         
-        DebugPrint(6, ["Schreier-Sims at level ", level]);
         
         # Find the generators from the partial SGS that fixes all points at
         # lower levels.
@@ -466,8 +455,9 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                     DebugPrint(4, ["Schreier Generator : ", 
                             schreierGenerator]);
                     
-                    Assert(3, not schreierGenerator[1] = identity, 
-                           "Identity Schreier generator!");
+                    Assert(3, 
+                           not ssInfo[level].IsIdentity(schreierGenerator[1],
+                                   identity), "Identity Schreier generator!");
                     if ssInfo[level].IsIdentity(schreierGenerator[1], 
                                identity) then
                         continue;
@@ -501,8 +491,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                         # Add residue to partial SGS
                         # This makes some levels incomplete and so we must
                         # recompute them recursively
-                        AddSet(partialSGS, Immutable(strip[1]));
-                        AddSet(partialSGS, Immutable(Reversed(strip[1])));
+                        AddSet(partialSGS, strip[1]);
+                        AddSet(partialSGS, Reversed(strip[1]));
                         
                         # Possibly extend the base if the Schreier generator
                         # fixes all points in our base

@@ -26,6 +26,7 @@ functionNames := Filtered(NamesUserGVars(), function(element)
 end);;
 ProfileFunctions(Filtered(List(functionNames, EvalString), IsFunction));
 #ProfileOperationsAndMethods(true);
+ProfileOperations(true);
 ProfileGlobalFunctions(true);
 
 ReadTest("tst/profile.tst");;

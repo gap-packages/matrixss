@@ -18,7 +18,7 @@ Revision.("matrixss/tst/test_g") :=
 
 RequirePackage("matrixss");;
 
-SetAssertionLevel(0);
+SetAssertionLevel(1);
 MATRIXSS_DEBUGLEVEL := 1;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
 ReadTest("tst/test.tst");;

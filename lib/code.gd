@@ -46,6 +46,11 @@ DeclareGlobalFunction("MatrixSchreierSimsBenchmark");
 #      L[2] - a strong generating set for G, corresponding to L[1]
 #      L[3] - a list of orbits, ie SparseHashTables representing Schreier trees
 #             the trees has the corresponding base points as roots
+# Options:
+#      SimpleSchreierTree - calculate coset representatives at the moment of
+#                           creation of the Schreier trees, thus making them
+#                           have height 1
+#                           This should make the algorithm significantly faster
 DeclareGlobalFunction("MatrixSchreierSims");
 
 
