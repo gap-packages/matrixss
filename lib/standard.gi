@@ -31,7 +31,7 @@ Revision.("matrixss/lib/standard_gi") :=
 ###############################################################################
 InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1, 
         function(G)
-    local ssInfo, list, generators, level, points, element, SchreierSims;
+    local ssInfo, list, generators, level, points, element, SchreierSims, ret;
         
 ###############################################################################
 ##
@@ -81,22 +81,13 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
         # Compute \Delta_i = \beta_i^(H^i) = \beta_i^(<S_i>)
         oldSchreierTree := ssInfo[level].schreierTree;
         
-        if ValueOption("ExtendSchreierTree") <> fail then
-            ssInfo[level].schreierTree := 
-              MATRIXSS_ExtendSchreierTree(ssInfo[level].schreierTree, 
-                      SGS, ssInfo[level].oldSGS, action, ssInfo[level].hash);
-        else
-            MATRIXSS_DebugPrint(7, ["Creating new empty Schreier Tree"]);
-            ssInfo[level].schreierTree := 
-              MATRIXSS_CreateInitialSchreierTree(ssInfo[level].partialBase,
-                      ssInfo[level].hash, identity);
-            MATRIXSS_DebugPrint(7, ["Filling new Schreier Tree"]);
-            ssInfo[level].schreierTree :=
-              MATRIXSS_ComputeSchreierTree(ssInfo[level].schreierTree, SGS, 
-                      action);
-        fi;
+        ssInfo[level].schreierTree := 
+          MATRIXSS_GetSchreierTree(ssInfo[level].schreierTree,
+                  ssInfo[level].partialBase, SGS, 
+                  ssInfo[level].oldSGS,
+                  action, ssInfo[level].hash, identity);
         
-        orbit := Immutable(MATRIXSS_GetOrbit(ssInfo[level].schreierTree));
+        orbit := Immutable(MATRIXSS_GetOrbit(ssInfo[level].schreierTree.Tree));
         
         MATRIXSS_DebugPrint(6, ["New Schreier Tree : ", 
                 ssInfo[level].schreierTree]);
@@ -112,14 +103,14 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
             for generator in SGS do
                 
                 # Avoid rechecking Schreier generators
-                if not MATRIXSS_IsPointInOrbit(oldSchreierTree, point) or 
+                if not MATRIXSS_IsPointInOrbit(oldSchreierTree.Tree, point) or 
                    not generator in ssInfo[level].oldSGS then
                                         
                     # Compute Schreier generator g for current level
                     schreierGenerator := 
-                      MATRIXSS_GetSchreierGenerator(ssInfo[level].schreierTree,
-                              generator, point, action, identity,
-                              ssInfo[level].IsIdentity);
+                      MATRIXSS_GetSchreierGenerator(
+                              ssInfo[level].schreierTree.Tree,
+                              generator, point, action, identity);
                                         
                     MATRIXSS_DebugPrint(6, ["Schreier Generator : ", 
                             schreierGenerator]);
@@ -195,63 +186,22 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
 
     ### MAIN Schreier-Sims 
     
-    # Get initial set of generators, to be extended to a partial SGS
-    generators := GeneratorsOfGroup(G);
-    
-    if ValueOption("CleverBasePoints") <> fail then
-        # Get a list of possibly good base points for this group
-        MATRIXSS_BasePointStore := BasisVectorsForMatrixAction(G);
+    if IsBoundGlobal("MATRIXSS_PROFILE") then
+        ProfileFunctions([SchreierSims]);
     fi;
     
+    # Get initial set of generators, to be extended to a partial SGS
+    generators := GeneratorsOfGroup(G);
+        
     # The vector space on which the group acts
     points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
-    
-###############################################################################
-##
-#V ssInfo
-##
-## Main structure holding information for the algorithm. This is not a global
-## variable, but the same structure is used in all the variants of the 
-## algorithm, but all members are not necessarily used.
-##
-## The structure `ssInfo' is a list of records, with a record for each level 
-## in the algorithm, ie one record for each base point. New base points
-## may of course be added to the base during the execution of the algorithm,
-## and then a new record is added to the end of the list.
-##
-## The members of the record are:
-## \beginitems
-## `partialSGS' & the elements in the current partial SGS that fixes all
-##              points at lower levels, or the whole partial SGS for the
-##              first level
-##
-## `partialBase' & the base point for this level
-##
-## `action' & the action (function) at this level
-##
-## `points' & the field where the base point `partialBase' comes from
-##
-## `hash' & the hash function for the Schreier tree at this level
-##
-## `schreierTree' & the Schreier tree for this level, representing the
-##                  basic orbit at this level, ie the orbit of `partialBase'
-##                  under the action of `partialSGS' at the previous (lower) 
-##                  level. Thus, the root of the tree is `partialBase'.
-##
-## `oldSGS' & the whole partial SGS at the last call of SchreierSims at
-##            this level
-##
-## IsIdentity & the function to check if a point is the identity at this
-##                level
-##    
-###############################################################################
-    ssInfo := [];
     
     MATRIXSS_DebugPrint(3, ["Group generators : ", generators]);
     
     # Compute initial partial SGS and base and fill ssInfo
-    generators := MATRIXSS_GetPartialBaseSGS(generators, ssInfo, Identity(G), 
-                          points);
+    ret := MATRIXSS_GetPartialBaseSGS(generators, Identity(G), points);
+    generators := ret[1];
+    ssInfo     := ret[2];
     
     MATRIXSS_DebugPrint(3, ["Partial sgs : ", generators]);
     MATRIXSS_DebugPrint(3, ["Initial base length : ", Length(ssInfo)]);
