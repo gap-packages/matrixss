@@ -16,7 +16,7 @@ WEB_PATH      = /home/groups/m/ma/matrixss/htdocs
 SCP_USER      = redstar_
 WEB_FILES     = doc/www/*.html README PackageInfo.g ChangeLog 
 WEBMAN_PATH   = /home/groups/m/ma/matrixss/htdocs/manual
-WEBMAN_FILES  = htm/*
+WEBMAN_FILES  = htm/*.htm
 
 # to perform test/benchmark
 TEST_FILE     = tst/test.g
