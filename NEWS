@@ -3,6 +3,10 @@ Matrix Schreier-Sims NEWS
 Important new features are listed here. 
 More detailed changed are in the ChangeLog.
 
+2004-02-09
+    Implemented a more efficient version, using explicit levels and the trick
+    of stripping Schreier generators. Code seems to be more than twice as fast.
+
 2004-01-17
     A seemingly working version of Schreier-Sims has now been implemented. 
     It is the standard naive version without any optimisations.
