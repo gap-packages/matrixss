@@ -3,6 +3,20 @@ Matrix Schreier-Sims NEWS
 Important new features are listed here. 
 More detailed changed are in the ChangeLog.
 
+2004-07-03
+    Implemented a simple (and yet slow) version of the random
+    Schreier-Sims algorithm, as first described by Leon. The algorithm
+    does not use any verification but takes as input a probability and
+    tries to achieve at least this probability of correctness. However,
+    since the group elements are probably not taken from a uniform
+    distribution (it uses GAP:s PseudoRandom function) there is not
+    theoretical guarantee of any probability.
+
+    The stopping conditions used are simple: when a number of consecutive
+    random elements sifts to identity the algorithm terminates, and the
+    number is calculated from the given probability. If lower and/or upper
+    bounds on the group order are known, they are used in the algorithm.
+
 2004-06-29
     Added more Options to control when some features of the algorthim
     are used, sine it seems that, in particular, the tricks of extending
