@@ -1,5 +1,5 @@
 Matrix Schreier-Sims TODO
 =========================
 
-- Code must be optimised
-
+- Implement a randomized algorithm, together with some verification step.
+- Possibly implement a version using Todd-Coxeter coset enumeration.

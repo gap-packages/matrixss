@@ -3,6 +3,14 @@ Matrix Schreier-Sims NEWS
 Important new features are listed here. 
 More detailed changed are in the ChangeLog.
 
+2004-06-29
+    Added more Options to control when some features of the algorthim
+    are used, sine it seems that, in particular, the tricks of extending
+    Schreier trees and using alternating actions do not always make things
+    go faster. Also incorporated some GAP-related improvements due to
+    Alexander Hulpke, and a selection of an initial store of base points
+    using a strategy of O'Brien and Murray.
+
 2004-06-26
     Added an Option to flatten the Schreier trees at creation time (make
     them have height 1), so that later only a single hash lookup is needed to
