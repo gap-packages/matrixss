@@ -126,16 +126,20 @@ demonstrated by \ref{alg:orbit}.
 \tcc{Assumes the existence of a function \texttt{Tree}$(x)$ that creates an empty tree with root $x$ and a function \texttt{AddChild}($T$, $p_1$, $p_2$, $l$) that adds $p_2$ as a child to $p_1$ in the tree $T$, with label $l$.}
 \Begin{
   $\Points := \set{\alpha}$ \;
-  $\Children := \emptyset$ \;
   $\STree := \Tree(\alpha)$ \;
-  \Repeat{$\Points = \emptyset$}{
-    \ForEach{$p \in \Points$}{
-      \ForEach{$s \in S$}{
-        $p^{\prime} := p^s$ \;
-        \If{$p^{\prime} \notin \STree$}{
+  \Repeat{$\Points = \emptyset$}
+  {
+    $\Children := \emptyset$ \;
+    \ForEach{$p \in \Points$}
+    {
+      \ForEach{$s \in S$}
+      {
+        $p^{\prime} := p^s$ \; \label{alg:orbit_innerloop1}
+        \If{$p^{\prime} \notin \STree$}
+        {
           $\AddChild(\STree, p, p^{\prime}, s)$ \;
-          $\Children := \Children \cup \set{p^{\prime}}$ \;
-        }
+          $\Children := \Children \cup \set{p^{\prime}}$ \; \label{alg:orbit_innerloop2}
+        } 
       }
     }
     $\Points := \Children$ \;
@@ -275,10 +279,10 @@ inverses, which makes some implementation issues more uniform. Later we will see
   $\SGS := \emptyset$ \;
   \ForEach{$s \in S \setminus \set{1}$}
   {
-    \If{$\Base^s = \Base$}
-    {
+    \If{$\Base^s = \Base$} 
+    { \label{alg:partial_bsgs_innerloop1}
       $\Point := \NewBasePoint(s)$ \;
-      $\Base := \Base \cup \set{\Point}$ \;
+      $\Base := \Base \cup \set{\Point}$ \; \label{alg:partial_bsgs_innerloop2} 
     }
     $\SGS := \SGS \cup \set{s, s^{-1}}$ \;
   }    
@@ -428,7 +432,7 @@ found in \cite{sims98} and \cite{soicher98}.
 \end{algorithm}
 
 This algorithm reduces the generating set to size $\binom{\abs{X}}{2}
-\in O(\abs{X}^2)$. With this algorithm, we can solve our problem using
+\in \OR{\abs{X}^2}$. With this algorithm, we can solve our problem using
 \ref{alg:call_ss} and \ref{alg:pre_ss}. This, however, is not the
 Schreier-Sims algorithm, which is a more clever and efficient method
 of performing the same things.
@@ -543,7 +547,7 @@ This is formalised in \ref{alg:membership}.
       \Return{$(r, i)$}
     }
     $\Element := \OrbitElement(T_{i - 1}, \alpha_i^r)$ \;
-    $r := r * \Element^{-1}$ \;
+    $r := r \cdot \Element^{-1}$ \;
   }
   \Return{$(r, n + 1)$} \label{alg:membership_return}
 }
@@ -712,11 +716,47 @@ moved by $M$. Finally if $M$ is scalar, then $M_{11} \neq 1$ since $M
 \end{algorithm}
 
 \section{Complexity analysis}
+We now analyse the time complexity of the given algorithms, but we
+will not be interested in space complexity. For the analysis we assume
+that the external functions \texttt{Tree}, \texttt{AddChild} and
+\texttt{EdgeLabel}, that depend on the particular datastructure used,
+take time $\Theta(1)$ This is a reasonable assumption and it is satisfied
+in the code for the project, which uses hash tables to implement the Schreier trees. We also assume that the datastructure
+used for sets is a sorted list, so that elements can be found, added and
+removed in logarithmic time using binary search. This assumption is
+satisfied in \GAP.
 
-\subsection{Complexity of Schreier tree algorithms}
-For the analysis of \ref{alg:orbit} we assume that the external
-functions \texttt{Tree} and \texttt{AddChild}, that depend on the
-particular datastructure used, take $O(1)$ time. This is a reasonable
-assumption and it is satisfied in the code for the project. $G \leq
-GL(d, q)$, $O(\abs{X} \abs{S}d)$
+Moreover, since we are working in a matrix group $G = \gen{S} \leq \GL(d, q)$
+that acts on the vector space $X = \F_q^d$, we know that the
+multiplication of two group elements takes time $\Theta(d^3)$ and that the action
+of a group element on a point takes time $\Theta(d^2)$, under the reasonable
+assumption that the multiplication of two elements from $\F_q$ takes time 
+$\Theta(1)$.
+
+Consider first \ref{alg:orbit}. We know that it is a breadth-first
+search and we know that a simple breadth-first search on a graph
+$\mathcal{G} = (V, E)$ takes time $\OR{\abs{V} + \abs{E}}$. In our case
+we have $\abs{E} = \abs{V} \abs{S} = \abs{X} \abs{S}$, so the edges
+are dominating. We also see that line \ref{alg:orbit_innerloop1}
+takes time $\Theta(d^2)$ and line \ref{alg:orbit_innerloop2} takes
+time $\OR{\log{\abs{S}}}$ since the size of the set
+\textsf{children} is bounded by $\abs{S}$. The former line is therefore dominating, and thus we have that
+\ref{alg:orbit} takes time $\OR{\abs{X}\abs{S} d^2}$.
+
+For \ref{alg:trace} we just note that in a tree with vertex set $V$,
+the depth of any node is bounded by $\abs{V}$. In our case the
+vertices of the Schreier tree is the points of the orbit, which may be
+the whole of $X$ is the action is transitive. Therefore we see that
+\ref{alg:trace} takes time $\OR{\abs{X} d^3}$.
+
+It is obvious that \ref{alg:new_base_point} takes time $\OR{d^2}$, and it is also obvious that \ref{alg:get_schreier_gen} takes time $\OR{\abs{X} d^2 + d^3} = \OR{\abs{X} d^2}$. In
+\ref{alg:partial_bsgs} we see that line
+\ref{alg:partial_bsgs_innerloop2} takes time $\OR{1}$ because the base
+is just a list and can therefore be augmented in constant time. We see
+that line \ref{alg:partial_bsgs_innerloop1} takes time $\OR{\abs{B}
+  d^2}$ since we might have to multiply every base point with the
+group element, in the case where it actually fixes the base. Thus,
+\ref{alg:partial_bsgs} takes time $\OR{\abs{S} \log{\abs{S}} \abs{B}
+  d^2}$.
+
 
