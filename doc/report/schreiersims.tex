@@ -1,4 +1,4 @@
-\documentclass[draft,twoside]{amsbook}
+\documentclass[twoside]{amsbook}
 \usepackage[swedish,french,german,english]{babel} 
 \usepackage[latin1]{inputenc} % svenska tecken skall tolkas
 \usepackage{amsmath}
@@ -13,7 +13,7 @@
 \usepackage[ruled,linesnumbered,algochapter]{algorithm2e} % for typesetting algorithms
 \usepackage{bm} % for \boldsymbol
 %\usepackage{graphicx}
-\usepackage{draftcopy}
+%\usepackage{draftcopy}
 \frenchspacing
 
 \numberwithin{equation}{section}
@@ -94,7 +94,17 @@
 
 %\begin{titlepage}
 \begin{abstract}
-Bla bla
+  This is the report of a project with the aim to make a new
+  implementation of the Schreier-Sims algorithm in \GAP, specialized
+  for matrix groups. The standard Schreier-Sims algorithm is
+  described in some detail, followed by descriptions of the probabilistic
+  Schreier-Sims algorithm and the Schreier-Todd-Coxeter-Sims
+  algorithm. Then we discuss our implementation and some
+  optimisations, and finally we report on the performance of our
+  implementation, as compared to the existing implementation in \GAP,
+  and we give benchmark results. The conclusion is that our
+  implementation has better time complexity, and probably also better
+  space complexity.
 \end{abstract}
 
 \urladdr{http://matrixss.sourceforge.net/}
