@@ -32,9 +32,8 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
               newPoint, oldSchreierTree, newBasePoint, oldOrbit,
               newInverseGenerator, newSGS, freeGroup, cosetTable, word,
-              groupGens, subgroupGens, subgroupRels, levelFPGroup,
-              relation, gens1, gens2, gens3, relations, homo, G, H,
-              sgens, fgens, fsgens, grels, levelGroup;
+              subgroupGens, relation, gens1, gens2, gens3, relations, 
+              levelGroup;
         
         MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);
         
@@ -51,11 +50,13 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
             SGS := ShallowCopy(partialSGS);
         fi;
         MakeImmutable(SGS);
+        
+        # Compute group homomorpism for current level
         freeGroup := FreeGroup(Length(SGS));
         MATRIXSS_DebugPrint(6, ["Generators : ", List(SGS, i -> i[1])]);
         levelGroup := Group(List(SGS, i -> i[1]), identity);
         ssInfo[level].freeGroupHomo := 
-          GroupHomomorphismByImages(freeGroup, levelGroup,
+          GroupHomomorphismByImagesNC(freeGroup, levelGroup,
                   GeneratorsOfGroup(freeGroup), GeneratorsOfGroup(levelGroup));
                 
         MATRIXSS_DebugPrint(3, ["Saved SGS that fixes first ", level - 1, 
@@ -102,29 +103,17 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                 if not MATRIXSS_IsPointInOrbit(oldSchreierTree, point) or 
                    not generator in ssInfo[level].oldSGS then
                     
+                    # Create free group for use in coset enumeration
                     freeGroup := FreeGroup(Length(SGS));
                     MATRIXSS_DebugPrint(6, ["Generators : ", 
                             List(SGS, i -> i[1])]);
                     levelGroup := Group(List(SGS, i -> i[1]), identity);
                     ssInfo[level].freeGroupHomo := 
-                      GroupHomomorphismByImages(freeGroup, levelGroup,
+                      GroupHomomorphismByImagesNC(freeGroup, levelGroup,
                               GeneratorsOfGroup(freeGroup), 
                               GeneratorsOfGroup(levelGroup));
                     
-                    groupGens := [];
-                    for element in List(SGS, i -> i[1]) do
-                        MATRIXSS_DebugPrint(6, ["Adding ", 
-                                PreImagesRepresentative(ssInfo[level].
-                                        freeGroupHomo, element), 
-                                " to group gens"]);
-                        element := PreImagesRepresentative(ssInfo[level].
-                                           freeGroupHomo, element);
-                        if not Inverse(element) in groupGens then
-                            AddSet(groupGens, element);
-                        fi;
-                        MATRIXSS_DebugPrint(6, ["Group gens : ", groupGens]);
-                    od;
-                    
+                    # Map relations to current free group
                     relations := [];
                     for element in ssInfo[level].relations do
                         AddSet(relations, MappedWord(element[1], 
@@ -132,45 +121,35 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                                 GeneratorsOfGroup(freeGroup)));
                     od;
                     
-                    levelFPGroup := freeGroup / relations;
-                    homo := GroupHomomorphismByImages(levelFPGroup, levelGroup,
-                                    GeneratorsOfGroup(levelFPGroup),
-                                    GeneratorsOfGroup(levelGroup));
-                    
+                    # Express subgroup generators as words in generators
+                    # of free group
                     subgroupGens := [];
                     for element in List(ssInfo[level].partialSGS, i -> i[1]) do
-                        element := PreImagesRepresentative(homo, element);
+                        element := 
+                          PreImagesRepresentative(ssInfo[level].freeGroupHomo, 
+                                  element);
                         MATRIXSS_DebugPrint(6, ["Adding ", element,
                                 " to subgroup gens"]);
-                        if not Inverse(element) in subgroupGens then
-                            AddSet(subgroupGens, element);
-                        fi;
+                        AddSet(subgroupGens, element);
                         MATRIXSS_DebugPrint(6, ["SubGroup gens : ", 
                                 subgroupGens]);
                     od;
                     
-                    H := Subgroup(levelFPGroup, subgroupGens);
-                    
-                    # Get whole group <G> of <H>.
-                    G := FamilyObj(H)!.wholeGroup;
-                    
-                    # get some variables
-                    fgens := FreeGeneratorsOfFpGroup(G);
-                    grels := RelatorsOfFpGroup(G);
-                    sgens := GeneratorsOfGroup(H);
-                    fsgens := List(sgens, gen->UnderlyingElement(gen));
-                    
                     MATRIXSS_DebugPrint(2, ["Running coset enum with gens : ", 
-                            fgens, " relations ", grels, " subgroup gens ", 
-                            fsgens]);
+                            GeneratorsOfGroup(freeGroup), " relations ", 
+                            relations, " subgroup gens ", subgroupGens]);
                     
-                    # Construct the coset table of <G> by <H>.
+                    # Perform (interrupted) Todd-Coxeter coset enumeration
                     cosetTable := 
-                      CosetTableFromGensAndRels(fgens, grels, fsgens :
-                              max := Int(11/10 * MATRIXSS_GetOrbitSize(
-                                      ssInfo[level].schreierTree)),
+                      CosetTableFromGensAndRels(GeneratorsOfGroup(freeGroup), 
+                              relations, subgroupGens :
+                              max := 1 + MATRIXSS_GetOrbitSize(
+                                      ssInfo[level].schreierTree),
                               silent);
                     
+                    # If coset enumeration was successful and index of the
+                    # subgroup was equal to our orbit size, then we know
+                    # that the subgroup is stabiliser and we can exit
                     MATRIXSS_DebugPrint(2, ["Coset table : ", cosetTable]);
                     if cosetTable <> fail and Length(cosetTable) = 
                        MATRIXSS_GetOrbitSize(ssInfo[level].schreierTree) then
@@ -198,9 +177,11 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     # the current level
                     # Check if g \in H^(i + 1) = <S^(i + 1)>
                     points := [level + 1 .. Length(ssInfo)];
+                    MATRIXSS_DebugPrint(4, ["Sifting element ", 
+                            schreierGenerator[1], " on levels ", points]);
                     strip := MATRIXSS_Membership_ToddCoxeter(ssInfo{points},
                                      schreierGenerator[1], 
-                                     identity);
+                                     identity, ssInfo[level].freeGroupHomo);
                     MATRIXSS_DebugPrint(6, ["Got sift: ", strip]);
                     word := ShallowCopy(strip[1][2]);
                     strip := [strip[1][1], strip[2]];
@@ -213,10 +194,10 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     # but we want the range given by points
                     strip[2] := strip[2] + level;
                     
-                    MATRIXSS_DebugPrint(2, ["Dropout level : ", strip[2]]);
+                    MATRIXSS_DebugPrint(4, ["Dropout level : ", strip[2]]);
                     
                     if strip[1][1] <> identity then
-                        MATRIXSS_DebugPrint(2, ["Residue found"]);
+                        MATRIXSS_DebugPrint(4, ["Residue found"]);
                         
                         # We have found a Schreier generator which is not in
                         # the stabiliser of the current level, and so we must
@@ -247,7 +228,6 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     fi;
                     
                     for recursiveLevel in [level .. strip[2] - 1] do
-                        
                         # We must recompute free group homomorphism since
                         # there are new generators 
                         freeGroup := 
@@ -268,7 +248,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                                 GeneratorsOfGroup(levelGroup)]);
                         
                         ssInfo[recursiveLevel + 1].freeGroupHomo := 
-                          GroupHomomorphismByImages(freeGroup, levelGroup,
+                          GroupHomomorphismByImagesNC(freeGroup, levelGroup,
                                   GeneratorsOfGroup(freeGroup),
                                   GeneratorsOfGroup(levelGroup));
                         
@@ -291,6 +271,8 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                         if Length(gens2) >= Length(gens3) and
                            Length(gens2) >= Length(gens1) then
                             
+                            # Map the words to the generators in the same
+                            # free group
                             relation := MappedWord(schreierGenerator[2][1], 
                                                 gens3,
                                                 gens2{[1 .. Length(gens3)]}) *
@@ -302,6 +284,9 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                                                         
                             MATRIXSS_DebugPrint(6, ["Adding relation : ",
                                     relation]);
+                            
+                            # Save relation along with the its free group
+                            # so that we can map its generators later
                             Add(ssInfo[recursiveLevel + 1].relations,
                                 [relation, freeGroup]);
                         fi;

@@ -361,12 +361,12 @@ end;
 # element - the element to check membership for
 # identity - group identity
 MATRIXSS_Membership_ToddCoxeter := 
-  function(ssInfo, element, identity)
-    local level, residue, representative, point, mappedWord, gens1, gens2;
+  function(ssInfo, element, identity, freeGroupHomo)
+    local level, residue, representative, point, word, gens1, gens2;
     
-    residue := [element, [Identity(PreImage(ssInfo[1].freeGroupHomo)),
-                       Identity(PreImage(ssInfo[1].freeGroupHomo)),
-                       ssInfo[1].freeGroupHomo]];
+    word := [Identity(PreImage(freeGroupHomo)),
+             Identity(PreImage(freeGroupHomo)), freeGroupHomo];
+    residue := [element, word];
     
     # Find an expression of element in terms of the generators of the
     # groups in our stabiliser chain, using the Schreier trees
@@ -400,16 +400,19 @@ MATRIXSS_Membership_ToddCoxeter :=
         residue[1][2] := representative[1][1] * residue[1][2];
         
         gens1 := GeneratorsOfGroup(PreImages(ssInfo[level].freeGroupHomo));
-        gens2 := GeneratorsOfGroup(PreImages(ssInfo[1].freeGroupHomo));
-        Assert(1, Length(gens1) >= Length(gens2));
-          
-        mappedWord := 
-          MappedWord(representative[2][2], gens1, gens2{[1 .. Length(gens1)]});
-        residue[2][1] := residue[2][1] * mappedWord;
+        gens2 := GeneratorsOfGroup(PreImages(freeGroupHomo));
+        MATRIXSS_DebugPrint(8, ["Gens 1 : ", gens1]);
+        MATRIXSS_DebugPrint(8, ["Gens 2 : ", gens2]);
         
-        mappedWord := 
-          MappedWord(representative[2][1], gens1, gens2{[1 .. Length(gens1)]});
-        residue[2][2] := mappedWord * residue[2][2];
+        if Length(gens2) >= Length(gens1) and Length(gens1) > 0 then
+            word := MappedWord(representative[2][2], gens1, 
+                            gens2{[1 .. Length(gens1)]});
+            residue[2][1] := residue[2][1] * word;
+            
+            word := MappedWord(representative[2][1], gens1, 
+                            gens2{[1 .. Length(gens1)]});
+            residue[2][2] := word * residue[2][2];
+        fi;
     od;
     
     if residue[1][1] <> identity then
