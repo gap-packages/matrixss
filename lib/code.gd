@@ -51,6 +51,17 @@ Revision.("matrixss/lib/code_gd") :=
 ## `CleverBasePoints' & Choose an initial list of base points using 
 ##                      `BasisVectorsForMatrixAction', which is made by
 ##                      O'Brien and Murray.
+##
+## `ShallowSchreierTree' & Create the Schreier trees using the method described
+##                         by Babai et al (1991) which guarantees logarithmic
+##                         depth. This Option is only used when the option
+##                         `SimpleSchreierTree' is <not> defined.
+## 
+## `Random' & Use probabilistic algorithm.
+##
+## `Linear' & Use nearly linear-time algorithm. This takes precedence over
+##            `Random', if it is present.
+##
 ## \enditems
 ##
 ###############################################################################
@@ -86,5 +97,14 @@ MATRIXSS_DEBUGLEVEL := 0;
 ##
 ###############################################################################
 MATRIXSS_BasePointStore := [];
+
+###############################################################################
+##
+#V MATRIXSS_SubProdGroups
+##
+## A Dictionary of SymmetricGroups, used when permuting random subproducts.
+##
+###############################################################################
+MATRIXSS_SubProdGroups := NewDictionary(10, true, Integers);
 
 #E
