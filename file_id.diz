@@ -6,6 +6,6 @@ A package for the GAP system, including
 an implementation of the Schreier-Sims 
 algorithm for matrix groups. It is 
 released under the GNU General Public 
-License (GPL) and is meant to be a
-replacement for the internal GAP
+License (GPL) and is meant to be an
+alternative to the internal GAP
 version of this algorithm.

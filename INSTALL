@@ -1,0 +1,6 @@
+Matrix Schreier-Sims Installation instructions
+==============================================
+
+The files should be put in a subdirectory "matrixss" to the gap "pkg"
+directory.
+
