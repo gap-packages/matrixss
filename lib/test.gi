@@ -119,6 +119,20 @@ MATRIXSS_GetBenchmarkGroups :=
     return groups;
 end;
 
+###############################################################################
+##
+#F MATRIXSS_TimedCall(call, args)
+##
+## Runs the specified function with arguments and return the running time in 
+## milliseconds, as given by Runtime, see "ref:Runtime" in the reference 
+## manual.
+## \beginitems
+## `call' & function to call
+##
+## `args' & list of arguments to `call'
+## \enditems
+##
+###############################################################################
 MATRIXSS_TimedCall := function(call, args)
     local time;
     
