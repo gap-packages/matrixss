@@ -9,6 +9,7 @@
 build: build-stamp
 
 build-stamp:
+	touch doc/code.tex
 	$(MAKE) -C doc
 	gzip doc/manual.dvi
 	gzip doc/manual.toc
