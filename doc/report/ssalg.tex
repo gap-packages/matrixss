@@ -6,7 +6,7 @@ We will now describe the Schreier-Sims algorithm, and the references we are usin
 The overall goal for work in group theory is to understand groups, and
 to answer various questions about groups. In particular, in CGT the
 interest is focused on questions of algorithmic nature, so given a
-group $G$ we are interested in things like
+group $G$ we are interested in algorithms for things like
 \begin{itemize}
 \item What is $\abs{G}$?
 \item We want to list all elements of $G$, without repetition.
@@ -26,14 +26,14 @@ be if subgroups of $G$ in some direct way inherit the representation,
 so that divide-and-conquer techniques could be used when designing
 algorithms (see \cite{clr90}).
 
-\section{Base and strong generating set}
+\section{Base and strong generating set} \label{section:bsgs}
 Consider the situation where we have a chain of subgroups of $G$
 \begin{equation}
 G = G^0 \geq G^1 \geq \dotsb \geq G^n = 1
 \end{equation}
-Each $g \in G$ can be written $g = u_1 g_1$ where $u_1$ is a
-representative of $gG^1$ and $g_1 \in G^1$, and inductively we can
-factorize $g$ as $g = u_1 u_2 \dotsm u_n$, since the subgroup chain
+Each $g \in G$ can be written $g = g_1 u_1$ where $u_1$ is a
+representative of $G^1 g$ and $g_1 \in G^1$, and inductively we can
+factorize $g$ as $g = u_n u_{n - 1} \dotsm u_1$, since the subgroup chain
 reaches $1$. Moreover, this factorization is \emph{unique} since for each $i$ the cosets of $G^{i + 1}$ partition $G^i$, and by the same reason, different group elements will have different factorizations.
 
 We thus see that if we know generating sets for the subgroups in such
@@ -78,7 +78,7 @@ auxiliary algorithms that must be explained. Consider therefore a
 group $G = \gen{S}$ that acts on a finite set $X$. From the previous
 section we know that even if we have a base $(\alpha_1, \dotsc,
 \alpha_n)$ for $G$, with corresponding stabiliser chain $G \geq G^1
-\geq \dotsb G^n$, we also need to find right transversals of the cosets of
+\geq \dotsb G^n = 1$, we also need to find right transversals of the cosets of
 $G^{i + 1}$ in $G^i$ for $i = 1, \dotsc, n - 1$. But since these groups
 are stabilisers from the action on $X$, we can use
 \ref{thm_orbit_stab} and instead find the orbits $\alpha_1^G,
@@ -123,7 +123,7 @@ demonstrated by \ref{alg:orbit}.
 \SetKwData{Children}{children}
 \KwData{A group $G = \gen{S}$ acting on a finite set $X$ and a point $\alpha \in X$.}
 \KwResult{A Schreier tree for $\alpha^G$.}
-\tcc{Assumes the existence of a function \texttt{Tree}$(x)$ that creates a tree with root $x$ and a function \texttt{AddChild}($T$, $p_1$, $p_2$, $l$) that adds $p_2$ as a child to $p_1$ in the tree $T$, with label $l$.}
+\tcc{Assumes the existence of a function \texttt{Tree}$(x)$ that creates an empty tree with root $x$ and a function \texttt{AddChild}($T$, $p_1$, $p_2$, $l$) that adds $p_2$ as a child to $p_1$ in the tree $T$, with label $l$.}
 \Begin{
   $\Points := \set{\alpha}$ \;
   $\Children := \emptyset$ \;
@@ -153,7 +153,7 @@ have a Schreier tree, however.  Assume we have a Schreier tree $T =
 \in G$ then $\alpha^g \in V$ and there is a path from $\alpha$ to
 $\alpha^g$ in $T$. Let $s_1, s_2, \dotsc, s_n$ be the labels of the
 path, so that $s_i \in S$ for $i = 1, \dotsc, n$, and let $h = s_1 s_2
-\dotsm s_n$. Then obviosly $\alpha^h = \alpha^g$ so $G_{\alpha} g = 
+\dotsm s_n$. Then obviously $\alpha^h = \alpha^g$ so $G_{\alpha} g = 
 G_{\alpha} h$ and $h$ is a coset representative for the coset of $g$.
 Moreover, $h$ is unique since $T$ is a tree. Thus, to find the coset
 representative for $g$ we only have to follow the unique path from
@@ -169,9 +169,11 @@ following the path from a given point to the root.
 \KwData{A group $G = \gen{S}$ acting on a finite set $X$, a Schreier tree $T$ for the orbit $\alpha^G$ of the point $\alpha \in X$ and an arbitrary point $p \in X$.}
 \KwResult{The element $g \in G$ such that $\alpha^g = p$}
 \tcc{Assumes the existence of a function \texttt{EdgeLabel}$(T, p)$ that returns the label of the unique edge between $p$ and its parent in $T$}
-\Begin{
+\Begin
+{
   $g := 1$ \;
-  \While{$p \neq \alpha$}{
+  \While{$p \neq \alpha$}
+  {
     $s := \EdgeLabel(T, p)$ \;
     $p := p^{s^{-1}}$ \;
     $g := s g$ \;
@@ -203,7 +205,7 @@ G & \geq G^1 \geq \dotsb \geq G^n \\
 G & \geq H^1 \geq \dotsb \geq H^n = 1 
 \end{align}
 Moreover, $G^i \geq \gen{S^i} = H^i$ for $i = 1, \dotsc, n$ and if we
-have equality then by \ref{def_bsgs}, $S$ and $B$ are complete. If $h
+have equality then, by \ref{def_bsgs}, $S$ and $B$ are complete. If $h
 \in H^{i + 1} = \gen{S^{i + 1}} = \gen{S \cap G^{i + 1}}$ then $h = s_1 \dotsm s_k$ where $\alpha_{i + 1}^{s_j} = \alpha_{i + 1}$ for $j = 1, \dotsc, k$ so $\alpha_{i + 1}^h = \alpha_{i + 1}$ and therefore $h \in H^i_{\alpha_{i + 1}}$. Thus $H^{i + 1} \leq H^i_{\alpha_{i + 1}}$ for $i = 0, \dotsc, n - 1$.
 \end{remark}
 
@@ -216,7 +218,7 @@ solved by the Schreier-Sims algorithm.
 
 
  The following result from \cite{leon80} is used when designing the algorithm.
-\begin{theorem}
+\begin{theorem} \label{thm_leon}
   Let $G$ be a group acting on the finite set $X$, and let $B =
   (\alpha_1, \dotsc, \alpha_n)$ be a partial base and $S$ a partial
   strong generating set for $G$. Let also $G^i = G_{\alpha_1, \dotsc,
@@ -250,7 +252,12 @@ $H^i_{\alpha_{i + 1}} \geq H^{i + 1}$ so if we again use
 and thus $H^i_{\alpha_{i + 1}} = H^{i + 1}$.
 \end{proof}
 
-As observed earlier, we are often given a group in the form of a generating set, but Schreier-Sims algorithm requires a partial base and a partial strong generating set as input. Those are easy to compute, though, using \ref{alg:partial_bsgs}. The algorithm also makes sure that the partial strong generating set is closed under inverses, which makes some implementation issues more uniform.
+As observed earlier, we are often given a group in the form of a
+generating set, but Schreier-Sims algorithm requires a partial base
+and a partial strong generating set as input. Those are easy to
+compute, though, using \ref{alg:partial_bsgs}. The algorithm also
+makes sure that the partial strong generating set is closed under
+inverses, which makes some implementation issues more uniform. Later we will see how the function \texttt{NewBasePoint} that is used in \ref{alg:partial_bsgs} can be implemented when $G$ is a matrix group.
 
 \begin{algorithm} 
 \dontprintsemicolon
@@ -262,11 +269,14 @@ As observed earlier, we are often given a group in the form of a generating set,
 \KwData{A group $G = \gen{S}$ acting on a finite set $X$ and a sequence of points $B$ of $X$ (possibly empty).}
 \KwResult{A partial base $B^{\prime}$ and partial strong generating set $S^{\prime}$ for $G$.}
 \tcc{Assumes the existence of a function \texttt{NewBasePoint}$(g)$ that returns a point $p \in X$ such that $p^g \neq p$}
-\Begin{
+\Begin
+{
   $\Base := B$ \;
   $\SGS := \emptyset$ \;
-  \ForEach{$s \in S \setminus \set{1}$}{
-    \If{$\Base^s = \Base$}{
+  \ForEach{$s \in S \setminus \set{1}$}
+  {
+    \If{$\Base^s = \Base$}
+    {
       $\Point := \NewBasePoint(s)$ \;
       $\Base := \Base \cup \set{\Point}$ \;
     }
@@ -280,9 +290,9 @@ As observed earlier, we are often given a group in the form of a generating set,
 
 \section{Schreier's Lemma}
 The name Schreier in Schreier-Sims algorithm comes from the following
-result, which allows us to find a generating set for a stabiliser. It
+result, which in our case allows us to find a generating set for a stabiliser. It
 first appeared in \cite{schreier27}, and our proof is originally from \cite{hall59}.
-\begin{theorem}[Schreier's Lemma]
+\begin{theorem}[Schreier's Lemma] \label{schreiers_lemma}
 Let $G = \gen{S}$ be a group, let $H \leq G$ and let $T$ be a right transversal of the cosets of $H$ in $G$. For $g \in G$, let $\bar{g} \in T$ be the unique element such that $Hg = H\bar{g}$. Then $H$ is generated by
 \begin{equation}
 S_H = \set{t s (\overline{ts})^{-1} \mid t \in T, s \in S}
@@ -311,20 +321,402 @@ In the first case we immediately get $a_i = t_i s_i (\overline{t_i
 s_i^{-1} = H \overline{t_i s_i} s_i^{-1} = H t_i s_i s_i^{-1} = H t_i$
 which implies that $t_i = \overline{t_{i + 1} s_i^{-1}}$. Hence,
 $a_i^{-1} = t_{i + 1} s_i^{-1} t_i^{-1} = t_{i + 1} s_i^{-1}
-\overline{t_{i + 1} s_i^{-1}}^{-1} \in S_H$ and thus $a_i \in \gen{S_H}$.
+\left(\overline{t_{i + 1} s_i^{-1}}\right)^{-1} \in S_H$ and thus $a_i \in \gen{S_H}$.
 
 Finally, since $h \in H$ and $\gen{S_H} \leq H$ we have $t_{n + 1} = (a_1 a_2 \dotsm a_n)^{-1} h \in H$, so $t_{n + 1}$ is the coset representative of $H$, and therefore $t_{n + 1} = 1$. Thus $H \leq \gen{S_H}$.
 \end{proof}
 
-\subsection{Decreasing number of generators}
+Our situtation is that we have a group $G = \gen{S}$ acting on the finite set
+$X$, and we want to use Schreier's Lemma to find the generators
+(usually called the \emph{Schreier generators}) for the stabiliser
+$G_{\alpha}$, where $\alpha \in X$. If we compute a Schreier tree for
+the orbit $\alpha^G$ using \ref{alg:orbit} then we know that
+\ref{alg:trace} can be used to find the transversal of the cosets of
+$G_{\alpha}$ in $G$. 
+
+For $p \in X$, let $t(p) \in G$ denote the result of \ref{alg:trace}.
+Using the notation in \ref{schreiers_lemma} we then have $\bar{g} =
+t(\alpha^g)$ and the transversal is $\set{t(p) \mid p \in \alpha^G}$,
+so for $s \in S$ and $p \in \alpha^G$ the Schreier generator can be
+expressed as
+\begin{equation} 
+t(p) s t(\alpha^{t(p) s})^{-1} = t(p) s t((\alpha^{t(p)})^s)^{-1} = t(p) s t(p^s)^{-1}
+\end{equation}
+and a generating set for $G_{\alpha}$ is
+\begin{equation} \label{gen_stabiliser}
+\set{t(p) s t(p^s)^{-1} \mid p \in \alpha^G, s \in S}
+\end{equation}
 
 \subsection{Computing a base and SGS}
+Going back to our problem, if we have a partial base $B = (\alpha_1,
+\dotsc, \alpha_n)$ for $G$ with corresponding partial strong
+generating set $S$, then we can use Schreier's Lemma to solve our
+problem. Using the notation from Theorem \ref{thm_leon}, we calculate
+the Schreier generators for each $G^i$, using \eqref{gen_stabiliser} and add them to $S$, possibly
+adding points to $B$, if some Schreier generator fixes the whole base,
+in order to ensure that $B$ and $S$ are still partial. When this is
+finished, we have $H^i = G^i$ for $i = 1, \dotsc, n$ and thus $B$ and
+$S$ are complete. We can use \ref{alg:get_schreier_gen} to calculate a Schreier generator.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{GetSchreierGenerator}}
+\SetKwFunction{OrbitElement}{OrbitElement}
+\KwData{A group $G = \gen{S}$ acting on a finite set $X$, a Schreier tree $T$ for the orbit $\alpha^G$ of the point $\alpha \in X$, a $p \in X$ and a generator $s \in S$.}
+\KwResult{The Schreier generator corresponding to $p$ and $s$}
+\Begin
+{
+  $t_1 := \OrbitElement(T, p)$ \;
+  $t_2 := \OrbitElement(T, p^s)$ \;
+  \Return{$t_1 s t_2$}
+}
+\refstepcounter{algorithm}
+\label{alg:get_schreier_gen}
+\end{algorithm}
+
+However, there is a problem with this simple approach, in that the
+generating sets defined in \eqref{gen_stabiliser} can be very large,
+and contain many redundant generators. A fraction of the Schreier
+generators is usually enough to generate the stabiliser. In
+\cite{hall59} it is shown that $[G : G_{\alpha}] - 1$ of the Schreier
+generators for $G_{\alpha}$ are equal to the identity. For instance,
+if for some point $p \in \alpha^G$ we have that $(p, p^s)$ is an edge
+of the Schreier tree for $\alpha^G$, then the Schreier generator $t(p)
+s t(p^s)^{-1}$ is the identity. Thus, the number of non-trivial
+Schreier generators can be as large as $(\abs{S} - 1) [G : G_{\alpha}]
++ 1$, though some of them may be equal to each other.
+
+In our case we calculate the Schreier generators for each $G^i$, using $S^{i - 1}$ in place of $S$, and since $S^{i - 1}$ are precisely the calculated Schreier generators for $G^{i - 1}$, the number of non-trivial Schreier generators for $G^i$ may be as large as 
+\begin{equation} \label{num_schreier_gens}
+1 + (\abs{S} - 1) \prod_{j = 0}^i \abs{\alpha_{j + 1}^{G^j}}
+\end{equation}
+Since the orbit sizes are only bounded by $\abs{X}$, we see that
+\eqref{num_schreier_gens} is exponential in $\abs{X}$, and therefore
+this method may not be efficient.
+
+\subsection{Reducing the number of generators}
+It is possible to reduce the number of generators at each step, so
+that our generating set never grows too large. This can be done using
+\ref{alg:reduce_schreier_gens}, which is due to Sims, and which can also be
+found in \cite{sims98} and \cite{soicher98}.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{BoilSchreierGenerators}}
+\KwData{A group $G$ acting on a finite set $X$, a partial base $B = (\alpha_1, \dotsc, \alpha_k)$ and corresponding partial strong generating set $S$ for $G$, an integer $1 \leq m \leq k$.}
+\KwResult{A smaller partial strong generating set for $G$}
+\Begin
+{
+  \For{$i := 1$ \KwTo $m$}
+  {
+    $T := S^{i - 1}$ \;
+    \ForEach{$g \in T$}
+    {
+      \ForEach{$h \in T$}
+      {
+        \If{$\alpha_i^g = \alpha_i^h \neq \alpha_i$}
+        {
+          $S := (S \setminus \set{h}) \cup \set{g h^{-1}}$ \;
+        }
+      }
+    }    
+  }
+  \Return{$S$}
+}
+\refstepcounter{algorithm}
+\label{alg:reduce_schreier_gens}
+\end{algorithm}
+
+This algorithm reduces the generating set to size $\binom{\abs{X}}{2}
+\in O(\abs{X}^2)$. With this algorithm, we can solve our problem using
+\ref{alg:call_ss} and \ref{alg:pre_ss}. This, however, is not the
+Schreier-Sims algorithm, which is a more clever and efficient method
+of performing the same things.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{ComputeBSGS}}
+\SetKwFunction{GetPartialBSGS}{GetPartialBSGS}
+\SetKwFunction{Schreier}{Schreier}
+\SetKwFunction{BoilSchreierGenerators}{BoilSchreierGenerators}
+\SetKwData{SGS}{sgs}
+\SetKwData{Base}{base}
+\KwData{A group $G = \gen{S}$ acting on a finite set $X$.}
+\KwResult{A base and strong generating set for $G$}.
+\Begin
+{
+  $(\Base, \SGS) := \GetPartialBSGS(S, \emptyset)$ \;
+  \For{$i := 1$ \KwTo $\abs{\Base}$}
+  {
+    $(\Base, \SGS) := \Schreier(\Base, \SGS, i)$ \;
+    $\SGS := \BoilSchreierGenerators(\Base, \SGS, i)$ \;
+  }
+  \Return{$(\Base, \SGS)$}
+}
+\refstepcounter{algorithm}
+\label{alg:call_ss}
+\end{algorithm}
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{Schreier}}
+\SetKwFunction{GetSchreierGenerator}{GetSchreierGenerator}
+\SetKwFunction{ComputeSchreierTree}{ComputeSchreierTree}
+\SetKwFunction{NewBasePoint}{NewBasePoint}
+\SetKwData{Tree}{tree}
+\SetKwData{Gen}{gen}
+\SetKwData{Point}{point}
+\KwData{A group $G$ acting on a finite set $X$, a partial base $B = (\alpha_1, \dotsc, \alpha_k)$ and corresponding partial strong generating set $S$ for $G$, an integer $1 \leq i \leq k$ such that $G^j = H^j$ for $j = 0, \dotsc, i - 1$.}
+\KwResult{Possibly extended partial base $B = (\alpha_1, \dotsc, \alpha_m)$ and corresponding partial strong generating $S$ set for $G$ such that $G^j = H^j$ for $j = 0, \dotsc, i$.}
+\tcc{Assumes the existence of a function \texttt{NewBasePoint}$(g)$ that returns a point $p \in X$ such that $p^g \neq p$}
+\Begin
+{
+  $T := S^{i - 1}$ \;
+  $\Tree := \ComputeSchreierTree(T, \alpha_i)$ \;
+  \ForEach{$p \in \alpha_i^{H^{i - 1}}$}
+  {
+    \ForEach{$s \in T$}
+    {
+      $\Gen := \GetSchreierGenerator(\Tree, p, s)$ \;
+      \If{$\Gen \neq 1$}
+      {
+        $S := S \cup \set{\Gen, \Gen^{-1}}$ \;
+        \If{$B^{\Gen} = B$}
+        {
+          $\Point := \NewBasePoint(\Gen)$ \;
+          $B := B \cup \set{\Point}$ \;
+        }
+      }
+    }    
+  }
+  \Return{$(B, S)$}
+}
+\refstepcounter{algorithm}
+\label{alg:pre_ss}
+\end{algorithm}
+
+
+\section{Membership testing}
+We now assume that we know a (complete) base $B = (\alpha_1, \dotsc,
+\alpha_n)$ and a (complete) strong generating set $S$ for our group
+$G$, and we present an efficient algorithm for determining if, given
+an arbitrary group element $g$, it is true that $g \in G$. The
+implicit assumption is of course that $G \leq H$ for some large group
+$H$ and that $g \in H$, but since we are interested in matrix groups
+this is always true with $H$ being some general linear group.
+
+This algorithm is used in the Schreier-Sims algorithm together with
+Theorem \ref{thm_leon}, as we shall see later. 
+
+Recall that if we have a base then there is an associated stabiliser
+chain, and as described in section \ref{section:bsgs}, if $g \in G$ we
+can factorise $g$ as a product of coset representatives $g = u_n u_{n - 1}
+\dotsm u_1$ where $u_i$ is the representative of $G^i g$ in $G^{i -
+  1}$. Moreover, if we for each $i = 1, \dotsc, n$ have computed a
+Schreier tree $T_i$ for $\alpha_i^{G^{i - 1}}$ then we can use
+\ref{alg:trace} to compute each coset representative.
+
+More specifically, if $g \in G$ then $g = g_1 t(\alpha_1^g)$ where, as
+before, $t(p)$ is the output of \ref{alg:trace} on the point $p$ and
+$g_1 \in G^1$. On the other hand, if $g \notin G$ then either
+$\alpha_1^g \notin \alpha^G$ or $g_1 \notin G_1$. To test if $g \in G$
+we can therefore proceed inductively, and first check if $\alpha_1^g
+\in \alpha^G$ and if that is true then test whether $g_1 \in G_1$.
+This is formalised in \ref{alg:membership}.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{Membership}}
+\SetKwFunction{OrbitElement}{OrbitElement}
+\SetKwData{Tree}{tree}
+\SetKwData{Element}{element}
+\SetKwData{Point}{point}
+\KwData{A group $G$ acting on a finite set $X$, a base $B = (\alpha_1, \dotsc, \alpha_n)$, a Schreier tree $T_i$ for the orbit $\alpha_{i + 1}^{G^i}$ for each $i = 0, \dotsc, n - 1$, and a group element $g$.}
+\KwResult{A residue $r$ and drop-out level $1 \leq l \leq n + 1$.}
+\Begin
+{
+  $r := g$ \;
+  \For{$i := 1$ \KwTo $n$}
+  {
+    \If{$\alpha_i^r \notin T_{i - 1}$}
+    {
+      \Return{$(r, i)$}
+    }
+    $\Element := \OrbitElement(T_{i - 1}, \alpha_i^r)$ \;
+    $r := r * \Element^{-1}$ \;
+  }
+  \Return{$(r, n + 1)$} \label{alg:membership_return}
+}
+\refstepcounter{algorithm}
+\label{alg:membership}
+\end{algorithm}
+
+The terminology \emph{residue} and \emph{level} is introduced here,
+with obvious meanings. As can be seen, the algorithm returns the level
+at which it fails, as this is needed in the Schreier-Sims algorithm. Note that even if all $n$ levels are passed, it might happen that the residue $r \neq 1$ at line \ref{alg:membership_return}, which also indicates that $g \notin G$. 
+
+In the literature, \ref{alg:membership} is usually referred to as
+\emph{sifting} or \emph{stripping} of the group element $g$.
 
 \section{The main algorithm}
+Finally, we can now present the Schreier-Sims algorithm itself. It
+uses a more efficient method of reducing the number of Schreier
+generators considered, by making use of \ref{alg:membership}. 
 
-\subsection{Membership testing}
+Using
+the notation from Theorem \ref{thm_leon}, we want to show that
+$H^i_{\alpha_{i + 1}} = H^{i + 1}$ for eavch $i$, or equivalently that
+all Schreier generators for $H^i$ are in $H^{i + 1}$. If we proceed
+from $i = n - 1, \dotsc, 0$ instead of the other way, then for $H^n = 1$ we obviously already have a base and strong generating set,
+so we can use \ref{alg:membership} to check if the Schreier generators
+for $H^{n - 1}_{\alpha_n}$ are in $H^n$.
+
+When we have checked all Schreier generators for $H^{n - 1}_{\alpha_n}$ we then have a
+base and strong generating set for $H^{n - 1}$ by Theorem \ref{thm_leon},
+since $H^{n - 1}_{\alpha_n} = H^n$, and we can therefore proceed
+inductively downwards. This is shown in \ref{alg:ss_main} and \ref{alg:ss}.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{ComputeBSGS}}
+\SetKwFunction{GetPartialBSGS}{GetPartialBSGS}
+\SetKwFunction{SchreierSims}{SchreierSims}
+\SetKwData{SGS}{sgs}
+\SetKwData{Base}{base}
+\KwData{A group $G = \gen{S}$ acting on a finite set $X$.}
+\KwResult{A base and strong generating set for $G$}.
+\Begin
+{
+  $(\Base, \SGS) := \GetPartialBSGS(S, \emptyset)$ \;
+  \For{$i := \abs{\Base}$ \KwTo $1$}
+  {
+    $(\Base, \SGS) := \SchreierSims(\Base, \SGS, i)$ \;
+  }
+  \Return{$(\Base, \SGS)$}
+}
+\refstepcounter{algorithm}
+\label{alg:ss_main}
+\end{algorithm}
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{SchreierSims}}
+\SetKwFunction{GetSchreierGenerator}{GetSchreierGenerator}
+\SetKwFunction{ComputeSchreierTree}{ComputeSchreierTree}
+\SetKwFunction{NewBasePoint}{NewBasePoint}
+\SetKwFunction{Membership}{Membership}
+\SetKwData{Tree}{tree}
+\SetKwData{Gens}{gens}
+\SetKwData{Gen}{gen}
+\SetKwData{Point}{point}
+\SetKwData{Residue}{residue}
+\SetKwData{DropOut}{dropout}
+
+\KwData{A group $G$ acting on a finite set $X$, a partial base $B =
+  (\alpha_1, \dotsc, \alpha_k)$ and corresponding partial strong
+  generating set $S$ for $G$, an integer $1 \leq i \leq k$ such that
+  $H^{j - 1}_{\alpha_j} = H^j$ for $j = i + 1, \dotsc, k$, and
+  Schreier trees $T^{j - 1}$ for $\alpha_j^{H^{j - 1}}$ for $j = i + 1, \dotsc,
+  k$.}
+
+\KwResult{Possibly extended partial base $B = (\alpha_1, \dotsc,
+  \alpha_m)$ and corresponding partial strong generating $S$ set for
+  $G$ such that $H^{j - 1}_{\alpha_j} = H^j$ for $j = i, \dotsc,
+  m$ and Schreier trees $T^{j - 1}$ for $\alpha_j^{H^{j - 1}}$ for $j = i,
+  \dotsc, m$.}
+
+\tcc{Assumes the existence of a function \texttt{NewBasePoint}$(g)$ that returns a point $p \in X$ such that $p^g \neq p$}
+\Begin
+{
+  $\Gens := S^i$ \;
+  $T^{i - 1} := \ComputeSchreierTree(\Gens, \alpha_i)$ \;
+  \ForEach{$p \in \alpha_i^{H^{i - 1}}$}
+  {
+    \ForEach{$s \in \Gens$}
+    {
+      $\Gen := \GetSchreierGenerator(T^{i - 1}, p, s)$ \;
+      \If{$\Gen \neq 1$}
+      {
+        $(\Residue, \DropOut) := \Membership(T^i, \dotsc, T^k, \Gen)$ \;
+        \If{$\Residue \neq 1$}
+        {
+          $S := S \cup \set{\Gen, \Gen^{-1}}$ \;
+          \If{$\DropOut = k + 1$}
+          {
+            $\Point := \NewBasePoint(\Gen)$ \;
+            $B := B \cup \set{\Point}$ \;
+          }
+        }
+      }    
+    }
+  }
+  \Return{$(B, S)$}
+}
+\refstepcounter{algorithm}
+\label{alg:ss}
+\end{algorithm}
+
+\subsection{Matrix groups}
+As can be seen in the given algorithms, the main part of the
+Schreier-Sims algorithm is indepedent of the particular type of group,
+but we are interested in the situation where $G \leq \GL(d, q)$ for
+some $d \geq 1$ and some $q = p^r$ where $p$ is a prime number and $r
+\geq 1$. Here, $d$ is called the \emph{degree} of $G$ and is the
+number of rows (columns) of the matrices in $G$, and $q$ is the finite
+field size, ie $G$ contains matrices over $\GF(q) = \F_q$. In this
+setting, $G$ acts naturally and faithfully on the vector space $X = \F_q^d$ from the
+right by multiplication of a row vector with a matrix. We denote the standard base in $F_q^d$ by $e_1, e_2, \dotsc, e_d$.
+
+What remains to specify is the algorithm \texttt{NewBasePoint}, which
+depends on the particular point set $X$ and the action that is used.
+To construct this algorithm, we observe that given a matrix $M \neq I
+\in G$, if $M_{ij} \neq 0$ for some $i \neq j$ then $e_i M \neq e_i$
+so the row vector $e_i$ is a point moved by $M$. If $M$ instead is
+diagonal, but not a scalar matrix, then $M_{ii} \neq M_{jj}$ for some
+$i \neq j$, and $(e_i + e_j) M \neq e_i + e_j$ so this row vector is
+moved by $M$. Finally if $M$ is scalar, then $M_{11} \neq 1$ since $M
+\neq I$ and thus $e_1 M \neq e_1$. This translates directly into \ref{alg:new_base_point}.
+
+\begin{algorithm} 
+\dontprintsemicolon
+\caption{\texttt{NewBasePoint}}
+\KwData{A matrix $M \neq I \in G \leq \GL(d, q)$.}
+\KwResult{A row vector $v \in \F_q^d$ such that $vM \neq v$}.
+\SetKw{KwAnd}{and}
+\Begin
+{
+  \For{$i := 1$ \KwTo $d$}
+  {
+    \For{$j := 1$ \KwTo $d$}
+    {
+      \If{$i \neq j$ \KwAnd $M_{ij} \neq 0$}
+      {
+        \Return{$e_i$}
+      }
+    }
+  }
+  \For{$i := 1$ \KwTo $d$}
+  {
+    \For{$j := 1$ \KwTo $d$}
+    {
+      \If{$i \neq j$ \KwAnd $M_{ii} \neq M_{jj}$}
+      {
+        \Return{$e_i + e_j$}
+      }
+    }
+  }
+  \Return{$e_1$}
+}
+\refstepcounter{algorithm}
+\label{alg:new_base_point}
+\end{algorithm}
 
 \section{Complexity analysis}
 
 \subsection{Complexity of Schreier tree algorithms}
-For the analysis of \ref{alg:orbit} we assume that the external functions \texttt{Tree} and \texttt{AddChild}, that depend on the particular datastructure used, take $O(1)$ time. This is a reasonable assumption and it is satisfied in the code for the project. $G \leq GL(d, q)$, $O(\abs{X} \abs{S}d)$
+For the analysis of \ref{alg:orbit} we assume that the external
+functions \texttt{Tree} and \texttt{AddChild}, that depend on the
+particular datastructure used, take $O(1)$ time. This is a reasonable
+assumption and it is satisfied in the code for the project. $G \leq
+GL(d, q)$, $O(\abs{X} \abs{S}d)$
+

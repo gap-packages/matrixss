@@ -1,0 +1,10 @@
+To build the report, just run
+make schreiersims.dvi
+which runs bibtex and latex. If you want a Postscript, you can run
+make schreiersims.ps
+and if you want a PDF you can run
+make schreiersims.pdf
+
+If your system has an old version of (pdf)latex, then you may lack the
+--recorder option, in which case make will fail. In this case, just
+edit the Makefile and change the variable TEXFLAGS.
