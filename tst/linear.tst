@@ -16,10 +16,12 @@
 
 gap> START_TEST("$Id$");
 
-gap> MatrixSchreierSimsTest(3, 3 : Linear);
+gap> MatrixSchreierSimsTest(3, 3 : Linear);;
 No order differences
 
-gap> STOP_TEST("linear.tst", 10000);
+gap> STOP_TEST("linear.tst", 0);
+$Id$
+GAP4stones: 0
 
 ###############################################################################
 #E

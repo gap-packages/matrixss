@@ -22,7 +22,7 @@ BindGlobal("MATRIXSS_TEST", true);;
 LoadPackage("matrixss");;
 
 SetAssertionLevel(2);
-MATRIXSS_DEBUGLEVEL := 1;;
+MATRIXSS_DEBUGLEVEL := 0;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
 Print("Testing standard deterministic algorithm\n");
 ReadTest("tst/standard.tst");;

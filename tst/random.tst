@@ -14,21 +14,23 @@
 #H    @(#)$Id$
 ###############################################################################
 
-gap> START_TEST("$Id$");
+gap> START_TEST("$Id$");;
 
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify);
+gap> MatrixSchreierSimsTest(3, 3 : Random, Verify);;
 No order differences
 
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, STCS);
+gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, AlternatingActions);;
 No order differences
 
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, AlternatingActions);
+gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, STCS);;
 No order differences
 
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, STCS, AlternatingActions);
+gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, STCS, AlternatingActions);;
 No order differences
 
-gap> STOP_TEST("random.tst", 10000);
+gap> STOP_TEST("random.tst", 0);;
+$Id$
+GAP4stones: 0
 
 ###############################################################################
 #E
