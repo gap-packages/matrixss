@@ -1,7 +1,6 @@
 Matrix Schreier-Sims Debian Release Notes
 =========================================
-Release date : 2004-10-09
+Release date : 2004-11-22
 
-* The path to manualindex is now set correctly.
-* The copyright is now compatible with GPL and DFSG.
-* Build-Depends should now be correct.
+* Added doc-base
+* Removed versioned dependencies on tetex
