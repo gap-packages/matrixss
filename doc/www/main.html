@@ -8,11 +8,12 @@
 
 <p>This is the homepage of a project aimed at improving the <a href="http://www.gap-system.org/" target="_top">GAP</a> implementation of Schreier-Sims algorithm for matrix groups.</p>
 
-<p>GAP already includes implementations of the algorithm, but those are mainly
-for permutation groups. It is possible to use these implementations for matrix groups,
-but since matrix groups are "larger" than permutation groups the
-algorithms that works for permutation groups are not in general
-efficient for matrix groups, and Schreier-Sims algorithm is one example.</p>
+<p>GAP already includes an implementation of this algorithm, but that
+one works with permutation groups, and for other groups it first
+computes a permutation representation (a faithful action) and then
+work with the resulting permutation group. This package provides an
+implementation that is restricted to matrix groups, and work with the
+matrices directly, and this makes it more efficient in most cases.</p>
 
 <p><a href="http://sourceforge.net/projects/matrixss/" target="_top">Project development summary</a></p>
 
