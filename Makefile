@@ -31,7 +31,7 @@ ifeq ($(PACKAGE),)
 endif
 
 # output package files
-PACKAGES = tmp/$(PACKAGE).tar.gz tmp/$(PACKAGE).win.zip \
+PACKAGES = tmp/$(PACKAGE).tar.gz tmp/$(PACKAGE)-win.zip \
            tmp/$(PACKAGE).zoo tmp/$(PACKAGE).tar.bz2
 
 # checksum files regexp
@@ -70,7 +70,7 @@ ChangeLog: NEWS
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
 deb: $(PACKAGES)
-#	cp tmp/$(PACKAGE).tar.gz tmp/gap-matrix-schreiersims/$(DEBPKG).orig.tar.gz
+	cp tmp/$(PACKAGE).tar.gz tmp/gap-matrix-schreiersims/$(DEBPKG).orig.tar.gz
 	cvs-buildpackage -R $(DIR)/tmp -rfakeroot -kredstar -Mmatrixss
 
 manual: 
@@ -90,7 +90,7 @@ $(PACKAGES): ChangeLog checksums
 	gzip --verbose --test tmp/$(PACKAGE).tar.gz
 	cd .. && cat $(CUR_DIR)/Manifest.text | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -l -9 $(CUR_DIR)/tmp/$(PACKAGE)-win.zip -@ && cd $(CUR_DIR)
 	cd .. && cat $(CUR_DIR)/Manifest.bin | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -9 $(CUR_DIR)/tmp/$(PACKAGE)-win.zip -@ && cd $(CUR_DIR)
-	unzip -t tmp/$(PACKAGE).win.zip
+	unzip -t tmp/$(PACKAGE)-win.zip
 	cd .. && cat $(CUR_DIR)/Manifest.text | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | perl -e '{ while(<>) { print; print "!TEXT!\n/END\n"; } }' | zoo achPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
 	cd .. && cat $(CUR_DIR)/Manifest.bin | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | zoo ahPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
 	zoo xN tmp/$(PACKAGE).zoo
