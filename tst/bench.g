@@ -36,14 +36,9 @@ MATRIXSS_RandomSchreierSimsBenchmark :=
     Print("Group\t\tTime [ms]\n\n");
     
     for group in groups do
-        #Print("Checking group : ", group, "\n");
-        
-        group_time := Runtime();
         #DefaultStabChainOptions.random := 1;
-        g := Group(GeneratorsOfGroup(group));
-        Size(g);
-        #Print("Time for this group : ", Runtime() - group_time, "\n");        
-        Print(group, "\t", Runtime() - group_time, "\n");        
+        Print(group, "\t", MATRIXSS_TimedCall(Size, 
+                [Group(GeneratorsOfGroup(group))]), "\n");        
     od;
     
     Print("Total time for test : ", Runtime() - test_time, "\n");
