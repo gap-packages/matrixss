@@ -1,3 +1,9 @@
+matrixss (0.0.20040730-1) unstable; urgency=low
+
+  * Added manual.
+
+ -- Henrik Bäärnhielm <redstar@abc.se>  Fri, 30 Jul 2004 16:28:35 +0100
+
 matrixss (0.0.20040714-1) unstable; urgency=low
 
   * Initial Release.
