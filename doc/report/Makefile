@@ -11,7 +11,7 @@ DVI := $(INPUTS:.tex=.dvi)
 PS := $(INPUTS:.tex=.ps)
 PDF := $(INPUTS:.tex=.pdf)
 MPX := $(INPUTS:.tex=.mpx)
-FLS := $(INPUTS:.tex=.fls)
+FLS := schreiersims.fls
 BBL := $(INPUTS:.tex=.bbl)
 AUX := $(INPUTS:.tex=.aux)
 
