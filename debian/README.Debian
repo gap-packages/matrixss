@@ -1,7 +1,7 @@
 matrixss for Debian
 -------------------
 
-The files in the package are automatically installed in the pkg directory of
-the GAP distribution, so that section of the INSTALL file can be skipped.
+In GAP, use the "LoadPackage" command to load the package, the
+package name being "matrixss". 
 
- -- Henrik B‰‰rnhielm <redstar@abc.se>, Tue, 13 Jul 2004 18:52:46 +0100
+ -- Henrik B√§√§rnhielm <redstar@abc.se>, Tue, 13 Jul 2004 18:52:46 +0100
