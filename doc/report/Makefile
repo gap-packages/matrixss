@@ -1,5 +1,6 @@
 LATEX = latex
 PDFTEX = pdflatex
+BIBTEX = bibtex
 TEXFLAGS = --recorder
 DVIPS = dvips
 MPOST = mpost
@@ -19,7 +20,7 @@ all: $(DVI)
 $(MPX): %.mpx: %.mp
 	$(MPOST) $(MFLAGS) $<
 
-$(BBL): %.bbl: %.aux
+$(BBL): %.bbl: %.bib %.aux 
 	$(BIBTEX) $(BIBFLAGS) $(basename $<)
 
 $(AUX): %.aux: %.tex
