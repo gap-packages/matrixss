@@ -2,6 +2,7 @@ gap-matrix-schreiersims (0.9.20041007-2) unstable; urgency=low
 
   * The path to manualindex is now set correctly.
   * The copyright is now compatible with GPL and DFSG.
+  * gzip should not be in Build-Depends.
 
  -- Henrik Bäärnhielm <redstar@abc.se>  Sat, 09 Oct 2004 17:37:35 +0000
 
