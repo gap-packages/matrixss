@@ -35,6 +35,7 @@ MATRIXSS_DebugPrint := function(level, message)
     if level <= MATRIXSS_DEBUGLEVEL then
         CallFuncList(Print, Concatenation(message, ["\n"]));
     fi;
+    return true;
 end;
 
 ###############################################################################
@@ -183,7 +184,7 @@ MATRIXSS_CreateInitialSchreierTree := function(root, dictinfo, identity)
     local tree, edge;
     
     # Create Schreier vector
-    tree := NewDictionary(dictinfo[1], dictinfo[2], dictinfo[3]);
+    tree := CallFuncList(NewDictionary, dictinfo);
     
     # Make the root point to itself 
     edge := Immutable([identity, identity]);
@@ -1054,33 +1055,12 @@ MATRIXSS_RandomSchreierGenerator :=
                    action, identity);
 end;
 
-###############################################################################
-##
-#F MATRIXSS_ExtendBase(ssInfo, badElement, identity)
-##
-## Add a new base point to the base, so that the given element is not in the
-## stabiliser of the point
-## \beginitems
-## `ssInfo' & main information structure for the current Schreier-Sims run
-##
-## `badElement' & the element that fixes all current base points
-##
-## `identity' & the group identity
-## \enditems
-##
-###############################################################################
-MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
-    local newPoint, length, levelStruct;
-    
-    MATRIXSS_DebugPrint(3, ["Finding new base point"]);
-    
-    length := Length(ssInfo);
-    
-    # Find new base point
-    newPoint := MATRIXSS_NewBasePoint(badElement[1], identity, 
-                        ssInfo[length].points);
+MATRIXSS_AugmentBase := function(ssInfo, newPoint, identity)
+    local levelStruct, length;
     
     MATRIXSS_DebugPrint(3, ["Extending base"]);
+    
+    length := Length(ssInfo);
     
     # Extend base
     levelStruct := 
@@ -1113,6 +1093,35 @@ MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
               IsIdentity := MATRIXSS_ProjectiveIsIdentity);
         Add(ssInfo, levelStruct); 
     fi;
+end;
+
+###############################################################################
+##
+#F MATRIXSS_ExtendBase(ssInfo, badElement, identity)
+##
+## Add a new base point to the base, so that the given element is not in the
+## stabiliser of the point
+## \beginitems
+## `ssInfo' & main information structure for the current Schreier-Sims run
+##
+## `badElement' & the element that fixes all current base points
+##
+## `identity' & the group identity
+## \enditems
+##
+###############################################################################
+MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
+    local newPoint, length;
+    
+    MATRIXSS_DebugPrint(3, ["Finding new base point"]);
+    
+    length := Length(ssInfo);
+    
+    # Find new base point
+    newPoint := MATRIXSS_NewBasePoint(badElement[1], identity, 
+                        ssInfo[length].points);
+    
+    MATRIXSS_AugmentBase(ssInfo, newPoint, identity);
 end;
 
 ###############################################################################
@@ -1269,15 +1278,7 @@ MATRIXSS_GetPartialBaseSGS :=
     return [newSGS, ssInfo];
 end;
 
-###############################################################################
-##
-#F MATRIXSS_ComputeOrder(ssInfo)
-##
-## Computes the order of the group defined by the given Schreier trees, see
-## "ssInfo".
-##
-###############################################################################
-MATRIXSS_ComputeOrder := function(ssInfo)
+InstallGlobalFunction(MatrixGroupOrderStabChain, function(ssInfo)
     local order, levelStruct;
     
     order := 1;
@@ -1286,7 +1287,7 @@ MATRIXSS_ComputeOrder := function(ssInfo)
     od;
     
     return order;
-end;
+end);
 
 ###############################################################################
 ##
@@ -1309,7 +1310,7 @@ if IsBoundGlobal("MATRIXSS_TEST") then
         ret := StabChainMatrixGroup(G);
         
         # Compute order of group using computed orbit sizes
-        return MATRIXSS_ComputeOrder(ret);
+        return MatrixGroupOrderStabChain(ret.SchreierStructure);
     end);
 fi;
 

@@ -372,9 +372,9 @@ InstallGlobalFunction(SchreierToddCoxeterSims, function(G)
     od;
     
     MATRIXSS_DebugPrint(2, ["Matrix Schreier-Sims done"]);
-    MATRIXSS_DebugPrint(2, ["Order is : ", MATRIXSS_ComputeOrder(ssInfo)]);
+    MATRIXSS_DebugPrint(2, ["Order is : ", MatrixGroupOrderStabChain(ssInfo)]);
     
-    return Immutable(ssInfo);
+    return Immutable(rec(SchreierStructure := ssInfo, SGS := generators));
 end);
 
 ###############################################################################

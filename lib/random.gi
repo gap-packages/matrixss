@@ -57,7 +57,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         function(G)
     local ssInfo, list, generators, level, points, element, RandomSchreierSims,
           identitySifts, UpdateSchreierTrees, lowOrder, highOrder, p, verify,
-          cosetFactor, ret;
+          cosetFactor, ret, SchreierSims, RandomElement;
     
     # Updates the given Schreier trees w.r.t. to the given partial SGS
     UpdateSchreierTrees := function(ssInfo, dropoutLevel, partialSGS, identity)
@@ -71,11 +71,14 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
             fi;
             MakeImmutable(SGS);
             
-            ssInfo[level].schreierTree := 
-              MATRIXSS_GetSchreierTree(ssInfo[level].schreierTree,
-                      ssInfo[level].partialBase, SGS, 
-                      ssInfo[level].oldSGS,
-                      ssInfo[level].action, ssInfo[level].hash, identity);
+            if SGS <> ssInfo[level].oldSGS then
+                ssInfo[level].schreierTree := 
+                  MATRIXSS_GetSchreierTree(ssInfo[level].schreierTree,
+                          ssInfo[level].partialBase, SGS, 
+                          ssInfo[level].oldSGS,
+                          ssInfo[level].action, ssInfo[level].hash, identity);
+                ssInfo[level].oldSGS := SGS;
+            fi;
         od;
     end;
         
@@ -104,11 +107,11 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
       function(ssInfo, partialSGS, maxIdentitySifts, identity, 
               lowOrder, highOrder)
       local nIdentitySifts, element, strip, newInverseGenerator, level, order,
-            point;
+            point, sgsGroup;
         
         # Check if we are already done
         if highOrder > 0 or lowOrder > 1 then
-           order := MATRIXSS_ComputeOrder(ssInfo);
+           order := MatrixGroupOrderStabChain(ssInfo);
            MATRIXSS_DebugPrint(3, ["Order is : ", order]);
             if order >= highOrder then
                 return;
@@ -123,13 +126,16 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         Assert(1, lowOrder >= 1 and highOrder >= 0 and 
                (lowOrder <= highOrder or highOrder = 0));
         
+        sgsGroup := Group(List(partialSGS, i -> i[1]), identity);
+        
         # Loop until our order meets the lower bound and we have sifted the
         # given number of consecutive random elements to identity
         while (nIdentitySifts < maxIdentitySifts or
                order < lowOrder) do
             
             # Get a random element, from a hopefully uniform distribution
-            element := MATRIXSS_RandomSubproduct(partialSGS, identity);
+            element := PseudoRandom(sgsGroup);
+            element := [element, Inverse(element)];
             
             # Our functions expect the elements to be vectors with the element
             # and its inverse
@@ -144,16 +150,12 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 newInverseGenerator := Immutable(Reversed(strip[1]));
                 AddSet(partialSGS, strip[1]);
                 AddSet(partialSGS, newInverseGenerator);
-                                                
+                sgsGroup := Group(List(partialSGS, i -> i[1]), identity);
+        
                 # Update partial SGS at each level
                 for level in [1 .. strip[2] - 1] do
-                    point := ssInfo[level].partialBase;
-                    if ssInfo[level].action(point, strip[1][1]) = point then
-                        AddSet(ssInfo[level].partialSGS, strip[1]);
-                        AddSet(ssInfo[level].partialSGS, newInverseGenerator);
-                    else
-                        break;
-                    fi;
+                    AddSet(ssInfo[level].partialSGS, strip[1]);
+                    AddSet(ssInfo[level].partialSGS, newInverseGenerator);
                 od;
                 
                 # Extend base if needed
@@ -165,7 +167,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 UpdateSchreierTrees(ssInfo, strip[2], partialSGS, 
                         identity);
                 if highOrder > 0 or lowOrder > 1 then
-                    order := MATRIXSS_ComputeOrder(ssInfo);
+                    order := MatrixGroupOrderStabChain(ssInfo);
                 
                     # Check if we are done
                     MATRIXSS_DebugPrint(3, ["Order is : ", order]);
@@ -184,6 +186,19 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         od;
     end;
     
+    RandomElement := function(ssInfo, identity)
+        local levelStruct, element;
+        
+        element := identity;
+        for levelStruct in ssInfo do
+            element := element * MATRIXSS_RandomCosetRepresentative(
+                               ssInfo[level].schreierTree.Tree, 
+                               ssInfo[level].action, identity);
+        od;
+        
+        return element;
+    end;
+        
     ### MAIN Schreier-Sims 
     
     # Check if we want to use the random Schreier-Sims
@@ -254,11 +269,11 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
     Assert(1, identitySifts >= 1);
     
     # Call Schreier-Sims algorithm for each level (starting from top)
-    RandomSchreierSims(ssInfo, generators, 30, Identity(G), 
+    RandomSchreierSims(ssInfo, generators, identitySifts, Identity(G),
             lowOrder, highOrder);
-    
+
     MATRIXSS_DebugPrint(2, ["Random matrix Schreier-Sims done"]);
-    MATRIXSS_DebugPrint(2, ["Order is : ", MATRIXSS_ComputeOrder(ssInfo)]);
+    MATRIXSS_DebugPrint(2, ["Order is : ", MatrixGroupOrderStabChain(ssInfo)]);
     
     if verify then
         for level in [1 .. Length(ssInfo)] do
@@ -277,9 +292,9 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                     Identity(G), cosetFactor);
         od;
     fi;
-    MATRIXSS_DebugPrint(2, ["Order is : ", MATRIXSS_ComputeOrder(ssInfo)]);
+    MATRIXSS_DebugPrint(2, ["Order is : ", MatrixGroupOrderStabChain(ssInfo)]);
     
-    return Immutable(ssInfo);
+    return Immutable(rec(SchreierStructure := ssInfo, SGS := generators));
 end);
 
 ###############################################################################

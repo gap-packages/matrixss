@@ -214,7 +214,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
     
     MATRIXSS_DebugPrint(2, ["Matrix Schreier-Sims done"]);
     
-    return Immutable(ssInfo);
+    return Immutable(rec(SchreierStructure := ssInfo, SGS := generators));
 end);
 
 ###############################################################################

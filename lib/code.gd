@@ -107,4 +107,14 @@ MATRIXSS_BasePointStore := [];
 ###############################################################################
 MATRIXSS_SubProdGroups := NewDictionary(10, true, Integers);
 
+###############################################################################
+##
+#F MatrixGroupOrderStabChain(ssInfo)
+##
+## Computes the order of the group defined by the given Schreier trees, see
+## "ssInfo".
+##
+###############################################################################
+DeclareGlobalFunction("MatrixGroupOrderStabChain");
+
 #E

@@ -131,7 +131,8 @@ InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
         Print("Checking group : ", group, "\n");
         
         size1 := Size(group);
-        size2 := MATRIXSS_ComputeOrder(StabChainMatrixGroup(group));
+        size2 := MatrixGroupOrderStabChain(StabChainMatrixGroup(group).
+                         SchreierStructure);
         
         if size1 <> size2 then
             Print("Correct order: ", size1, "\n");
