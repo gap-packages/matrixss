@@ -1,3 +1,10 @@
+gap-matrix-schreiersims (0.9.20041007-3) unstable; urgency=low
+
+  * Added doc-base
+  * Removed versioned dependencies on tetex
+
+ -- Henrik Bäärnhielm <redstar@abc.se>  Mon, 22 Nov 2004 06:37:49 +0000
+
 gap-matrix-schreiersims (0.9.20041007-2) unstable; urgency=low
 
   * The path to manualindex is now set correctly.
