@@ -51,7 +51,7 @@ MATRIXSS_SchreierToddCoxeterSims :=
           newPoint, oldSchreierTree, newBasePoint, oldOrbit,
           newInverseGenerator, newSGS, freeGroup, cosetTable, word,
           subgroupGens, relation, gens1, gens2, gens3, relations, 
-          levelGroup, freeGroupHomo, gen, relHomo, ret;
+          levelGroup, freeGroupHomo, gen, relHomo, ret, dropoutLevel, residue;
     
     MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);
     
@@ -78,13 +78,12 @@ MATRIXSS_SchreierToddCoxeterSims :=
     gens1 := ShallowCopy(GeneratorsOfGroup(levelGroup));
     gens2 := ShallowCopy(GeneratorsOfGroup(ssInfo[level].freeGroup));
     SortParallel(gens1, gens2);
-    ssInfo[level].genMap := Immutable([gens1, gens2]);
+    ssInfo[level].genMap := Immutable(rec(Generators := gens1, 
+                                    FreeGenerators := gens2));
     
     # Compute homomorphism for use in coset enumeration
-    freeGroupHomo := 
-      GroupHomomorphismByImagesNC(ssInfo[level].freeGroup, levelGroup,
-              GeneratorsOfGroup(ssInfo[level].freeGroup), 
-              GeneratorsOfGroup(levelGroup));
+    freeGroupHomo := GroupHomomorphismByImagesNC(ssInfo[level].freeGroup, 
+                             levelGroup, gens2, gens1);
     
     MATRIXSS_DebugPrint(3, ["Saved SGS that fixes first ", level - 1, 
             " points ", Length(SGS)]);
@@ -103,11 +102,6 @@ MATRIXSS_SchreierToddCoxeterSims :=
         
     orbit := Immutable(MATRIXSS_GetOrbit(ssInfo[level].schreierTree.Tree));
     
-    MATRIXSS_DebugPrint(6, ["New Schreier Tree : ", 
-            ssInfo[level].schreierTree]);
-    MATRIXSS_DebugPrint(6, ["Old Schreier Tree : ", oldSchreierTree]);
-    Assert(1, not IsIdenticalObj(ssInfo[level].schreierTree, 
-            oldSchreierTree));
     MATRIXSS_DebugPrint(4, ["Orbit size for level ", level, " is ", 
             Length(orbit)]); 
     
@@ -122,9 +116,9 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 
                 # Map relations to current free group
                 relations := [];
+                gens2 := GeneratorsOfGroup(ssInfo[level].freeGroup);
                 for element in ssInfo[level].relations do
                     gens1 := GeneratorsOfGroup(element[2]);
-                    gens2 := GeneratorsOfGroup(ssInfo[level].freeGroup);
                     
                     MATRIXSS_DebugPrint(4, ["Mapping ", element[1],
                             " from ", element[2], " to ",
@@ -133,10 +127,6 @@ MATRIXSS_SchreierToddCoxeterSims :=
                         AddSet(relations, 
                                MappedWord(element[1], gens1, 
                                        gens2{[1 .. Length(gens1)]}));
-                    else
-                        MATRIXSS_DebugPrint(4, ["3 : Gens1 : ", gens1]);
-                        MATRIXSS_DebugPrint(4, ["3 : Gens2 : ", gens2]);
-                        
                     fi;
                 od;
                 
@@ -160,9 +150,8 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 
                 # Perform (interruptible) Todd-Coxeter coset enumeration
                 cosetTable := 
-                  CosetTableFromGensAndRels(
-                          GeneratorsOfGroup(ssInfo[level].freeGroup), 
-                          relations, subgroupGens :
+                  CosetTableFromGensAndRels(gens2, AsSet(relations), 
+                          AsSet(subgroupGens) :
                           max := 1 + Int(cosetFactor * 
                                   MATRIXSS_GetOrbitSize(
                                           ssInfo[level].schreierTree.Tree)),
@@ -194,8 +183,7 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 MATRIXSS_DebugPrint(6, ["Schreier Generator : ", 
                         schreierGenerator]);
                 
-                if ssInfo[level].IsIdentity(schreierGenerator[1][1], 
-                           identity) then
+                if schreierGenerator[1][1] = identity then
                     continue;
                 fi;
                 
@@ -210,22 +198,21 @@ MATRIXSS_SchreierToddCoxeterSims :=
                                  identity, ssInfo[level].freeGroup);
                 MATRIXSS_DebugPrint(6, ["Got sift: ", strip]);
                 word := ShallowCopy(strip[1][2]);
-                strip := [strip[1][1], strip[2]];
-                
-                MATRIXSS_DebugPrint(6, ["Word : ", word]);
-                MATRIXSS_DebugPrint(6, ["Sift : ", strip]);
+                residue := strip[1][1];
                 
                 # The drop-out level is in range
                 # [1 .. Length(ssInfo) + 1 - level]
                 # but we want the range given by points
-                strip[2] := strip[2] + level;
+                dropoutLevel := strip[2] + level;
                 
-                MakeImmutable(strip);
+                MATRIXSS_DebugPrint(6, ["Word : ", word]);
+                
+                MakeImmutable(residue);
                 MakeImmutable(word);
                 
-                MATRIXSS_DebugPrint(4, ["Dropout level : ", strip[2]]);
+                MATRIXSS_DebugPrint(4, ["Dropout level : ", dropoutLevel]);
                 
-                if strip[1][1] <> identity then
+                if residue[1] <> identity then
                     MATRIXSS_DebugPrint(4, ["Residue found"]);
                     
                     # We have found a Schreier generator which is not in
@@ -233,39 +220,43 @@ MATRIXSS_SchreierToddCoxeterSims :=
                     # add the residue of this generator to our partial SGS
                     # in order to make it into a real SGS
                     
-                    newInverseGenerator := Immutable(Reversed(strip[1]));
+                    newInverseGenerator := Immutable(Reversed(residue));
                     
                     # Add residue to partial SGS
                     # This makes some levels incomplete and so we must
                     # recompute them recursively
-                    AddSet(partialSGS, strip[1]);
+                    AddSet(partialSGS, residue);
                     AddSet(partialSGS, newInverseGenerator);
                     
                     # Possibly extend the base if the Schreier generator
                     # fixes all points in our base
-                    if strip[2] > Length(ssInfo) then
-                        MATRIXSS_ExtendBase(ssInfo, strip[1], identity);
+                    if dropoutLevel > Length(ssInfo) then
+                        MATRIXSS_ExtendBase(ssInfo, residue, identity);
                     fi;
                     
                     # Update partial SGS at each level
-                    for recursiveLevel in [level .. strip[2] - 1] do
-                        MATRIXSS_DebugPrint(8, ["Adding ",
-                                strip[1][1], " and ", strip[1][2],
-                                " to generators"]);
-                        AddSet(ssInfo[recursiveLevel].partialSGS, 
-                               strip[1]);
-                        AddSet(ssInfo[recursiveLevel].partialSGS, 
-                               newInverseGenerator);
+                    for recursiveLevel in [level .. dropoutLevel - 1] do
+                        if ssInfo[recursiveLevel].action(
+                                   ssInfo[recursiveLevel].partialBase,
+                                   residue[1]) = 
+                           ssInfo[recursiveLevel].partialBase then
+                            MATRIXSS_DebugPrint(8, ["Adding ",
+                                    residue[1], " and ", residue[2],
+                                    " to generators"]);
+                            AddSet(ssInfo[recursiveLevel].partialSGS, 
+                                   residue);
+                            AddSet(ssInfo[recursiveLevel].partialSGS, 
+                                   newInverseGenerator);
+                        else
+                            break;
+                        fi;
                     od;
                 fi;
                 
-                for recursiveLevel in [level .. strip[2] - 1] do
+                for recursiveLevel in [level .. dropoutLevel - 1] do
                     freeGroup := 
                       FreeGroup(Length(ssInfo[recursiveLevel].
                               partialSGS));
-                    MATRIXSS_DebugPrint(6, ["Generators : ",
-                            List(ssInfo[recursiveLevel].
-                                 partialSGS, i -> i[1])]);
                     
                     # Important to use GroupWithGenerators, since we want
                     # all our matrices as generators to create the 
@@ -274,6 +265,8 @@ MATRIXSS_SchreierToddCoxeterSims :=
                     levelGroup := 
                       GroupWithGenerators(List(ssInfo[recursiveLevel].
                               partialSGS, i -> i[1]), identity);
+                    MATRIXSS_DebugPrint(6, ["Generators : ",
+                            GeneratorsOfGroup(levelGroup)]);
                     
                     # Recompute generator mapping, since we have added a
                     # generator
@@ -281,26 +274,26 @@ MATRIXSS_SchreierToddCoxeterSims :=
                     gens2 := ShallowCopy(GeneratorsOfGroup(freeGroup));
                     SortParallel(gens1, gens2);
                     ssInfo[recursiveLevel + 1].genMap := 
-                      Immutable([gens1, gens2]);
+                      Immutable(rec(Generators := gens1, 
+                              FreeGenerators := gens2));
                     ssInfo[recursiveLevel + 1].freeGroup := freeGroup;
                     
                     # Retrieve generators so that we can map all words to
                     # the same free group
                     gens1 := GeneratorsOfGroup(word[3]);
-                    gens2 := GeneratorsOfGroup(ssInfo[recursiveLevel + 1].
-                                     freeGroup);
                     
                     if Length(gens1) >= Length(gens2) then
-                        MATRIXSS_DebugPrint(6, ["Looking up ", strip[1][2],
+                        MATRIXSS_DebugPrint(6, ["Looking up ", residue[2],
                                 " in ", ssInfo[recursiveLevel + 1].
-                                genMap[1]]);
+                                genMap.FreeGenerators]);
                         
                         # The identity is not among our generators
-                        if strip[1][1] <> identity then
+                        if residue[1] <> identity then
                             element := 
-                              ssInfo[recursiveLevel + 1].genMap[2][
+                              ssInfo[recursiveLevel + 1].genMap.FreeGenerators[
                                       Position(ssInfo[recursiveLevel + 1].
-                                              genMap[1], strip[1][2])];
+                                              genMap.Generators, 
+                                              residue[2])];
                             
                             # Map the words to the generators in the same
                             # free group                            
@@ -317,19 +310,16 @@ MATRIXSS_SchreierToddCoxeterSims :=
                         
                         # Save relation along with the its free group
                         # so that we can map its generators later
-                        Add(ssInfo[recursiveLevel + 1].relations,
+                        AddSet(ssInfo[recursiveLevel + 1].relations,
                             Immutable([relation, word[3]]));
-                    else
-                        MATRIXSS_DebugPrint(4, ["2 : Gens1 : ", gens1]);
-                        MATRIXSS_DebugPrint(4, ["2 : Gens2 : ", gens2]);
                     fi;
                 od;
                 
-                if strip[1][1] <> identity then
+                if residue[1] <> identity then
                     # We must now recompute all levels downward from the
                     # dropout level
                     for recursiveLevel in 
-                      Reversed([level + 1 .. strip[2]]) do
+                      Reversed([level + 1 .. dropoutLevel]) do
                         oldSGS := ssInfo[level].oldSGS;
                         ssInfo[level].oldSGS := SGS;
                         MATRIXSS_SchreierToddCoxeterSims(ssInfo, 

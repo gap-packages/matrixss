@@ -591,7 +591,7 @@ MATRIXSS_ComputeSchreierTree :=
                     
                     if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
                         AddDictionary(tree, newPoint, 
-                                rec(Edge := Immutable(ShallowCopy(generator)),
+                                rec(Edge := generator,
                                     Depth := depth));
                         Add(newPoints, newPoint);
                     fi;
@@ -704,9 +704,12 @@ MATRIXSS_OrbitElement_ToddCoxeter :=
             element[2] := element[2] * edge.Edge[2];
             
             MATRIXSS_DebugPrint(4, ["Looking up ", edge.Edge[1], " in ",
-                    genMap[1]]);
-            word[1] := genMap[2][Position(genMap[1], edge.Edge[1])] * word[1];
-            word[2] := word[2] * genMap[2][Position(genMap[1], edge.Edge[2])];
+                    genMap.Generators]);
+            word[1] := genMap.FreeGenerators[Position(genMap.Generators, 
+                               edge.Edge[1])] * word[1];
+            word[2] := word[2] * 
+                       genMap.FreeGenerators[Position(genMap.Generators, 
+                               edge.Edge[2])];
         until false;
     else
         # In this case the tree has height 1, so we are done with one
@@ -715,8 +718,10 @@ MATRIXSS_OrbitElement_ToddCoxeter :=
         edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
         Assert(1, not IsBool(edge), "Point not in orbit!\n");
         
-        return [edge.Edge, [genMap[2][Position(genMap[1], edge.Edge[1])],
-                       genMap[2][Position(genMap[1], edge.Edge[2])]]];
+        return [edge.Edge, [genMap.FreeGenerators[Position(genMap.Generators, 
+                       edge.Edge[1])],
+                       genMap.FreeGenerators[Position(genMap.Generators, 
+                               edge.Edge[2])]]];
     fi;
 end;
 
@@ -838,9 +843,6 @@ MATRIXSS_Membership_ToddCoxeter :=
             word := MappedWord(representative[2][1], gens1, 
                             gens2{[1 .. Length(gens1)]});
             residue[2][2] := word * residue[2][2];
-        else
-            MATRIXSS_DebugPrint(2, ["1 : Gens1 : ", gens1]);
-            MATRIXSS_DebugPrint(2, ["1 : Gens2 : ", gens2]);
         fi;
     od;
     
@@ -977,11 +979,13 @@ MATRIXSS_GetSchreierGenerator_ToddCoxeter :=
                         freeGroup, genMap);
     
     edge := [element1[1][1] * generator[1] * element2[1][2],
-             element1[2][1] * genMap[2][Position(genMap[1], generator[1])] *
+             element1[2][1] * genMap.FreeGenerators[Position(genMap.Generators,
+                     generator[1])] *
              element2[2][2]];
     inv_edge := [element2[1][1] * generator[2] * element1[1][2],
                  element2[2][1] * 
-                 genMap[2][Position(genMap[1], generator[2])] *
+                 genMap.FreeGenerators[Position(genMap.Generators, 
+                         generator[2])] *
                  element1[2][2]];
     
     return [[edge[1], inv_edge[1]], [edge[2], inv_edge[2], freeGroup]];
@@ -1057,13 +1061,27 @@ MATRIXSS_RandomSchreierGenerator :=
 end;
 
 MATRIXSS_AugmentBase := function(ssInfo, newPoint, action, hash, identity)
-    local levelStruct, length;
+    local levelStruct;
     
     MATRIXSS_DebugPrint(3, ["Extending base"]);
     
-    length := Length(ssInfo);
-    
     # Extend base
+    if ValueOption("AlternatingActions") <> fail then
+        levelStruct := 
+          rec(
+              partialSGS := [],
+              partialBase := NormedRowVector(newPoint),
+              action := MATRIXSS_ProjectiveAction,
+              points := hash[3],
+              hash := hash,
+              schreierTree := MATRIXSS_CreateInitialSchreierTree(
+                      NormedRowVector(newPoint), hash, identity),
+              oldSGS := AsSet([]),
+              relations := [],
+              IsIdentity := MATRIXSS_ProjectiveIsIdentity);
+        Add(ssInfo, levelStruct); 
+    fi;
+    
     levelStruct := 
       rec(
           partialSGS := [],
@@ -1077,23 +1095,7 @@ MATRIXSS_AugmentBase := function(ssInfo, newPoint, action, hash, identity)
           relations := [],
           IsIdentity := MATRIXSS_IsIdentity);
     Add(ssInfo, levelStruct); 
-
-    if ValueOption("AlternatingActions") <> fail then
-        levelStruct := 
-          rec(
-              partialSGS := [],
-              partialBase := NormedRowVector(newPoint),
-              action := MATRIXSS_ProjectiveAction,
-              points := ssInfo[length].points,
-              hash := ssInfo[length].hash,
-              schreierTree := MATRIXSS_CreateInitialSchreierTree(
-                      NormedRowVector(newPoint), ssInfo[length].hash, 
-                      identity),
-              oldSGS := AsSet([]),
-              relations := [],
-              IsIdentity := MATRIXSS_ProjectiveIsIdentity);
-        Add(ssInfo, levelStruct); 
-    fi;
+        
 end;
 
 ###############################################################################
@@ -1230,46 +1232,13 @@ MATRIXSS_GetPartialBaseSGS :=
             else              
                 # Get initial point
                 newPoint := MATRIXSS_NewBasePoint(gen[1], identity, field);
-                
                 dictinfo := [newPoint, true, field];
                 
-                levelStruct := 
-                  rec(
-                      partialSGS := [],
-                      partialBase := newPoint,
-                      action := MATRIXSS_PointAction,
-                      points := field,
-                      hash := dictinfo,
-                      schreierTree := 
-                      MATRIXSS_CreateInitialSchreierTree(newPoint, 
-                              dictinfo, identity),
-                      oldSGS := AsSSortedList([]),
-                      relations := [],
-                      IsIdentity := MATRIXSS_IsIdentity);
-                Add(ssInfo, levelStruct); 
-
-                if ValueOption("AlternatingActions") <> fail then
-                    levelStruct := 
-                      rec(
-                          partialSGS := [],
-                          partialBase := NormedRowVector(newPoint),
-                          action := MATRIXSS_ProjectiveAction,
-                          points := NormedRowVectors(field),
-                          hash := dictinfo,
-                          schreierTree := 
-                          MATRIXSS_CreateInitialSchreierTree(
-                                  NormedRowVector(newPoint), dictinfo, 
-                                  identity),
-                          oldSGS := AsSSortedList([]),
-                          relations := [],
-                          IsIdentity := MATRIXSS_ProjectiveIsIdentity);
-                    
-                    Add(ssInfo, levelStruct); 
-                fi;
+                MATRIXSS_AugmentBase(ssInfo, newPoint, MATRIXSS_PointAction, 
+                        dictinfo, identity);
             fi;
             
             MATRIXSS_DebugPrint(7, ["Adding ", gen, " to SGS"]);
-            
         fi;
         
         # Save reference to generator and its inverse

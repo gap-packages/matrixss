@@ -24,7 +24,7 @@ Revision.("matrixss/lib/test_gi") :=
 #F MATRIXSS_GetTestGroups(maxDegree, maxFieldSize)
 ##
 ## Creates a list of classical matrix groups to use when testing the package.
-## The groups are `GL', `SL', `GO' and `SO'.
+## The groups are `GL', `SL', `GO', `SO', `GU' and `SU'.
 ## \beginitems
 ## `maxDegree' & maximum matrix size for classical matrix groups to be used
 ##             for testing
@@ -41,8 +41,8 @@ MATRIXSS_GetTestGroups :=
     # Use the following group creation functions to make some test groups
     groupTypes := 
       Immutable([GeneralLinearGroup, SpecialLinearGroup, 
-              GeneralOrthogonalGroup, SpecialOrthogonalGroup]);
-#              GeneralUnitaryGroup, SpecialUnitaryGroup]);
+              GeneralOrthogonalGroup, SpecialOrthogonalGroup,
+              GeneralUnitaryGroup, SpecialUnitaryGroup]);
     
     # List of test groups
     groups := [];
