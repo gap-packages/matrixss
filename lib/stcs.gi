@@ -17,17 +17,13 @@
 Revision.("matrixss/lib/stcs_gi") := 
   "@(#)$Id$";
 
-# An implementation of the Schreier-Sims algorithm, for matrix groups
-InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
-    local ssInfo, list, generators, level, points, element, 
-          SchreierToddCoxeterSims;
-        
     # The main Schreier-Sims function
     # ssInfo - main information structure for the current Schreier-Sims run
     # partialSGS - given partial strong generating set
     # level - the level of the call to Schreier-Sims
     # identity - the group identity
-    SchreierToddCoxeterSims := function(ssInfo, partialSGS, level, identity)
+MATRIXSS_SchreierToddCoxeterSims := function(ssInfo, partialSGS, level, 
+                                            identity)
         local generator, point, orbit, strip, schreierGenerator, element, 
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
               newPoint, oldSchreierTree, newBasePoint, oldOrbit,
@@ -116,7 +112,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     relations := [];
                     for element in ssInfo[level].relations do
                         gens1 := GeneratorsOfGroup(element[2]);
-                        gens2 := GeneratorsOfGroup(ssInfo[level].freeGroup));
+                        gens2 := GeneratorsOfGroup(ssInfo[level].freeGroup);
                         
                         MATRIXSS_DebugPrint(3, ["Mapping ", element[1],
                                 " from ", element[2], " to ",
@@ -324,7 +320,8 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                           Reversed([level + 1 .. strip[2]]) do
                             oldSGS := ssInfo[level].oldSGS;
                             ssInfo[level].oldSGS := SGS;
-                            SchreierToddCoxeterSims(ssInfo, partialSGS,
+                            MATRIXSS_SchreierToddCoxeterSims(ssInfo, 
+                                    partialSGS,
                                     recursiveLevel, identity);
                             ssInfo[level].oldSGS := oldSGS;
                         od;
@@ -336,6 +333,12 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
         ssInfo[level].oldSGS := SGS;
     end;
     
+
+# An implementation of the Schreier-Sims algorithm, for matrix groups
+InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
+    local ssInfo, list, generators, level, points, element, 
+          SchreierToddCoxeterSims;
+        
 
     ### MAIN Schreier-Sims 
 
@@ -389,7 +392,8 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
     
     # Call Schreier-Sims algorithm for each level (starting from top)
     for level in Reversed([1 .. Length(ssInfo)]) do
-        SchreierToddCoxeterSims(ssInfo, generators, level, Identity(G));
+        MATRIXSS_SchreierToddCoxeterSims(ssInfo, generators, level, 
+                Identity(G));
     od;
     
     MATRIXSS_DebugPrint(2, ["Matrix Schreier-Sims done"]);
