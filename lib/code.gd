@@ -30,4 +30,6 @@ DeclareGlobalFunction("MatrixGroupOrder");
 DeclareGlobalFunction("MatrixSchreierSimsTest");
 
 
+DeclareInfoClass("MatrixSchreierSimsInfo");
+
 #E
