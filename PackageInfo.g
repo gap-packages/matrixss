@@ -16,13 +16,13 @@
 SetPackageInfo(rec(
         PackageName := "matrixss",
         Subtitle := "Schreier-Sims algorithm for matrix groups",
-        Version := "1.0",
-        Date := "22/06/2004",
+        Version := "0.1",
+        Date := "27/07/2004",
         PackageWWWHome := "http://matrixss.sourceforge.net/",
         ArchiveURL := "http://sourceforge.net/project/showfiles.php?group_id=99072",
         PackageInfoCurrent := "http://matrixss.sourceforge.net/",
         
-        ArchiveFormats := ".tar.gz,.zoo,.zip,.tar.bz2",
+        ArchiveFormats := ".tar.gz,.zoo,.win.zip,.tar.bz2,.deb",
         Persons := [rec(
                         LastName := "B‰‰rnhielm",
                         FirstNames := "Henrik",
@@ -37,13 +37,13 @@ SetPackageInfo(rec(
                                 "United Kingdom\n"])
                         )],
                    
-                   Status := "dev",
+                   Status := "alpha",
                    README_URL := Concatenation( ~.PackageWWWHome, "/README" ),
                    PackageInfoURL :=
                    Concatenation( ~.PackageWWWHome, "/PackageInfo.g" ),
                    AbstractHTML := 
                    Concatenation(["This package contains an implementation ",
-                           "of the Schreier-Sims algorithm"]),
+                           "of the Schreier-Sims algorithm for matrix groups"]),
                    PackageDoc := rec(Archive := "",
                            BookName := "",
                            HTMLStart := "",
