@@ -4,7 +4,7 @@
 # Modified for matrixss by Henrik B‰‰rnhielm 2004
 
 # Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
 
 build: 
 
