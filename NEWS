@@ -3,6 +3,13 @@ Matrix Schreier-Sims NEWS
 Important new features are listed here. 
 More detailed changed are in the ChangeLog.
 
+2004-06-26
+    Added an Option to flatten the Schreier trees at creation time (make
+    them have height 1), so that later only a single hash lookup is needed to
+    find the orbit element for a given point.
+    The Option is called "SimpleSchreierTree" and it seems to make the 
+    algorithm go faster by a factor 2.
+
 2004-06-24
     The trick of using alternating actions at different levels of the 
     algorthim has now been implemented. Each base point in the initial partial 
