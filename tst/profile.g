@@ -28,5 +28,5 @@ ProfileFunctions(Filtered(List(functionNames, EvalString), IsFunction));
 #ProfileOperationsAndMethods(true);
 ProfileGlobalFunctions(true);
 
-ReadTest("tst/bench.tst");;
+ReadTest("tst/profile.tst");;
 DisplayProfile();
