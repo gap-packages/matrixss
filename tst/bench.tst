@@ -15,10 +15,10 @@
 
 gap> START_TEST("$Id$");
 
-gap> MATRIXSS_RandomSchreierSimsBenchmark(7, 7, 0, 32);
+gap> MatrixSchreierSimsBenchmark(6, 6, 0, 32 : AlternatingActions, SimpleSchreierTree, CleverBasePoints);
 Benchmark completed
 
-gap> MatrixSchreierSimsBenchmark(7, 7, 0, 32 : AlternatingActions, SimpleSchreierTree, CleverBasePoints);
+gap> MATRIXSS_RandomSchreierSimsBenchmark(6, 6, 0, 32);
 Benchmark completed
 
 gap> STOP_TEST("bench.tst", 10000);
