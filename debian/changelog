@@ -1,4 +1,4 @@
-gap-matrix-schreiersims (0.9.20041007-3) unstable; urgency=low
+gap-matrix-schreiersims (0.9.20041122-1) unstable; urgency=low
 
   * Added doc-base
   * Removed versioned dependencies on tetex
