@@ -356,23 +356,23 @@ end;
 
 # An implementation of the Schreier-Sims algorithm, for matrix groups
 MatrixSchreierSims := function(G)
-    local S, B, T, point, F, generators, element;
+    local generators, base, trees, points;
 
     if not IsMatrixGroup(G) then
         Error("<G> must be a matrix group");
     fi;
     
-    S := GeneratorsOfGroup(G);
-    F := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
-    B := BasisVectors(CanonicalBasis(F));
+    generators := GeneratorsOfGroup(G);
+    points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
+    base := BasisVectors(CanonicalBasis(points));
     
     # if S does not contain the identity, then S is a partial SGS
     SetAssertionLevel(1);
     
     # Compute Schreier trees
-    T := GetSchreierTrees(S, B, F, MSSAction, Identity(G));
+    T := GetSchreierTrees(generators, base, points, MSSAction, Identity(G));
     
-    return SchreierSims(B, S, T, MSSAction, Identity(G), F);
+    return SchreierSims(base, generators, trees, MSSAction, Identity(G), points);
 end;
 
 InstallGlobalFunction(MatrixGroupOrder, function(G)
@@ -382,15 +382,21 @@ InstallGlobalFunction(MatrixGroupOrder, function(G)
         Error("<G> must be a matrix group");
     fi;
     
-#    DebugPrint(1, ["Input group : ", G]);
+    DebugPrint(1, "Entering MatrixGroupOrder");
+    DebugPrint(2, ["Input group : ", G]);
     
     ret := MatrixSchreierSims(G);
+    
+    DebugPrint(2, ["Base : ", ret[1]]);
+    DebugPrint(2, ["SGS : ", ret[2]]);
+
     schreierTrees := 
       GetSchreierTrees(ret[2], ret[1], FullRowSpace(FieldOfMatrixGroup(G), 
               DimensionOfMatrixGroup(G)), MSSAction, Identity(G));
     
     order := 1;
     for tree in schreierTrees do
+        DebugPrint(3, ["Orbit size : ", GetOrbitSize(tree)]);
         order := order * GetOrbitSize(tree);
     od;
     
