@@ -20,6 +20,19 @@ Release notes
 </th>
 </tr>
 <tr>
+<td>
+<a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=248740" target="_top">matrixss-dev20040626</a></td>
+</td>
+<td>Development release</td>
+<td>
+    Added an Option to flatten the Schreier trees at creation time (make
+    them have height 1), so that later only a single hash lookup is needed to
+    find the orbit element for a given point.
+    The Option is called "SimpleSchreierTree" and it seems to make the 
+    algorithm go faster by a factor 2.
+</td>
+</tr>
+<tr>
 <td><a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=248181" target="_top">matrixss-dev20040624</a></td>
 <td>Development release</td>
 <td>The trick of using alternating actions at different levels of the algorthim 

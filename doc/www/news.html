@@ -10,6 +10,16 @@
 
 <table>
 <tr>
+<th>2004-06-26</th>
+<td>
+    Added an Option to flatten the Schreier trees at creation time (make
+    them have height 1), so that later only a single hash lookup is needed to
+    find the orbit element for a given point.
+    The Option is called "SimpleSchreierTree" and it seems to make the 
+    algorithm go faster by a factor 2.
+</td>
+</tr>
+<tr>
 <th>2004-06-24</th>
 <td>
     The trick of using alternating actions at different levels of the 
