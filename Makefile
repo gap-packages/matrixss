@@ -70,6 +70,7 @@ ChangeLog: NEWS
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
 deb: $(PACKAGES)
+	cvs tag -F $(DEB_TAG) `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.text` Makefile doc/code.msk doc/config.matrixss doc/report/schreiersims.bib debian/*
 	cp tmp/$(PACKAGE).tar.gz tmp/gap-matrix-schreiersims/$(DEBPKG).orig.tar.gz
 	cvs-buildpackage -R $(DIR)/tmp -rfakeroot -kredstar -Mmatrixss
 
