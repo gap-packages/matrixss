@@ -16,6 +16,7 @@
 Revision.("matrixss/tst/profile_g") := 
   "@(#)$Id$";;
 
+BindGlobal("MATRIXSS_PROFILE", true);;
 LoadPackage("matrixss");;
 
 SetAssertionLevel(0);

@@ -18,7 +18,7 @@ Revision.("matrixss/tst/test_g") :=
 
 # Must not define method for Size, since we want to compare with GAP:s
 # built-in results.
-MATRIXSS_TEST := true;;
+BindGlobal("MATRIXSS_TEST", true);;
 LoadPackage("matrixss");;
 
 SetAssertionLevel(2);
