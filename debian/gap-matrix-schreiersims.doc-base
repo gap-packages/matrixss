@@ -8,3 +8,6 @@ Section: math
 
 Format: dvi
 Files: /usr/share/doc/gap-matrix-schreiersims/doc/manual.dvi.gz
+
+Format: pdf
+Files: /usr/share/doc/gap-matrix-schreiersims/doc/manual.pdf

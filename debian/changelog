@@ -1,3 +1,10 @@
+gap-matrix-schreiersims (0.9.20041122-2) unstable; urgency=low
+
+  * Added pdf to doc-base.
+  * Package ready for upload to Debian, closes: #282449.
+
+ -- Henrik Bäärnhielm <redstar@abc.se>  Tue, 23 Nov 2004 06:37:49 +0000
+
 gap-matrix-schreiersims (0.9.20041122-1) unstable; urgency=low
 
   * Added doc-base

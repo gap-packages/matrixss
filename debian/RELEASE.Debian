@@ -1,6 +1,6 @@
 Matrix Schreier-Sims Debian Release Notes
 =========================================
-Release date : 2004-11-22
+Release date : 2004-11-23
 
-* Added doc-base
-* Removed versioned dependencies on tetex
+* Added pdf to doc-base
+* Package ready for upload to Debian.
