@@ -4,9 +4,7 @@ Matrix Schreier-Sims Installation instructions
 The files should be put in a subdirectory "matrixss" to the gap "pkg"
 directory.
 
-In GAP, use the "RequirePackage" command to load the package. This
-installs a function "MatrixGroupOrder" which computes the order of a
-matrix group, using the version of Schreier-Sims that is supplied in
-this package.
+In GAP, use the "RequirePackage" command to load the package, the
+package name being "matrixss". 
 
-In the subdirectory "tst" there is a GAP file "test.g" which performs some tests of the package.
+See USAGE for a short introduction on how to use package in GAP.
