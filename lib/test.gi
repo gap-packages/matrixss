@@ -41,8 +41,8 @@ MATRIXSS_GetTestGroups :=
     # Use the following group creation functions to make some test groups
     groupTypes := 
       Immutable([GeneralLinearGroup, SpecialLinearGroup, 
-              GeneralOrthogonalGroup, SpecialOrthogonalGroup,
-              GeneralUnitaryGroup, SpecialUnitaryGroup]);
+              GeneralOrthogonalGroup, SpecialOrthogonalGroup]);
+#              GeneralUnitaryGroup, SpecialUnitaryGroup]);
     
     # List of test groups
     groups := [];
@@ -119,6 +119,14 @@ MATRIXSS_GetBenchmarkGroups :=
     return groups;
 end;
 
+MATRIXSS_TimedCall := function(call, args)
+    local time;
+    
+    time := Runtime();
+    CallFuncList(call, args);
+    return Runtime() - time;
+end;
+
 InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
     local groups, group, size1, size2;
     
@@ -147,7 +155,7 @@ end);
 
 InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(maxDegree, 
         maxFieldSize, maxReeSize, maxSuzukiSize)
-    local groups, group, test_time, size, group_time, schreierSims;
+    local groups, group, test_time, size, schreierSims;
         
     # Get list of benchmark groups
     groups := MATRIXSS_GetBenchmarkGroups(maxDegree, maxFieldSize, 
@@ -159,11 +167,9 @@ InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(maxDegree,
     test_time := Runtime();
     
     for group in groups do
-        # Time each run of Schreier-Sims        
-        group_time := Runtime();
-        StabChainMatrixGroup(group);
-            
-        Print(group, "\t", Runtime() - group_time, "\n");
+        # Time each run of Schreier-Sims  
+        Print(group, "\t", MATRIXSS_TimedCall(StabChainMatrixGroup, [group]), 
+              "\n");
     od;
         
     Print("Total time for test : ", Runtime() - test_time, "\n");
