@@ -1300,7 +1300,7 @@ end);
 ## package is loaded.
 ##
 ###############################################################################
-if IsBoundGlobal("MATRIXSS_TEST") then
+if not IsBoundGlobal("MATRIXSS_TEST") then
     InstallMethod(Size, "for finite matrix groups", 
             [IsMatrixGroup and IsFinite], function(G)
         local ret, orbit, order;

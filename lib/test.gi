@@ -136,16 +136,15 @@ InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
     # Compute order of all groups using GAP:s builtin Order and using our
     # Schreier-Sims algorithm
     for group in groups do
-        Print("Checking group : ", group, "\n");
+        MATRIXSS_DebugPrint(1, ["Checking group : ", group]);
         
         size1 := Size(group);
         size2 := MatrixGroupOrderStabChain(StabChainMatrixGroup(group).
                          SchreierStructure);
         
         if size1 <> size2 then
-            Print("Correct order: ", size1, "\n");
-            Print("Computed order: ", size2, "\n");
-            Print("Order difference!\n");
+            Print("Group: ", group, " Correct order: ", size1, 
+                  "Computed order: ", size2, "\n");
         fi;
     od;
     
