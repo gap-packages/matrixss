@@ -21,6 +21,28 @@ Release notes
 </tr>
 <tr>
 <td valign="top">
+<a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=259473" target="_top">matrixss-0.0.20040810</a></td>
+<td valign="top">Development release</td>
+<td>
+An algorithm highly inspired by the nearly linear time algorithm,
+described in Seress book as well as in the 1991 paper by Babai et al,
+has been implemented. Some parts of the nearly linear time algorithm
+has not yet been implemented though, in particular the "short Schreier
+trees". The implementation is still very slow, though, so the fastest
+version is still the standard deterministic algorithm.<br>
+<br>
+Other changes include the use of random subproducts in the
+probabilistic algorithm, instead of random elements computed using the
+Rattle algorithm. The representation of Schreier trees has been
+somewhat augmented, to include the depth of each node, as well as the
+height of the tree. There is a possibility to create shallow Schreier
+trees, which are guaranteed to have at most logarithmic depth. These
+changes are described in Seress book as well as in the above paper,
+and are needed in the nearly linear time algorithm.
+</td>
+</tr>
+<tr>
+<td valign="top">
 <a href="http://sourceforge.net/project/showfiles.php?group_id=99072&package_id=106182&release_id=257108" target="_top">matrixss-0.0.20040730</a></td>
 <td valign="top">Development release</td>
 <td>
