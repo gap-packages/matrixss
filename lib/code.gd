@@ -51,9 +51,18 @@ DeclareGlobalFunction("MatrixSchreierSimsBenchmark");
 #                           creation of the Schreier trees, thus making them
 #                           have height 1
 #                           This should make the algorithm significantly faster
+#      ExtendSchreierTree - Do not recompute Schreier trees at each run of a
+#                           given level, but extend the Schreier trees from the
+#                           last run at that level.
+#      AlternatingActions - Always prepend a base point with the line that
+#                           contains it, using the projective action on the 
+#                           line.
+#      CleverBasePoints   - Choose an initial list of base points using 
+#                           BasisVectorsForMatrixAction, which is due to
+#                           O'Brien and Murray.
 DeclareGlobalFunction("MatrixSchreierSims");
 
-
+# Info class used for debugging
 DeclareInfoClass("MatrixSchreierSimsInfo");
 
 #E

@@ -28,8 +28,10 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
           GetPartialBaseSGS, ExtendBase, IsIdentity, ProjectiveIsIdentity, 
           IsConstantList, CreateInitialSchreierTree, CopySchreierTree,
     # Local variables
-          ssInfo, list, generators, level, points, element;
-
+          ssInfo, list, generators, level, points, element,
+    # "Global" variable used by NewBasePoint
+          basePoints;
+          
     DebugPrint := function(level, message)
         #Info(MatrixSchreierSimsInfo, level, message);
         #Info(MatrixSchreierSimsInfo, level, message, "\n");
@@ -301,6 +303,14 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     # (element fixes the base)
     NewBasePoint := function(element, identity, field)
         local basis, point, basePoint, i, j, length;
+        
+        if ValueOption("CleverBasePoints") <> fail then
+            if not IsEmpty(basePoints) then
+                point := basePoints[1];
+                basePoints := basePoints{[2 .. Length(basePoints)]};
+                return point;
+            fi;
+        fi;
         
         DebugPrint(3, ["Matrix that fixes whole base: ", element]);
         DebugPrint(5, ["Point field: ", field]);
@@ -674,6 +684,11 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     
     # Get initial set of generators, to be extended to a partial SGS
     generators := GeneratorsOfGroup(G);
+    
+    if ValueOption("CleverBasePoints") <> fail then
+        # Get a list of possibly good base points for this group
+        basePoints := BasisVectorsForMatrixAction(G);
+    fi;
     
     # The vector space on which the group acts
     points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
