@@ -1,7 +1,13 @@
 Matrix Schreier-Sims NEWS
 ===========================
-Important new features are listed here. 
+Important new features are listed here. The dates are in the format YYYY-MM-DD.
 More detailed changed are in the ChangeLog.
+
+2004-07-08
+    The implementation of Schreier-Todd-Coxeter-Sims algorithm seems to be
+    working now. It is however still very slow, and there are possibly
+    some mistakes in the handling of relations, since it appears that the coset
+    enumeration never finishes successfully.
 
 2004-07-07
     Made an implementation of random element generation using the Rattle 

@@ -1,8 +1,9 @@
 Matrix Schreier-Sims TODO
 =========================
 
-- Implement a version using Todd-Coxeter coset enumeration, using GAP:s
-  built-in variant.
+- Speed up STCS algorithm by avoid using PreImagesRepresentative unless
+  needed. When creating homomorphism, save images of all generators in a list
+  and use it for lookups when creating words.
 
 - Implement a randomized algorithm, together with some verification step.
 1) Implement Sim's Verify routine

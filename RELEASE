@@ -1,12 +1,8 @@
 Matrix Schreier-Sims Release Notes
 ==================================
-Release date : 2004-07-07
+Release date : 2004-07-08
 
-Made an implementation of random element generation using the Rattle algorithm
-by Leedham-Green, to avoid using GAP:s built-in algorithm (which is Shake). 
-This way some inverse matrix calculations are avoided.
-
-Also included is a not yet finished implementation of 
-Schreier-Todd-Coxeter-Sims algorithm, which uses coset enumeration to possibly 
-decrease the number of Schreier generators that are considered at each level 
-of the standard Schreier-Sims algorithm.
+The implementation of Schreier-Todd-Coxeter-Sims algorithm seems to be
+working now. It is however still very slow, and there are possibly
+some mistakes in the handling of relations, since it appears that the coset
+enumeration never finishes successfully.
