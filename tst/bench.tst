@@ -18,7 +18,7 @@ gap> START_TEST("$Id$");
 gap> MatrixSchreierSimsBenchmark(5, 5, 0, 0 : SimpleSchreierTree);
 Benchmark completed
 
-gap> MatrixSchreierSimsBenchmark(5, 5, 0, 0 : SimpleSchreierTree, UseRandomSS);
+gap> MatrixSchreierSimsBenchmark(5, 5, 0, 0 : Random);
 Benchmark completed
 
 gap> MATRIXSS_RandomSchreierSimsBenchmark(5, 5, 0, 0);

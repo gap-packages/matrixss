@@ -15,7 +15,7 @@
 
 gap> START_TEST("$Id$");
 
-gap> MatrixSchreierSimsBenchmark(4, 4, 0, 0 : SimpleSchreierTree);
+gap> MatrixSchreierSimsBenchmark(5, 5, 0, 0 : Random);
 Benchmark completed
 
 gap> STOP_TEST("profile.tst", 10000);
