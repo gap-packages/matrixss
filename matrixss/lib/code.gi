@@ -1,7 +1,7 @@
 Revision.("matrixss/lib/code_gi") := 
   "@(#)$Id$";
 
-MATRIXSS_DEBUGLEVEL := 3;
+MATRIXSS_DEBUGLEVEL := 0;
 #MakeReadOnlyGlobal("MATRIXSS_DEBUGLEVEL");
 
 DebugPrint := function(level, message)
@@ -415,15 +415,15 @@ MatrixSchreierSims := function(G)
         fi;
     od;
             
-    SetAssertionLevel(1);
+    SetAssertionLevel(0);
     
     # Compute Schreier trees
     trees := GetSchreierTrees(generators, base, points, MSSAction, 
                      Identity(G));
     
-    DebugPrint(1, ["Calling recursive Schreier-Sims"]);
-    DebugPrint(1, ["Partial base : ", base]);
-    DebugPrint(1, ["Partial sgs : ", generators]);
+    DebugPrint(3, ["Calling recursive Schreier-Sims"]);
+    DebugPrint(3, ["Partial base : ", base]);
+    DebugPrint(3, ["Partial sgs : ", generators]);
     
     return SchreierSims(base, generators, trees, MSSAction, Identity(G), 
                    points);
@@ -436,7 +436,7 @@ InstallGlobalFunction(MatrixGroupOrder, function(G)
         Error("<G> must be a matrix group");
     fi;
     
-    DebugPrint(1, ["Entering MatrixGroupOrder"]);
+    DebugPrint(2, ["Entering MatrixGroupOrder"]);
     DebugPrint(2, ["Input group : ", G]);
     
     ret := MatrixSchreierSims(G);
@@ -453,4 +453,43 @@ InstallGlobalFunction(MatrixGroupOrder, function(G)
     DebugPrint(2, ["Order : ", order]);
 
     return order;
+end);
+
+InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
+    local degree, power, size1, size2, primeNr, prime;
+    
+    degree := 2;
+    while degree <= maxDegree do
+        DebugPrint(1, ["Checking orders for degree : ", degree]);
+        
+        primeNr := 1;
+        while primeNr <= 168 and Primes[primeNr] <= maxFieldSize do
+            prime := Primes[primeNr];
+            DebugPrint(1, ["\tChecking orders for prime : ", prime]);
+            
+            power := 1;
+            while Primes[primeNr]^power <= maxFieldSize do
+                DebugPrint(1, ["\t\tChecking order for field size : ", 
+                        prime^power]);
+                
+                size1 := Order(GL(degree, prime^power));
+                size2 := MatrixGroupOrder(GL(degree, prime^power));
+            
+                if not size1 = size2 then
+                    Print("Prime = ", prime, " power = ", power, "\n");
+                    Print("Degree = ", degree, "\n");
+                    Error("Order difference!");
+                fi;
+                
+                power := power + 1;
+            od;
+            
+            primeNr := primeNr + 1;
+        od;
+        
+        degree := degree + 1;
+    od;
+    
+    Print("No order differences\n");
+    return true;
 end);
