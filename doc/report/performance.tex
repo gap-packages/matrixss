@@ -12,32 +12,33 @@ that were used were the standard generating sets from the
 \GAP~library. The main test groups were classical groups: the general
 and special linear groups $\GL(d, q)$ and $\SL(d, q)$ and the general
 and special orthogonal groups $\GO(d, q)$ and $\SO(d, q)$, for various
-(small) $d$ and $q$. The algorithm were also tested on some Suzuki
+(small) $d$ and $q$. The algorithm was also tested on some Suzuki
 groups $\Sz(q)$ (where $q$ is a non-square power of $2$) and some Ree
 groups $\Ree(q)$ (where $q = 3^{1 + 2m}$ for some $m > 0$).
 
-The benchmark was carried out on quite standard PC, with an AMD Athlon
-CPU running at $2$ GHz and with $1$ GB of physical RAM. It is likely
+Another, perhaps more realistic, test of the performance was done by
+running the algorithm on randomly formed sets of invertible matrices
+of a given dimension over a given finite field.
+
+The benchmarks was carried out on two quite standard PC computers, the first test on a computer with an AMD Athlon
+CPU running at $2$ GHz and with $1$ GB of physical RAM, and the second test on a computer with an Intel Pentium 4 CPU running at $2.8$ GHz and also with $1$ GB of physical RAM. It is likely
 that these were the only important parameters, since \GAP~is mainly
 CPU intensive, and swapping was avoided duringd the benchmark, so the hard disk speed should be a negligible factor. The
-\GAP~installation tests gave a GAP4stones value of $194624$ and the computer
-was running the RedHat Linux operating system. 
+\GAP~installation tests reported GAP4stones values of $194624$ and $253581$, respectively.
 
-The details of the benchmark is shown in the appendix. For most
-groups, the existing algorithm was the faster one, but for some groups
+The details of the benchmarks is shown in the appendix. During the first test, the existing algorithm was the faster one for most groups, but for some groups
 our implementation was faster, most notably for the Suzuki groups. It
 should be noted that all running times for our implementation comes
 from using the same algorithm options, and it is possible to get
 better times, especially for the smaller groups, by elaborating with
-other options.
+other options. The second test also indicated that the existing implementation is faster in most cases.
 
 In terms of memory, no rigorous benchmark has been performed, but
 during the above benchmark some simple checks of the amount of memory
 allocated by the \GAP~process were performed. It seemed that our
 implementation consumed less memory overall, and in some cases the
 difference was large. Indeed, since we wanted to avoid swapping during
-the benchmark, no larger Suzuki group than $\Sz(32)$ could be checked,
-since the existing implementation ran out of memory. Our
+the benchmark, no larger Suzuki group than $\Sz(32)$ could be checked during the first test, since the existing implementation ran out of memory. Our
 implementation was far from having such problems, consuming no more
 than about $50$ MB for the Suzuki groups.
 
