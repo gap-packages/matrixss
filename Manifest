@@ -25,5 +25,13 @@ tst/test.g
 tst/bench.tst
 tst/profile.tst
 tst/test.tst
+doc/manual.tex
+doc/manual.six
+doc/manual.lab
+doc/matrixss.tex
+doc/manual.bbl
+doc/manual.mst
+doc/code.tex
+doc/manual.toc
 SHA1SUMS
 MD5SUMS

@@ -23,49 +23,54 @@ SetPackageInfo(rec(
         PackageInfoCurrent := "http://matrixss.sourceforge.net/",
         
         ArchiveFormats := ".tar.gz,.zoo,.win.zip,.tar.bz2,.deb",
-        Persons := [rec(
-                        LastName := "Bäärnhielm",
-                        FirstNames := "Henrik",
-                        IsAuthor := true,
-                        IsMaintainer := true,
-                        Email := "redstar_@sourceforge.net",
-                        WWWHome := "http://henrik.baarnhielm.net/",
-                        Place := "London",
-                        Institution := "Imperial College of Science, Technology and Medicine",
-                        PostalAddress := Concatenation(["Henrik Bäärnhielm\n",
-                                "Imperial College, London\n",
-                                "United Kingdom\n"])
-                        )],
-                   
-                   Status := "alpha",
-                   README_URL := Concatenation( ~.PackageWWWHome, "/README" ),
-                   PackageInfoURL :=
-                   Concatenation( ~.PackageWWWHome, "/PackageInfo.g" ),
-                   AbstractHTML := 
-                   Concatenation(["This package contains an implementation ",
-                           "of the Schreier-Sims algorithm for matrix groups"]),
-                   PackageDoc := rec(Archive := "",
-                           BookName := "",
-                           HTMLStart := "",
-                           PDFFile := "",
-                           SixFile := "",
-                           LongTitle := "",
-                           Autoload := false
-                           ),
-                   Dependencies := rec(
-                           GAP := ">= 4.3",
-                           NeededOtherPackages := [],
-                           SuggestedOtherPackages := [],
-                           ExternalConditions := []
-                           ),
-                   AvailabilityTest := ReturnTrue,
-                   TestFile := "tst/test.g",
-                   Keywords := ["matrix groups", "Schreier-Sims"],
-                   BannerString := Concatenation(["#I loading GAP package ''matrixss'' ",
-                           "in version ", ~.Version, "\n"]),
-                   Autoload := false,
+        Persons := 
+        [rec(
+             LastName := "Bäärnhielm",
+             FirstNames := "Henrik",
+             IsAuthor := true,
+             IsMaintainer := true,
+             Email := "redstar_@sourceforge.net",
+             WWWHome := "http://henrik.baarnhielm.net/",
+             Place := "London",
+             Institution := "Imperial College of Science, Technology and Medicine",
+             PostalAddress := Concatenation(["Henrik Bäärnhielm\n",
+                     "Imperial College, London\n",
+                     "United Kingdom\n"])
+             )],
+                
+                Status := "alpha",
+                README_URL := Concatenation( ~.PackageWWWHome, "/README" ),
+                PackageInfoURL :=
+                Concatenation( ~.PackageWWWHome, "/PackageInfo.g" ),
+                AbstractHTML := 
+                Concatenation(["This package contains an implementation ",
+                        "of the Schreier-Sims algorithm for matrix groups"]),
+                PackageDoc := 
+                rec(Archive := "",
+                    BookName := "matrixss",
+                    HTMLStart := "",
+                    PDFFile := "",
+                    SixFile := "doc/manual.six",
+                    LongTitle := "",
+                    Autoload := false
+                    ),
+                Dependencies := 
+                rec(
+                    GAP := ">= 4.4",
+                    NeededOtherPackages := [],
+                    SuggestedOtherPackages := [],
+                    ExternalConditions := []
+                    ),
+                AvailabilityTest := ReturnTrue,
+                TestFile := "tst/test.g",
+                Keywords := ["matrix groups", "Schreier-Sims"],
+                BannerString := 
+                Concatenation(["#I loading GAP package ''matrixss'' ",
+                        "in version ", ~.Version, "\n"]),
+                Autoload := false,
+                
+                ));
 
-                   ));
-
+###############################################################################
 #E
 
