@@ -1,0 +1,39 @@
+2004-01-17 04:10  redstar_
+
+	* NEWS, TODO: Auxiliary files updated, now when the algorithm seems
+	to work.
+
+2004-01-17 04:09  redstar_
+
+	* lib/code.gi: The algorithm in its current simple form now seems
+	to work.
+
+2004-01-16 14:03  redstar_
+
+	* lib/code.gi: Cosmetical fixes
+
+2004-01-12 02:29  redstar_
+
+	* lib/code.gi: Now got a running version of the algorithm, but it
+	does not seem to produce correct results in most cases.
+
+2004-01-12 02:28  redstar_
+
+	* init.g, read.g, lib/code.gd: Moved reading of implementation to a
+	new file, and added special declaration file
+
+2004-01-12 02:27  redstar_
+
+	* INSTALL, NEWS, THANKS, file_id.diz: Added standard auxiliary
+	project files
+
+2004-01-09 17:34  redstar_
+
+	* AUTHORS, README, TODO, init.g, COPYING, LICENSE, THANKS,
+	file_id.diz, lib/code.gi: Initial revision
+
+2004-01-09 17:34  redstar_
+
+	* AUTHORS, README, TODO, init.g, COPYING, LICENSE, THANKS,
+	file_id.diz, lib/code.gi: Initial import
+
