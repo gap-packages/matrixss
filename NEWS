@@ -1,3 +1,8 @@
 Matrix Schreier-Sims NEWS
 ===========================
-Important new features are listed here.
+Important new features are listed here. 
+More detailed changed are in the ChangeLog.
+
+2004-01-17
+    A seemingly working version of Schreier-Sims has now been implemented. 
+    It is the standard naive version without any optimisations.
