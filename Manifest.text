@@ -30,7 +30,9 @@ tst/bench.g
 tst/profile.g
 tst/bench.tst
 tst/profile.tst
-tst/test.tst
+tst/standard.tst
+tst/random.tst
+tst/linear.tst
 doc/manual.tex
 doc/manual.six
 doc/manual.lab
