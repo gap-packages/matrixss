@@ -35,7 +35,7 @@ matrices that are inverses to each other.
 
 \FileHeader{code.gd}
 
-\Declaration{StabChainMatrixGroup}{StabChainMatrixGroup}!{general}
+\Declaration{StabChainMatrixGroup}[code.gd]{StabChainMatrixGroup}!{general}
 
 \Declaration{ssInfo}
 
@@ -59,7 +59,7 @@ These are the core functions of the package.
 
 \Declaration{MATRIXSS_ExtendBase}
 
-\Declaration{MATRIXSS_OrbitElement}{MATRIXSS_OrbitElement}
+\Declaration{MATRIXSS_OrbitElement}{`MATRIXSS_OrbitElement'}
 
 \Declaration{MATRIXSS_ComputeSchreierTree}
 
