@@ -24,3 +24,6 @@ DeclarePackage("matrixss", "1.0", ReturnTrue);
 
 # Read package declarations
 ReadPkg("matrixss", "lib/code.gd");
+ReadPkg("matrixss", "lib/standard.gd");
+ReadPkg("matrixss", "lib/random.gd");
+ReadPkg("matrixss", "lib/test.gd");

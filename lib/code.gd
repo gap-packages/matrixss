@@ -16,52 +16,6 @@
 Revision.("matrixss/lib/code_gd") := 
   "@(#)$Id$";
 
-
-# Uses our version of Schreier-Sims to compute the order of a group
-# Input:
-#      G - a matrix group
-DeclareGlobalFunction("MatrixGroupOrder");
-
-# Compares results of the above function with the Order function for a bunch
-# of classical matrix groups
-# Input:
-#      maxDegree - maximum matrix size to be tested
-#      maxFieldSize - maximum finite field size to be tested
-DeclareGlobalFunction("MatrixSchreierSimsTest");
-
-# Check speed of routines against some classical groups and Ree groups
-#
-# Input:
-#      maxDegree - maximum matrix size for classical groups to be tested
-#      maxFieldSize - maximum finite field size to be tested
-#      maxReeSize - maximum ReeGroup size
-#      maxSuzukiSize - maximum SuzukiGroup size
-DeclareGlobalFunction("MatrixSchreierSimsBenchmark");
-
-# The Schreier-Sims algorithm for matrix groups
-# Input:
-#      G - a matrix group
-# Output: list L with contents
-#      L[1] - a base for G
-#      L[2] - a strong generating set for G, corresponding to L[1]
-#      L[3] - a list of orbits, ie SparseHashTables representing Schreier trees
-#             the trees has the corresponding base points as roots
-# Options:
-#      SimpleSchreierTree - calculate coset representatives at the moment of
-#                           creation of the Schreier trees, thus making them
-#                           have height 1
-#                           This should make the algorithm significantly faster
-#      ExtendSchreierTree - Do not recompute Schreier trees at each run of a
-#                           given level, but extend the Schreier trees from the
-#                           last run at that level.
-#      AlternatingActions - Always prepend a base point with the line that
-#                           contains it, using the projective action on the 
-#                           line.
-#      CleverBasePoints   - Choose an initial list of base points using 
-#                           BasisVectorsForMatrixAction, which is due to
-#                           O'Brien and Murray.
-DeclareGlobalFunction("MatrixSchreierSims");
-
 # Info class used for debugging
 DeclareInfoClass("MatrixSchreierSimsInfo");
 
