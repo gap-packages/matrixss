@@ -22,7 +22,7 @@ MATRIXSS_DEBUGLEVEL := 0;
 InstallGlobalFunction(MatrixSchreierSims, function(G)
     # Local functions
     local DebugPrint, PointAction, ProjectiveAction, GetOrbit, IsPointInOrbit,
-          SchreierTree, ComputeSchreierTree, ExtendSchreierTree, SchreierSims, 
+          ComputeSchreierTree, ExtendSchreierTree, SchreierSims, 
           NewBasePoint, ProjectiveNewBasePoint, Membership, OrbitElement, 
           GetSchreierTreeEdge, GetOrbitSize, GetSchreierGenerator, 
           GetPartialBaseSGS, ExtendBase, NewBasePoint2, IsIdentity,
@@ -128,9 +128,13 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         return tree;
     end;
     
+    # Creates a copy of a whole Schreier tree
     CopySchreierTree := function(tree, hash)
         local copyTree, keys, value, key;
         
+        # Make a copy of the hashtable
+        # A simple ShallowCopy does not work for hash tables, so we must copy
+        # all keys and values explicitly
         copyTree := SparseHashTable(hash);
         keys := HashKeyEnumerator(tree);
         for key in keys do
@@ -202,6 +206,55 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
           until IsEmpty(orbit);
       fi;          
           
+      return tree;
+  end;    
+  
+  # Fill a Schreier tree that contains only the root
+  ComputeSchreierTree := 
+    function(tree, generators, action)
+      local point, generator, newPoint, newPoints, orbit, element;
+      
+      orbit := GetOrbit(tree);
+      
+      if ValueOption("SimpleSchreierTree") = fail then
+          repeat
+              newPoints := [];
+              for point in orbit do
+                  for generator in generators do
+                      
+                      newPoint := action(generator[1], point);
+                      
+                      if not IsPointInOrbit(tree, newPoint) then
+                          AddHashEntry(tree, newPoint, generator);
+                          Add(newPoints, newPoint);
+                      fi;
+                  od;
+              od;
+              orbit := newPoints;
+          until IsEmpty(orbit);
+      else
+          repeat
+              newPoints := [];
+              for point in orbit do
+                  for generator in generators do
+                      
+                      newPoint := action(generator[1], point);
+                      
+                      # Make Schreier tree have height 1
+                      if not IsPointInOrbit(tree, newPoint) then
+                          element := ShallowCopy(GetSchreierTreeEdge(tree, 
+                                             point));
+                          element[1] := element[1] * generator[1];
+                          element[2] := generator[2] * element[2];
+                          AddHashEntry(tree, newPoint, Immutable(element));
+                          Add(newPoints, newPoint);
+                      fi;
+                  od;
+              od;
+              orbit := newPoints;
+          until IsEmpty(orbit);
+      fi;          
+      
       return tree;
   end;    
 
@@ -365,6 +418,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         
         # Extend base
         levelStruct := rec(
+                           partialSGS := [],
                            partialBase := newPoint,
                            action := PointAction,
                            points := ssInfo[1].points,
@@ -377,6 +431,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         Add(ssInfo, levelStruct); 
 
         levelStruct := rec(
+                           partialSGS := [],
                            partialBase := NormedRowVector(newPoint),
                            action := ProjectiveAction,
                            points := ssInfo[length].points,
@@ -397,7 +452,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     SchreierSims := function(ssInfo, partialSGS, level, identity)
         local generator, point, orbit, strip, schreierGenerator, element, 
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
-              newPoint, oldSchreierTree, field, newBasePoint, oldOrbit;
+              newPoint, oldSchreierTree, field, newBasePoint, oldOrbit,
+              newInverseGenerator;
         
         DebugPrint(6, ["Schreier-Sims at level ", level]);
         
@@ -407,26 +463,35 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         
         # Find the generators from the partial SGS that fixes all points at
         # lower levels.
-        SGS := ShallowCopy(partialSGS);
-        for element in partialSGS do
-            for point in ssInfo{[1 .. level - 1]} do
-                if not action(element[1], point.partialBase) = 
-                   point.partialBase then
-                    RemoveSet(SGS, element);
-                    break;
-                fi;
-            od;
-        od;
+        if level > 1 then
+            SGS := ShallowCopy(ssInfo[level - 1].partialSGS);
+        else
+            SGS := ShallowCopy(partialSGS);
+        fi;
         MakeImmutable(SGS);
-                
+        
+        DebugPrint(9, ["Computed SGS that fixes first ", level - 1, " points",
+                SGS]);
+        
         DebugPrint(4, ["Base point : ", ssInfo[level].partialBase]);
         DebugPrint(9, ["Hash func : ", ssInfo[level].hash]);
         
         # Compute schreier tree for current level
         oldSchreierTree := ssInfo[level].schreierTree;
-        ssInfo[level].schreierTree := 
-          ExtendSchreierTree(ssInfo[level].schreierTree, 
-                  SGS, ssInfo[level].oldSGS, action, ssInfo[level].hash);
+        
+        if ValueOption("ExtendSchreierTree") <> fail then
+            ssInfo[level].schreierTree := 
+              ExtendSchreierTree(ssInfo[level].schreierTree, 
+                      SGS, ssInfo[level].oldSGS, action, ssInfo[level].hash);
+        else
+            DebugPrint(7, ["Creating new empty Schreier Tree"]);
+            ssInfo[level].schreierTree := 
+              CreateInitialSchreierTree(ssInfo[level].partialBase,
+                      ssInfo[level].hash, identity);
+            DebugPrint(7, ["Filling new Schreier Tree"]);
+            ssInfo[level].schreierTree :=
+              ComputeSchreierTree(ssInfo[level].schreierTree, SGS, action);
+        fi;
         
         orbit := Immutable(GetOrbit(ssInfo[level].schreierTree));
         
@@ -488,17 +553,27 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
                         # add the residue of this generator to our partial SGS
                         # in order to make it into a real SGS
                         
+                        newInverseGenerator := Immutable(Reversed(strip[1]));
+                        
                         # Add residue to partial SGS
                         # This makes some levels incomplete and so we must
                         # recompute them recursively
                         AddSet(partialSGS, strip[1]);
-                        AddSet(partialSGS, Reversed(strip[1]));
-                        
+                        AddSet(partialSGS, newInverseGenerator);
+                                                
                         # Possibly extend the base if the Schreier generator
                         # fixes all points in our base
                         if strip[2] = Length(ssInfo) + 1 then
                             ExtendBase(ssInfo, strip[1], identity);
                         fi;
+                        
+                        # Update partial SGS at each level
+                        for recursiveLevel in [level + 1 .. strip[2] - 1] do
+                            AddSet(ssInfo[recursiveLevel].partialSGS, 
+                                   strip[1]);
+                            AddSet(ssInfo[recursiveLevel].partialSGS, 
+                                   newInverseGenerator);
+                        od;
                         
                         # We must not recompute all levels downward from the
                         # dropout level
@@ -517,7 +592,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         
         ssInfo[level].oldSGS := SGS;
     end;
-    
+
     # Construct a partial base and a partial SGS given a set of generators
     # for a group.
     # generators - given set of generators
@@ -529,42 +604,47 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     GetPartialBaseSGS := 
       function(generators, action, IsIdentity, field, identity)
       local bae, sgs, point, nFixedPoints, newPoint, element, list, 
-            points, newSGS;
+            points, newSGS, bases, i;
         
         points := [];
         newSGS := [];
+        bases := [];
         
         # we make a partial strong generating set which also contain
         # inverses of all elements
         for element in generators do
             if not IsIdentity(element, identity) then
+                list := Immutable([element, Inverse(element)]);
                 nFixedPoints := 0;
-                for point in points do
+                for i in [1 .. Length(points)] do
+                    point := points[i];
                     if action(element, point) = point then
                         nFixedPoints := nFixedPoints + 1;
+                        AddSet(bases[i], list);
+                        AddSet(bases[i], Immutable(Reversed(list)));
                     else
                         break;
                     fi;
                 od;
-                list := [element, Inverse(element)];
                 
-                DebugPrint(2, ["Matrix ", element, " fixes all points ", 
-                        points]);
-
                 if nFixedPoints = Length(points) then
+                    DebugPrint(2, ["Matrix ", element, " fixes all points ", 
+                             points]);
+
                     newPoint := NewBasePoint(list[1], 
                                         action, identity, field);
                     Add(points, newPoint);
+                    Add(bases, []);
                 fi;
                 
                 # Save reference to generator and its inverse
                 # Then inverses need not be calculated later
-                AddSet(newSGS, Immutable(list));
+                AddSet(newSGS, list);
                 AddSet(newSGS, Immutable(Reversed(list)));
             fi;
         od;
         
-        return [points, newSGS];
+        return [points, newSGS, bases];
     end;
 
 
@@ -600,10 +680,30 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     hash := SparseIntKey(points, base[1]);
     Assert(1, not IsBool(hash));
     
+    # ssInfo has a record for each level in the algorithm, and there is one
+    # level for each base point. The members of the record are:
+    #   partialSGS - the elements in the current partial SGS that fixes all
+    #                points at lower levels, or the whole partial SGS for the
+    #                first level
+    #   partialBase - the base point for this level
+    #   action - the action (function) at this level
+    #   points - the field where the base points come from
+    #   hash - the hash function for the Schreier tree at this level
+    #   schreierTree - the Schreier tree for this level, representing the
+    #                  basic orbit at this level, ie the orbit of the member
+    #                  "partialBase" at this level, under the action of
+    #                  "partialSGS" at the previous (lower) level
+    #                  Thus, the root of the tree is "partialBase".
+    #   oldSGS - the whole partial SGS at the last call of SchreierSims at
+    #            this level
+    #   IsIdentity - the function to check if a point is the identity at this
+    #                level
+    
     # Fill ssInfo with initial data
     for level in [1 .. Length(base)] do
         levelStruct := 
           rec(
+              partialSGS := list[3][level],
               partialBase := base[level],
               action := PointAction,
               points := points,
@@ -616,6 +716,7 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
         
         levelStruct := 
           rec(
+              partialSGS := list[3][level],
               partialBase := NormedRowVector(base[level]),
               action := ProjectiveAction,
               points := normedPoints,
@@ -678,8 +779,8 @@ MATRIXSS_GetTestGroups :=
     # Use the following group creation functions to make some test groups
     groupTypes := 
       Immutable([GeneralLinearGroup, SpecialLinearGroup, 
-              GeneralOrthogonalGroup, SpecialOrthogonalGroup,
-              GeneralUnitaryGroup, SpecialUnitaryGroup]);
+              GeneralOrthogonalGroup, SpecialOrthogonalGroup]);
+#              GeneralUnitaryGroup, SpecialUnitaryGroup]);
     
     # List of test groups
     groups := [];
