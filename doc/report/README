@@ -8,3 +8,7 @@ make schreiersims.pdf
 If your system has an old version of (pdf)latex, then you may lack the
 --recorder option, in which case make will fail. In this case, just
 edit the Makefile and change the variable TEXFLAGS.
+
+The document needs the LaTeX package algorithm2e which is available from CTAN,
+http://www.ctan.org/
+

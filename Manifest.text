@@ -39,5 +39,6 @@ doc/manual.bbl
 doc/manual.mst
 doc/code.tex
 doc/manual.toc
+doc/Makefile
 SHA1SUMS
 MD5SUMS

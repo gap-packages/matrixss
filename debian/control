@@ -1,14 +1,16 @@
-Source: matrixss
+Source: gap-matrix-schreiersims
 Section: math
 Priority: optional
 Maintainer: Henrik Bäärnhielm <redstar@abc.se>
-Build-Depends: debhelper (>= 4.0.0)
-Standards-Version: 3.6.0
+Build-Depends: debhelper (>= 4.0.0), gzip, tetex-bin (>= 2.0.2-14)
+Standards-Version: 3.6.1.0
 
-Package: matrixss
+Package: gap-matrix-schreiersims
+Provides: gap-pkg-matrixss
 Architecture: all
-Depends: gap (>= 4r4p3-1)
+Depends: gap-core (>= 4r4p3-1)
 Description: GAP implementation of Schreier-Sims algorithm for matrix groups
  A package for the GAP system, including an implementation of the 
  Schreier-Sims algorithm for matrix groups, using various approaches. It is
  meant to be an alternative to the internal GAP version of this algorithm.
+ Homepage: http://matrixss.sourceforge.net/

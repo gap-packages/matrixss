@@ -7,6 +7,8 @@
 #export DH_VERBOSE=1
 
 build: 
+	$(MAKE) -C doc
+	gzip doc/manual.dvi
 
 clean:
 	dh_testdir

@@ -26,8 +26,8 @@ PROFILE_FILE  = tst/profile.g
 DATE = $(shell date +%Y%m%d)
 # package default name
 ifeq ($(PACKAGE),)
-	PACKAGE = matrixss-0.0.$(DATE)
-	DEBPKG  = matrixss_0.0.$(DATE)
+	PACKAGE = matrixss-0.9.$(DATE)
+	DEBPKG  = matrixss_0.9.$(DATE)
 endif
 
 # output package files
@@ -104,6 +104,6 @@ distclean:
 	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog NEWS
 
 clean:
-	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog NEWS htm/*
+	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog NEWS htm/*.htm
 	rm --recursive --force tmp *~ *.bak
 	$(MAKE) -C doc clean

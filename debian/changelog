@@ -1,22 +1,30 @@
-matrixss (0.0.20040819-1) unstable; urgency=low
+gap-matrix-schreiersims (0.9.20040911-1) unstable; urgency=low
+
+  * New upstream release. Main updates are documentation.
+  * Changed package name from matrixss.
+  * Package now provides gap-pkg-matrixss.
+
+ -- Henrik Bäärnhielm <redstar@abc.se>  Thu, 19 Aug 2004 16:28:35 +0100
+
+gap-matrix-schreiersims (0.0.20040819-1) unstable; urgency=low
 
   * Added Sims Verify routine.
 
  -- Henrik Bäärnhielm <redstar@abc.se>  Thu, 19 Aug 2004 16:28:35 +0100
 
-matrixss (0.0.20040810-1) unstable; urgency=low
+gap-matrix-schreiersims (0.0.20040810-1) unstable; urgency=low
 
   * Added nearly linear time algorithm.
 
  -- Henrik Bäärnhielm <redstar@abc.se>  Tue, 10 Aug 2004 16:28:35 +0100
 
-matrixss (0.0.20040730-1) unstable; urgency=low
+gap-matrix-schreiersims (0.0.20040730-1) unstable; urgency=low
 
   * Added manual.
 
  -- Henrik Bäärnhielm <redstar@abc.se>  Fri, 30 Jul 2004 16:28:35 +0100
 
-matrixss (0.0.20040714-1) unstable; urgency=low
+gap-matrix-schreiersims (0.0.20040714-1) unstable; urgency=low
 
   * Initial Release.
 
