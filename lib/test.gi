@@ -179,10 +179,12 @@ InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(maxDegree,
     # Start test timer
     test_time := Runtime();
     
-    for group in groups do
+    for group in [1 .. Length(groups)] do
         # Time each run of Schreier-Sims  
-        Print(group, "\t", MATRIXSS_TimedCall(StabChainMatrixGroup, [group]), 
+        Print(groups[group], "\t", 
+              MATRIXSS_TimedCall(StabChainMatrixGroup, [groups[group]]), 
               "\n");
+        Unbind(groups[group]);
     od;
         
     Print("Total time for test : ", Runtime() - test_time, "\n");
