@@ -9,8 +9,11 @@
 build: build-stamp
 
 build-stamp:
+# Make sure we don't try to build code.tex, since it is included and since that
+# would require buildman.pe
 	touch doc/code.tex
-	$(MAKE) -C doc
+# Make sure the GAP directory is set correctly, so that manualindex is found.
+	$(MAKE) -C doc GAP=/usr/share/gap/
 	gzip doc/manual.dvi
 	gzip doc/manual.toc
 	touch build-stamp
