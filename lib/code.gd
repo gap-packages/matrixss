@@ -44,7 +44,8 @@ DeclareGlobalFunction("MatrixSchreierSimsBenchmark");
 # Output: list L with contents
 #      L[1] - a base for G
 #      L[2] - a strong generating set for G, corresponding to L[1]
-#      L[3] - a list of Schreier trees
+#      L[3] - a list of orbits, ie SparseHashTables representing Schreier trees
+#             the trees has the corresponding base points as roots
 DeclareGlobalFunction("MatrixSchreierSims");
 
 
