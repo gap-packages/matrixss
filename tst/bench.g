@@ -16,7 +16,10 @@
 Revision.("matrixss/tst/bench_g") := 
   "@(#)$Id$";;
 
-RequirePackage("matrixss");;
+# Must not define method for Size, since we want to compare with GAP:s
+# performance.
+MATRIXSS_TEST := true;;
+LoadPackage("matrixss");;
 
 SetAssertionLevel(0);
 MATRIXSS_DEBUGLEVEL := 0;;
@@ -38,7 +41,7 @@ MATRIXSS_RandomSchreierSimsBenchmark :=
         group_time := Runtime();
         #DefaultStabChainOptions.random := 1;
         g := Group(GeneratorsOfGroup(group));
-        Order(g);
+        Size(g);
         #Print("Time for this group : ", Runtime() - group_time, "\n");        
         Print(group, "\t", Runtime() - group_time, "\n");        
     od;

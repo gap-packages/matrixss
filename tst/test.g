@@ -16,10 +16,13 @@
 Revision.("matrixss/tst/test_g") := 
   "@(#)$Id$";;
 
-RequirePackage("matrixss");;
+# Must not define method for Size, since we want to compare with GAP:s
+# built-in results.
+MATRIXSS_TEST := true;;
+LoadPackage("matrixss");;
 
-SetAssertionLevel(1);
-MATRIXSS_DEBUGLEVEL := 1;;
+SetAssertionLevel(2);
+MATRIXSS_DEBUGLEVEL := 1x;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
 ReadTest("tst/test.tst");;
 QUIT;;

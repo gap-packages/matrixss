@@ -16,7 +16,7 @@
 Revision.("matrixss/tst/profile_g") := 
   "@(#)$Id$";;
 
-RequirePackage("matrixss");;
+LoadPackage("matrixss");;
 
 SetAssertionLevel(0);
 MATRIXSS_DEBUGLEVEL := 0;;
@@ -25,8 +25,8 @@ functionNames := Filtered(NamesUserGVars(), function(element)
     return IsMatchingSublist(element, "MATRIXSS_");
 end);;
 ProfileFunctions(Filtered(List(functionNames, EvalString), IsFunction));
-#ProfileOperationsAndMethods(true);
-ProfileOperations(true);
+        
+#ProfileOperations(true);
 ProfileGlobalFunctions(true);
 
 ReadTest("tst/profile.tst");;
