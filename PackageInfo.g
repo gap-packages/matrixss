@@ -66,20 +66,20 @@ SetPackageInfo(rec(
 #  Autoload :=
 #    true
 #  ),
-                   Dependencies := 
-                    rec(
-                        GAP := ">= 4.3",
-                        NeededOtherPackages := [],
-                        SuggestedOtherPackages := [],
-                        ExternalConditions := []
-                        ),
-                    AvailabilityTest := ReturnTrue,
-                    TestFile := "tst/test.g",
-                    Keywords := ["matrix groups", "Schreier-Sims"]
-                    BannerString := 
-                    Concatenation(["#I loading GAP package ''matrixss'' ",
-                            "in version ", ~.Version, "\n"])
-                    ));
+                Dependencies := 
+                rec(
+                    GAP := ">= 4.3",
+                    NeededOtherPackages := [],
+                    SuggestedOtherPackages := [],
+                    ExternalConditions := []
+                    ),
+                AvailabilityTest := ReturnTrue,
+                TestFile := "tst/test.g",
+                Keywords := ["matrix groups", "Schreier-Sims"]
+                BannerString := 
+                Concatenation(["#I loading GAP package ''matrixss'' ",
+                        "in version ", ~.Version, "\n"])
+                ));
 
 #E
 

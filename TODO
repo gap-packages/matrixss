@@ -2,8 +2,6 @@ Matrix Schreier-Sims TODO
 =========================
 
 - Check for simple optimisations, remove unnecessary work.
-- Rewrite algorithm in iterative form, using levels and use known facts about
-  residue elements to choose drop-out level. This will remove recalculating of 
-  some levels.
 - Implement the well-known method of not regenerating Schreier generators.
-- Try the trick from Hulpke involving other actions.
+- Try the trick from Hulpke (originally from Butler) involving other actions,
+  such as projective action.
