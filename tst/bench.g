@@ -18,7 +18,7 @@ Revision.("matrixss/tst/bench_g") :=
 
 # Must not define method for Size, since we want to compare with GAP:s
 # performance.
-MATRIXSS_TEST := true;;
+BindGlobal("MATRIXSS_TEST", true);;
 LoadPackage("matrixss");;
 
 SetAssertionLevel(0);
@@ -48,3 +48,6 @@ MATRIXSS_RandomSchreierSimsBenchmark :=
 end;;
 
 ReadTest("tst/bench.tst");;
+
+###############################################################################
+#E

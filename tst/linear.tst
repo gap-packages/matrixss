@@ -1,10 +1,11 @@
 ###############################################################################
 ##
-#W    bench.tst The Matrix Schreier-Sims package                
+#W    linear.tst  The Matrix Schreier-Sims package                
+#W                Nearly linear time algorithm test
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
-#H    Dev start : 2004-03-22 
+#H    Dev start : 2004-01-24 
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
@@ -15,10 +16,10 @@
 
 gap> START_TEST("$Id$");
 
-gap> MatrixSchreierSimsBenchmark(6, 6, 27, 32 : AlternatingActions, SimpleSchreierTree, CleverBasePoints);
-Benchmark completed
+gap> MatrixSchreierSimsTest(3, 3 : Linear);
+No order differences
 
-gap> MATRIXSS_RandomSchreierSimsBenchmark(6, 6, 27, 32);
-Benchmark completed
+gap> STOP_TEST("linear.tst", 10000);
 
-gap> STOP_TEST("bench.tst", 10000);
+###############################################################################
+#E

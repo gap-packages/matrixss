@@ -32,3 +32,6 @@ ProfileGlobalFunctions(true);
 
 ReadTest("tst/profile.tst");;
 DisplayProfile();
+
+###############################################################################
+#E

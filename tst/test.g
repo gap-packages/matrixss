@@ -24,5 +24,13 @@ LoadPackage("matrixss");;
 SetAssertionLevel(2);
 MATRIXSS_DEBUGLEVEL := 1;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
-ReadTest("tst/test.tst");;
+Print("Testing standard deterministic algorithm\n");
+ReadTest("tst/standard.tst");;
+Print("Testing standard probabilistic algorithm\n");
+ReadTest("tst/random.tst");;
+Print("Testing nearly linear time algorithm\n");
+ReadTest("tst/linear.tst");;
 QUIT;;
+
+###############################################################################
+#E
