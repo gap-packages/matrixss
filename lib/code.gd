@@ -29,8 +29,12 @@ Revision.("matrixss/lib/code_gd") :=
 ## The attribute is computed using the Schreier-Sims algorithm for finite
 ## matrix groups, which is the main content of the package.
 ##
-## The attribute is a list of records, and it has the same structure as the
-## `ssInfo' structure, see "ssInfo".
+## The attribute is a record with two components:
+## \beginitems
+## `SchreierStructure' & the main information structure, see "ssInfo".
+##
+## `SGS' & a list of the strong generators
+## \enditems
 ##
 ## The corresponding attribute operations are aware of a few Options.
 ## \beginitems

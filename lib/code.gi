@@ -1060,6 +1060,25 @@ MATRIXSS_RandomSchreierGenerator :=
                    action, identity);
 end;
 
+###############################################################################
+##
+#F MATRIXSS_AugmentBase(ssInfo, newPoint, action, hash, identity)
+##
+## Add a new base point to the base, so that the given element is not in the
+## stabiliser of the point
+## \beginitems
+## `ssInfo' & main information structure for the current Schreier-Sims run
+##
+## `newPoint' & the point to add to the base
+##
+## `action' & the action for the new point
+##
+## `hash' & the dictionary info for the new point
+##
+## `identity' & the group identity
+## \enditems
+##
+###############################################################################
 MATRIXSS_AugmentBase := function(ssInfo, newPoint, action, hash, identity)
     local levelStruct;
     
@@ -1184,7 +1203,7 @@ MATRIXSS_GetPartialBaseSGS :=
 ## `oldSGS' & the whole partial SGS at the last call of SchreierSims at
 ##            this level
 ##
-## IsIdentity & the function to check if a point is the identity at this
+## `IsIdentity' & the function to check if a point is the identity at this
 ##                level
 ##    
 ###############################################################################
@@ -1250,6 +1269,14 @@ MATRIXSS_GetPartialBaseSGS :=
     return [newSGS, ssInfo];
 end;
 
+###############################################################################
+##
+#F MatrixGroupOrderStabChain(ssInfo)
+##
+## Computes the order of the group defined by the given Schreier trees, see
+## "ssInfo".
+##
+###############################################################################
 InstallGlobalFunction(MatrixGroupOrderStabChain, function(ssInfo)
     local order, levelStruct;
     
@@ -1263,11 +1290,11 @@ end);
 
 ###############################################################################
 ##
-#M Size(G)
+#A Size(G)
 ##
-## A method for Size for finite matrix groups, that uses the implementation of
-## Schreier-Sims algorithm in this package, ie it uses the StabChainMatrixGroup
-## attribute to compute the order of `G'.
+## A method for `Size' for finite matrix groups, that uses the implementation 
+## of Schreier-Sims algorithm in this package, ie it uses the 
+## `StabChainMatrixGroup' attribute to compute the order of `G'.
 ##
 ## This method is only installed if `MATRIXSS_TEST' is not defined when the 
 ## package is loaded.
