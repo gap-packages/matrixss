@@ -21,13 +21,16 @@ TEST_FILE     = tst/test.g
 BENCH_FILE    = tst/bench.g
 PROFILE_FILE  = tst/profile.g
 
+DATE = $(shell date +%Y%m%d)
 # package default name
 ifeq ($(PACKAGE),)
-	PACKAGE = matrixss
+	PACKAGE = matrixss-0.0.$(DATE)
+	DEBPKG  = matrixss_0.0.$(DATE)
 endif
 
 # output package files
-PACKAGES = $(PACKAGE).tar.gz $(PACKAGE).zip $(PACKAGE).zoo $(PACKAGE).tar.bz2
+PACKAGES = tmp/$(PACKAGE).tar.gz tmp/$(PACKAGE).win.zip \
+           tmp/$(PACKAGE).zoo tmp/$(PACKAGE).tar.bz2
 
 # checksum files regexp
 SHA1 := $(word 1, $(CHECK_SUMS))
@@ -56,21 +59,26 @@ $(CHECK_SUMS): ChangeLog
 ChangeLog: 
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
+deb: $(PACKAGES)
+	cp tmp/$(PACKAGE).tar.gz tmp/matrixss/$(PACKAGE).orig.tar.gz
+	cvs-buildpackage -R $(DIR)/tmp -rfakeroot
+
 package: $(PACKAGES)
 
 $(PACKAGES): ChangeLog checksums
-	cat $(PACKAGE_FILES) | sed --expression='s/^/$(CUR_DIR)\//' | tar --verify --verbose --create --directory .. --file $(PACKAGE).tar --files-from - 
-	bzip2 --keep --verbose --best --force $(PACKAGE).tar
-	bzip2 --test --verbose $(PACKAGE).tar.bz2
-	gzip --best --force --verbose $(PACKAGE).tar
-	gzip --verbose --test $(PACKAGE).tar.gz
-	cd .. && cat $(CUR_DIR)/$(PACKAGE_FILES) | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -9 $(CUR_DIR)/$(PACKAGE).zip -@ && cd $(CUR_DIR)
-	unzip -t $(PACKAGE).zip
-	cd .. && cat $(CUR_DIR)/$(PACKAGE_FILES) | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | perl -e '{ while(<>) { print; print "!TEXT!\n/END\n"; } }' | zoo achPI $(CUR_DIR)/$(PACKAGE).zoo && cd $(CUR_DIR)
-	zoo xN $(PACKAGE).zoo
+	mkdir --parents tmp/matrixss
+	cat $(PACKAGE_FILES) | sed --expression='s/^/$(CUR_DIR)\//' | tar --verify --verbose --create --directory .. --file tmp/$(PACKAGE).tar --files-from - 
+	bzip2 --keep --verbose --best --force tmp/$(PACKAGE).tar
+	bzip2 --test --verbose tmp/$(PACKAGE).tar.bz2
+	gzip --best --force --verbose tmp/$(PACKAGE).tar
+	gzip --verbose --test tmp/$(PACKAGE).tar.gz
+	cd .. && cat $(CUR_DIR)/$(PACKAGE_FILES) | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -l -9 $(CUR_DIR)/tmp/$(PACKAGE).win.zip -@ && cd $(CUR_DIR)
+	unzip -t tmp/$(PACKAGE).win.zip
+	cd .. && cat $(CUR_DIR)/$(PACKAGE_FILES) | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | perl -e '{ while(<>) { print; print "!TEXT!\n/END\n"; } }' | zoo achPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
+	zoo xN tmp/$(PACKAGE).zoo
 
-upload: package
-	ncftpput -u $(FTP_USER) -p $(FTP_PASSWD) $(FTP_HOST) $(FTP_DIR) $(PACKAGES)
+upload:
+	ncftpput -u $(FTP_USER) -p $(FTP_PASSWD) $(FTP_HOST) $(FTP_DIR) $(PACKAGES) tmp/matrixss/$(DEBPKG)*
 
 www: ChangeLog
 	scp $(WEB_FILES) $(SCP_USER)@$(WEB_SERVER):$(WEB_PATH)
@@ -80,5 +88,5 @@ distclean:
 
 clean:
 	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog
-	rm --recursive --force *~ *.bak
-	$(MAKE) -C doc/report clean
+	rm --recursive --force tmp *~ *.bak
+	$(MAKE) -C doc clean
