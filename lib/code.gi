@@ -238,119 +238,6 @@ MATRIXSS_ComputeSchreierTree :=
     return tree;
 end;    
 
-# Extends an existing Schreier tree by a given set of generators
-MATRIXSS_ExtendSchreierTree_NoInverse := 
-  function(oldTree, generators, oldGenerators, action, dictinfo)
-    local tree, point, generator, newPoint, newPoints, orbit, list, element;
-    
-    list := MATRIXSS_CopySchreierTree(oldTree, dictinfo);
-    tree := list[1];
-    orbit := ShallowCopy(list[2]);
-    
-    MATRIXSS_DebugPrint(4, ["Old orbit: ", orbit]);
-    MATRIXSS_DebugPrint(4, ["Old gens: ", oldGenerators]);
-    MATRIXSS_DebugPrint(4, ["Gens    : ", generators]);
-    
-    if ValueOption("SimpleSchreierTree") = fail then
-        repeat
-            newPoints := [];
-            for point in orbit do
-                for generator in generators do
-                    
-                    # Add edges for all new points and new generators
-                    if not MATRIXSS_IsPointInOrbit(oldTree, point) or
-                       not generator in oldGenerators then
-                        newPoint := action(point, generator);
-                        
-                        if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
-                            AddDictionary(tree, newPoint, generator);
-                            Add(newPoints, newPoint);
-                        fi;
-                    fi;
-                od;
-            od;
-            orbit := newPoints;
-        until IsEmpty(orbit);
-    else
-        repeat
-            newPoints := [];
-            for point in orbit do
-                for generator in generators do
-                    
-                    # Add edges for all new points and new generators
-                    if not MATRIXSS_IsPointInOrbit(oldTree, point) or
-                       not generator in oldGenerators then
-                        newPoint := action(point, generator);
-                        
-                        # Make Schreier tree have height 1
-                        if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
-                            element := 
-                              ShallowCopy(MATRIXSS_GetSchreierTreeEdge(tree, 
-                                      point));
-                            element:= element * generator;
-                            AddDictionary(tree, newPoint, 
-                                    Immutable(element));
-                            Add(newPoints, newPoint);
-                        fi;
-                    fi;
-                od;
-            od;
-            orbit := newPoints;
-        until IsEmpty(orbit);
-    fi;          
-    
-    return tree;
-end;    
-
-# Fill a Schreier tree that contains only the root
-MATRIXSS_ComputeSchreierTree_NoInverse := 
-  function(tree, generators, action)
-    local point, generator, newPoint, newPoints, orbit, element;
-    
-    orbit := MATRIXSS_GetOrbit(tree);
-    
-    if ValueOption("SimpleSchreierTree") = fail then
-        repeat
-            newPoints := [];
-            for point in orbit do
-                for generator in generators do
-                    
-                    newPoint := action(point, generator);
-                    
-                    if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
-                        AddDictionary(tree, newPoint, generator);
-                        Add(newPoints, newPoint);
-                    fi;
-                od;
-            od;
-            orbit := newPoints;
-        until IsEmpty(orbit);
-    else
-        repeat
-            newPoints := [];
-            for point in orbit do
-                for generator in generators do
-                    
-                    newPoint := action(point, generator);
-                    
-                    # Make Schreier tree have height 1
-                    if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
-                        element := 
-                          ShallowCopy(MATRIXSS_GetSchreierTreeEdge(tree, 
-                                  point));
-                        element := element * generator;
-                        AddDictionary(tree, newPoint, Immutable(element));
-                        Add(newPoints, newPoint);
-                    fi;
-                od;
-            od;
-            orbit := newPoints;
-        until IsEmpty(orbit);
-    fi;          
-    
-    return tree;
-end;    
-
 # Compute the group element that connects the root of the Schreier tree to
 # a given point
 # this function assumes that the point actually is in the orbit described by
@@ -375,41 +262,6 @@ MATRIXSS_OrbitElement :=
             point := action(point, edge[2]);
             element[1] := edge[1] * element[1];
             element[2] := element[2] * edge[2];
-        until false;
-    else
-        # In this case the tree has height 1, so we are done with one
-        # single lookup
-        
-        edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
-        
-        Assert(1, not IsBool(edge), "Point not in orbit!\n");
-        return edge;
-    fi;
-end;
-
-# Compute the group element that connects the root of the Schreier tree to
-# a given point
-# this function assumes that the point actually is in the orbit described by
-# the given Schreier tree
-MATRIXSS_OrbitElement_NoInverse := 
-  function(schreierTree, point, action, identity, IsIdentity)
-    local element, edge;
-    
-    if ValueOption("SimpleSchreierTree") = fail then
-        # the group element and its inverse
-        element := identity;
-        
-        repeat
-            edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
-            
-            Assert(1, not IsBool(edge), "Point not in orbit!\n");
-            
-            if IsIdentity(edge, identity) then
-                return element;
-            fi;
-            
-            point := action(point, edge);
-            element := edge * element;
         until false;
     else
         # In this case the tree has height 1, so we are done with one
@@ -459,40 +311,6 @@ MATRIXSS_Membership :=
     fi;
 
     return [Immutable(residue), level];
-end; 
-
-# check if an element belongs to a group, using sifting
-# ssInfo - main information structure about our base
-# element - the element to check membership for
-# identity - group identity
-MATRIXSS_Membership_NoInverse := 
-  function(ssInfo, element, identity)
-    local level, residue, word, point;
-    
-    residue := element;
-    
-    # Find an expression of element in terms of the generators of the
-    # groups in our stabiliser chain, using the Schreier trees
-    for level in [1 .. Length(ssInfo)] do
-        MATRIXSS_DebugPrint(9, ["residue: ", residue, "\nbase: ", 
-                ssInfo[level].partialBase, "\naction", 
-                ssInfo[level].action]);
-        point := ssInfo[level].action(ssInfo[level].partialBase, 
-                         residue);
-        
-        if not MATRIXSS_IsPointInOrbit(ssInfo[level].schreierTree, 
-                   point) then
-            return [Immutable(residue), level];
-        fi;
-        
-        word := MATRIXSS_OrbitElement_NoInverse(ssInfo[level].schreierTree, 
-                        point, 
-                        ssInfo[level].action, identity, 
-                        ssInfo[level].IsIdentity);
-        residue := residue * word;
-    od;
-    
-    return [Immutable(residue), Length(ssInfo) + 1];
 end; 
 
 # Find a point not in base that is moved by element
