@@ -91,9 +91,9 @@ These are the core functions of the package.
 
 \Declaration{MATRIXSS_RandomSubproduct}
 
-\Declaration{MATRIXSS_SubProdGroups}
-
 These are also core function, but of slightly less importance, or mainly of technical nature.
+
+\Declaration{MATRIXSS_SubProdGroups}
 
 \Declaration{MATRIXSS_CopySchreierTree}
 
@@ -190,6 +190,8 @@ These are also core function, but of slightly less importance, or mainly of tech
 
 \Declaration{MATRIXSS_GetBenchmarkGroups}
 
+\Declaration{MATRIXSS_TimedCall}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
-%E  code.msk  . . . . . . . . . . . . . . . . . . . . . . . . . .ends here
+%E  code.msk  . . . . . . . . . . . . . . . . . . . . . . . . . . ends here
