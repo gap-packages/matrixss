@@ -1,14 +1,116 @@
 \chapter{Implementation and optimisation}
 
+We will now consider some more practical issues regarding the actual
+implementation and optimisation of the code in the project.
+
+In \GAP, a very fast implementation of the Schreier-Sims algorithm already
+exists. It is described in \cite{seress03} and is a heuristic based on
+the algorithm described in \cite{seress91}. As with many other
+algorithms in \GAP, it works only with permutation groups, so for a
+general group $G$ it first calculates a faithful permutation
+representation, ie an injective homomorphism $\lambda : G \to
+\Sym{X}$, for some finite set $X$, which exists due to the well-known theorem by Cayley. It
+then work with the image $\lambda(G)$, or rather with $H \leq S_{\abs{X}}$ such that $H \cong \lambda(G)$.
+
+Maybe the most important motivation for the \GAP~package developed in
+this project is the idea that if $G$ is a matrix group, and one work
+with the matrices directly instead of first converting to
+permutations, then perhaps one could use the additional structure, that
+is otherwise thrown away, and come up with a faster algorithm. The code is 
+therefore created with the basic assumption that all group elements are
+invertible matrices over a finite field, and it uses the internal
+\GAP~representation of such matrices.
+
 \section{Schreier tree creation}
+An important issue is how the Schreier trees are managed. Actually,
+what we really want is the transversals defined by the Schreier trees,
+so a possibility is to store not a tree, but just a list of all points
+and for each point the element that moves the root to this point. This
+can be realised as a tree with height 1, where the edge labels are not
+the generators, as in the case of a Schreier tree, but the group
+elements, so in general this will take up more memory than the
+Schreier tree. On the other hand, to find a coset representative in a
+Schreier tree we need to follow a path from a point to the root, which
+takes logarithmic time on average, and may take linear time if the
+tree is not properly balanced, but in the case where we store the
+coset representatives as edge labels, then of course it takes constant
+time to find them later. 
 
-\subsection{Extending vs creation}
+To conclude, we have a trade-off between time and space, and in this
+project, both of the above strategies are available to the user of the
+package. The concrete representation of the trees are as hash tables,
+where the keys are the points and the values are the edge labels of
+the unique edges directed towards the root, ie we use
+''back-pointers''. This makes it possible to perform in constant time
+the common task of checking if a given point is in the orbit defined
+by a Schreier tree, since this is just a hash table lookup.
 
-\subsection{Simple trees (height 1)}
+\subsection{Extending vs creating}
+
+If we consider \ref{alg:ss} in more detail, then we notice that the
+sets $S^i$ are only augmented if they are changed. Therefore, at line
+\ref{alg:ss_comp_tree} we could save the tree that is computed and, at
+the next time we arrive there, only extend the tree using the new
+generators, if there are any.
+
+This may or may not give a faster algorithm. Evidently, there will be
+less work in \ref{alg:orbit} to extend a Schreier tree than to create
+a new one, but it may happen that the tree becomes more balanced if it
+is recomputed using all generators than if it is extended. If the tree
+is not balanced, then \ref{alg:trace} will take more time, and this is
+in fact the function where most time is spent. In \cite{seress03} it
+is claimed that this problem with unbalanced trees are more common for
+matrix groups, and empirical studies in this project has shown that in
+most cases, it is better to recompute the Schreier trees every time.
 
 \subsection{Shallow trees}
+There are algorithms for the creation of Schreier trees that are
+guaranteed to make the Schreier trees \emph{shallow}, ie balanced, so
+that the they have worst-case logarithmic height. This is crucial if
+one wants to have good worst-case complexity, and two algorithms are
+described in \cite{seress03}, one deterministic and one probabilistic.
+In this project the deterministic algorithm have been implemented,
+which is also described in \cite{seress91}. It is too complicated to
+be included here in more detail, but the essential idea is to choose a
+different set of edge labels, rather than the given generators.
 
-\section{Alternating actions}
+\section{Orbit sizes}
+As have been noted earlier, using the Schreier-Sims algorithm for a
+matrix group $G \leq \GL(d, q)$ is in a sense doomed from the
+beginning, since the complexity is exponential in $d$ when $G$ acts on
+$\F_q^d$. One manifestation of doom in this case is that the orbits
+may become huge, something that does not happen for permutation
+groups. This will make our Schreier trees huge and a large amount of Schreier generators must be created, so the algorithm will be slow.
 
-\section{Clever choice of base points}
+\subsection{Alternating actions}
+To avoid large orbits, one can use another action of $G$. However,
+only if the action is faithful is it a permutation representation of
+$G$, and this is needed if the Schreier-Sims algoritm is going to
+work, otherwise we calculate a base and strong generating set for the quotient of $G$ with the kernel of the action.
 
+In \cite{butler76}, a clever trick was introduced where base points are
+chosen alternatingly as one-dimensional subspaces (lines) and vectors
+from those lines. When a vector $v = (v_1, \dotsc, v_d) \in \F_q^d$ is
+chosen as base point, it is preceded in the base by the line
+$\gen{v}$. The action of $G$ on the lines is known as the
+\emph{projective action} and of course it is not faithful, but since the next
+point $v$ is from the kernel this does not matter. Also, the subspace
+$\gen{v}$ has a canonical representative $(1, v_2 v_1^{-1}, \dotsc,
+v_d v_1^{-1})$, which is trivial to find from $v$. Therefore, in terms
+of time, the projective action is not particularly more expensive than the action on points.
+
+Now, if $k = \abs{v^G}$ then $\abs{\gen{v}^G} \abs{v^{G_{\gen{v}}}} = k$ and $G_{\gen{v}}$
+is the stabiliser of the line containing $v$. This implies that if $u \in
+v^{G_{\gen{v}}}$ then $u$ is also on that line, so $u = mv$ where $m
+\in \F_q$. We see that $M = \set{m \in \F_q \mid mv \in v^{G_{\gen{v}}}}$ is a
+subgroup of $\F_q^{*}$ and thus $l = \abs{v^{G_{\gen{v}}}} = \abs{M}$ divides $q - 1$.
+
+Instead of one orbit of size $k$ we therefore have two orbits of size
+$k/l$ and $l$, and since $k \geq k/l + l$ whenever $l \geq 2$ we will for
+example need to compute and sift fewer Schreier generators. On the
+other hand, our base will probably be longer when using this trick,
+and empirical studies in this project has shown that it is not always
+a good idea, but it nevertheless implemented and can be used.
+
+\subsection{Eigenspaces}
+Another method for producing smaller orbits is described in \cite{murray95}.

@@ -27,7 +27,7 @@ graphs we are interested in.
 \begin{deff} \label{def_graph_misc}
 Let $G = (V, E)$ is a graph, a sequence $v = v_1, v_2, \dotsc, v_n =
   u$ of vertices of $G$ such that $(v_i, v_{i + 1}) \in E$ for $i = 1,
-  \dotsc, n - 1$ is called a \emph{walk} from $v$ to $u$. If $v = u$
+  \dotsc, n - 1$ is called a \emph{walk} from $v$ to $u$. The \emph{length} of a walk $v = v_1, \dotsc, v_k = u$ is $k - 1$. If $v = u$
   then the walk is called a \emph{cycle}. If all vertices in the walk are
   distinct, it is called a \emph{path}. If every pair of distinct vertices in $G$ can be joined by a path, then $G$ is \emph{connected}.
 \end{deff}
@@ -38,6 +38,10 @@ A graph $G^{\prime} = (V^{\prime}, E^{\prime})$ is a \emph{subgraph} of a graph 
 
 \begin{deff} \label{def_tree}
 A \emph{tree} is a connected graph without cycles. A \emph{rooted tree} is a tree $T = (V, E)$ where a vertex $r \in V$ have been specified as the \emph{root}.
+\end{deff}
+
+\begin{deff} 
+Let $T = (V, E)$ be a rooted tree with root $r \in V$. The \emph{depth} of a node $x \in V$ is the length of the path from $x$ to $r$. The \emph{height} of $T$ is the maximum depth of any node.
 \end{deff}
 
 \begin{deff}

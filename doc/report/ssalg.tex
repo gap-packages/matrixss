@@ -609,6 +609,7 @@ inductively downwards. This is shown in \ref{alg:ss_main} and \ref{alg:ss}.
 \SetKwFunction{ComputeSchreierTree}{ComputeSchreierTree}
 \SetKwFunction{NewBasePoint}{NewBasePoint}
 \SetKwFunction{Membership}{Membership}
+\SetKwFunction{SchreierSims}{SchreierSims}
 \SetKwData{Tree}{tree}
 \SetKwData{Gens}{gens}
 \SetKwData{Gen}{gen}
@@ -633,7 +634,7 @@ inductively downwards. This is shown in \ref{alg:ss_main} and \ref{alg:ss}.
 \Begin
 {
   $\Gens := S^i$ \;
-  $T^{i - 1} := \ComputeSchreierTree(\Gens, \alpha_i)$ \;
+  $T^{i - 1} := \ComputeSchreierTree(\Gens, \alpha_i)$ \; \label{alg:ss_comp_tree}
   \ForEach{$p \in \alpha_i^{H^{i - 1}}$}
   {
     \ForEach{$s \in \Gens$}
@@ -649,6 +650,10 @@ inductively downwards. This is shown in \ref{alg:ss_main} and \ref{alg:ss}.
           {
             $\Point := \NewBasePoint(\Gen)$ \;
             $B := B \cup \set{\Point}$ \;
+          }
+          \For{$j := r$ \KwTo $i + 1$}
+          {
+            $(B, S) := \SchreierSims(B, S, j)$ \;
           }
         }
       }    
@@ -778,4 +783,5 @@ so $\abs{X} = q^d$ and the Schreier-Sims algorithm is thus exponential
 in $d$. This is quite disheartening, since it is the case when $d$
 grows large that we are interested in, more often than when $q$ is
 large. However, it is possible to make the implementation fast enough for many practical purposes, so all is not lost.
+
 
