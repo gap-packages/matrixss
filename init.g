@@ -27,4 +27,5 @@ ReadPkg("matrixss", "lib/code.gd");
 ReadPkg("matrixss", "lib/standard.gd");
 ReadPkg("matrixss", "lib/stcs.gd");
 ReadPkg("matrixss", "lib/random.gd");
+ReadPkg("matrixss", "lib/linear.gd");
 ReadPkg("matrixss", "lib/test.gd");

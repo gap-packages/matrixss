@@ -21,4 +21,5 @@ ReadPkg("matrixss", "lib/code.gi");
 ReadPkg("matrixss", "lib/standard.gi");
 ReadPkg("matrixss", "lib/stcs.gi");
 ReadPkg("matrixss", "lib/random.gi");
+ReadPkg("matrixss", "lib/linear.gi");
 ReadPkg("matrixss", "lib/test.gi");
