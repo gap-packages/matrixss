@@ -15,7 +15,7 @@
 
 gap> START_TEST("$Id$");
 
-gap> MatrixSchreierSimsTest(4, 4 : Random, Verify);
+gap> MatrixSchreierSimsTest(5, 5 : Random, Verify, STCS, AlternatingActions);
 No order differences
 
 gap> STOP_TEST("test.tst", 10000);
