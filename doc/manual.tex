@@ -1,9 +1,34 @@
-\input ../gapmacro
-\Package{matrixss}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%W    manual.tex  The Matrix Schreier Sims package - Documentation
+%%
+%H    File      : $RCSfile$
+%H    Author    : Henrik Bäärnhielm
+%H    Dev start : 2004-07-28 
+%%
+%H    Version   : $Revision$
+%H    Date      : $Date$
+%H    Last edit : $Author$
+%%
+%H    @(#)$Id$
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input ../../../doc/gapmacro.tex
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  BeginningOfBook . . . . . . . . . . . . . . . . . . .  start the book
+%%
 \BeginningOfBook{matrixss}
-%\UseReferences{book1}
-%...
-%\UseReferences{bookn}
+\Package{matrixss}
+\UseReferences{../../../doc/ext}
+\UseReferences{../../../doc/ref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  TitlePage . . . . . . . . . . . . . . . . . . . . . . nice title page
+%%
 \TitlePage{
   \centerline{\titlefont matrixss}\medskip           % Package name
   \centerline{\titlefont ---}\medskip
@@ -12,7 +37,7 @@
   % If the package interfaces with an external program ...
   %\centerline{\secfont Based on qwert Standalone Version 3.14}\vfill
   \centerline{\secfont by}\vfill
-  \centerline{\secfont Henrik B\"a\"arnhielm}\medskip   % Author
+  \centerline{\secfont Henrik B{\accent127a}{\accent127a}rnhielm}\medskip % Author
   \centerline{Department of Mathematics}\medskip  % Affiliation
   \centerline{Imperial College of Science, Technology and Medicine}\medskip
   \centerline{\secfont email: henrik.baarnhielm@imperial.ac.uk} % Email address
@@ -34,8 +59,17 @@ I am also particularly grateful to Alexander Hulpke at Colorado
 State University in Fort Collins, USA, for suggesting this project to
 me, and for his constant help and advice during my work.
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  TableOfContents . . . . . . . . . . . .  generate a table of contents
+%%
 \TableOfContents
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  FrontMatter . . . . . . . . . . . . . . . . . . . matrixss package
+%%
 \FrontMatter
 \immediate\write\citeout{\bs bibdata{report/schreiersims}}
 %\Input{file1}
@@ -44,12 +78,25 @@ me, and for his constant help and advice during my work.
 \Chapters
 \Input{matrixss}
 \Input{code}
-%...
-%\Input{filen}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  Appendices  . . . . . . . . . . . . . . . . . . . matrixss package
+%%
 %\Appendices
 %\Input{file1}
 %...
 %\Input{filen}
 \Bibliography
+
 \Index
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%F  EndOfBook . . . . . . . . . . . . . . . . . . . . . . . . . that's it
+%%
 \EndOfBook 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E  manual.tex  . . . . . . . . . . . . . . . . . . . . . . . . ends here

@@ -1,18 +1,19 @@
 TEX = tex
 TEXFLAGS = -recorder
-BUILDMAN = buildman.pe
+GAP = ~/gap
+BUILDMAN = $(GAP)/etc/buildman.pe
 BIBTEX = bibtex
 BIBFLAGS = -terse
-OUTPUT = manual.ps manual.bbl
+OUTPUT = manual.ps manual.bbl manual.ind manual.blg manual.ilg code.tex \
+	 notfound 
 FLS = manual.fls
-GAPDOCPATH = /usr/share/gap/doc
-MANUALINDEX = $(GAPDOCPATH)/manualindex
+MANUALINDEX = $(GAP)/doc/manualindex
 DVIPS = dvips
 
-manual.dvi: manual.tex matrixss.tex code.tex manual.idx
+manual.dvi: manual.tex matrixss.tex code.tex manual.ind
 	$(TEX) $(TEXFLAGS) $<
 
-manual.idx: manual.tex manual.bbl manual.aux
+manual.ind: manual.tex manual.bbl manual.aux
 	$(TEX) $(TEXFLAGS) $<
 	$(TEX) $(TEXFLAGS) $<
 	$(MANUALINDEX) $(basename $<)
@@ -23,7 +24,7 @@ manual.bbl: manual.aux report/schreiersims.bib
 manual.aux: manual.tex
 	$(TEX) $(TEXFLAGS) $<
 
-code.tex: config.matrixss code.msk 
+code.tex: config.matrixss code.msk ../lib/*.gd ../lib/*.gi
 	$(BUILDMAN) -f $<
 
 manual.ps: manual.dvi

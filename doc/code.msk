@@ -1,3 +1,143 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%W    code.msk     The Matrix Schreier Sims package - Documentation
+%%
+%H    File      : $RCSfile$
+%H    Author    : Henrik Bäärnhielm
+%H    Dev start : 2004-07-28 
+%%
+%H    Version   : $Revision$
+%H    Date      : $Date$
+%H    Last edit : $Author$
+%%
+%H    @(#)$Id$
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \Chapter{Implementation}
 
-bla bla
+Here is the documentation from the package source code. As the package
+works with matrix groups acting on vector spaces, references to <group
+elements> means <matrices>, ie a list of row vectors, each of which is
+list of field elements. References to <points> means <row vectors>, ie
+elements of the vector space on which the group acts.
+
+The code tries to avoid the computation of inverse matrices as much as
+possible, and to accomplish this, the inverse of a group element is
+stored together with the element in a list of length 2. Each time some
+computation is made with the element, a similar computation is made
+with the inverse, so that they are kept consistent. Therefore, in many
+cases in the code, <group element> means an immutable list of 2
+matrices that are inverses to each other.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{General code}
+
+\FileHeader{code.gd}
+
+\Declaration{StabChainMatrixGroup}{StabChainMatrixGroup}!{general}
+
+\Declaration{ssInfo}
+
+\Declaration{MatrixSchreierSimsInfo}
+
+\Declaration{MATRIXSS_DEBUGLEVEL}{MATRIXSS_DEBUGLEVEL}
+
+\Declaration{MATRIXSS_BasePointStore}
+
+\FileHeader{code.gi}
+
+These are the core functions of the package.
+
+\Declaration{MATRIXSS_GetPartialBaseSGS}
+
+\Declaration{MATRIXSS_Membership}{MATRIXSS_Membership}
+
+\Declaration{MATRIXSS_NewBasePoint}
+
+\Declaration{MATRIXSS_GetSchreierGenerator}{MATRIXSS_GetSchreierGenerator}
+
+\Declaration{MATRIXSS_ExtendBase}
+
+\Declaration{MATRIXSS_OrbitElement}{MATRIXSS_OrbitElement}
+
+\Declaration{MATRIXSS_ComputeSchreierTree}
+
+\Declaration{MATRIXSS_ExtendSchreierTree}
+
+\Declaration{MATRIXSS_OrbitElement_ToddCoxeter}{MATRIXSS_OrbitElement_ToddCoxeter}
+
+\Declaration{MATRIXSS_Membership_ToddCoxeter}
+
+\Declaration{MATRIXSS_GetSchreierGenerator_ToddCoxeter}
+
+\Declaration{MATRIXSS_ComputeOrder}
+
+These are also core function, but of slightly less importance, or mainly of technical nature.
+
+\Declaration{MATRIXSS_CopySchreierTree}
+
+\Declaration{MATRIXSS_GetOrbitSize}
+
+\Declaration{MATRIXSS_GetOrbit}
+
+\Declaration{MATRIXSS_IsPointInOrbit}
+
+\Declaration{MATRIXSS_CreateInitialSchreierTree}
+
+\Declaration{MATRIXSS_GetSchreierTreeEdge}
+
+\Declaration{MATRIXSS_ProjectiveIsIdentity}
+
+\Declaration{MATRIXSS_IsIdentity}
+
+\Declaration{MATRIXSS_PointAction}
+
+\Declaration{MATRIXSS_ProjectiveAction}
+
+\Declaration{MATRIXSS_DebugPrint}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Deterministic algorithm}
+
+\FileHeader{standard.gi}
+
+\Declaration{StabChainMatrixGroup}[standard.gi]{StabChainMatrixGroup}!{deterministic}
+
+\Declaration{SchreierSims}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Probabilistic algorithm}
+
+\FileHeader{random.gi}
+
+\Declaration{StabChainMatrixGroup}[random.gi]{StabChainMatrixGroup}!{probabilistic}
+
+\Declaration{RandomSchreierSims}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{STCS algorithm}
+
+\FileHeader{stcs.gi}
+
+\Declaration{MATRIXSS_SchreierToddCoxeterSims}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Test and benchmark routines}
+
+\FileHeader{test.gd}
+
+\Declaration{MatrixSchreierSimsTest}
+
+\Declaration{MatrixSchreierSimsBenchmark}
+
+\FileHeader{test.gi}
+
+\Declaration{MATRIXSS_GetTestGroups}
+
+\Declaration{MATRIXSS_GetBenchmarkGroups}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E  code.msk  . . . . . . . . . . . . . . . . . . . . . . . . . .ends here

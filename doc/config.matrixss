@@ -1,5 +1,5 @@
 @msfiles = ("code");
-@gdfiles = ("code", "standard", "stcs", "random", "test");
+@gdfiles = ("standard.gi", "code.gd", "code.gi", "standard.gd", "stcs.gd", "stcs.gi", "random.gd", "random.gi", "test.gd", "test.gi");
 LIB      = "../lib";
 DIR      = ".";
 check;
