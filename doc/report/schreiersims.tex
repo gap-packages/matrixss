@@ -14,14 +14,14 @@
 \usepackage{draftcopy}
 \frenchspacing
 
-\title{The matrix Schreier-Sims algorithm in GAP}
+\title{The Schreier-Sims algorithm for matrix groups}
 
 \author{Henrik B\"a\"arnhielm}
 
 \email{henrik.baarnhielm@imperial.ac.uk}
 \urladdr{http://matrixss.sourceforge.net/}
 
-\date{2004-02-08}
+\date{2004-07-17}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
@@ -44,6 +44,7 @@
 \providecommand{\set}[1]{\left\lbrace #1 \right\rbrace}
 \providecommand{\gen}[1]{\left\langle #1 \right\rangle}
 \providecommand{\ord}[1]{\text{ord}( #1 )}
+\providecommand{\Sym}[1]{\text{Sym}( #1 )}
 
 \newcommand{\field}[1]{\mathbb{#1}}
 \newcommand{\vect}[1]{\boldsymbol{\mathrm{#1}}}
@@ -53,6 +54,7 @@
 \newcommand{\Q}{\field{Q}}
 \newcommand{\K}{\field{K}}
 \newcommand{\A}{\field{A}}
+\newcommand{\GAP}{\textsf{GAP}}
 
 % for Cayley graphs
 \newcommand{\C}{\mathcal{C}}
@@ -83,13 +85,73 @@ Bla bla
 
 \section{Preface}
 
-\section{Introduction} \label{intro}
+This report is made as part of a student project at the Department of
+Mathematics, Imperial College of Science, Technology and Medicine in
+London, United Kingdom. It is made in partial fulfillment of the
+requirements for the degree of Master of Science in Pure Mathematics.
+
+I would like to thank my supervisors Prof. Alexander Anatolievich
+Ivanov at Imperial College and Dr. Leonard H. Soicher at Queen Mary,
+University of London, for their encouragement and help.
+
+I am also particularly grateful to Dr. Alexander Hulpke at Colorado
+State University in Fort Collins, USA, for suggesting this project to
+me, and for his constant help and advice during my work.
+
+\section{Introduction}
+The following report makes up one the two parts of a project in
+computational group theory, the other part being a software package
+for the computer system \GAP (see \cite{GAP}), which can be found on
+the WWW at the URL below. This text will describe the mathematics that
+provide the foundations of the package, including the algorithms used and their complexity,
+and also some of the more computer science oriented aspects, like what
+datastructures that were used, and how the implementation was done.
+
+Computational group theory (CGT) is an area of research on the border
+between group theory and theoretical computer science, and work in CGT
+are often of both theoretical (mathematical) and practical
+(programming) nature, leading to both theoretical results
+(mathematical theorems and proofs) and practical results (software),
+and this project is no exception. Introductory surveys of CGT can be
+found in \cite{sims98}, \cite{seress97}, \cite{neubuser95} and \cite{cannon92}.
+
+The aim of the project was to make a \GAP package with an
+implementation of Schreier-Sims algorithm for matrix groups. An
+implementation of this fundamental algorithm is already included in
+standard \GAP distribution, but that implementation always first
+computes a faithful action (permutation representation) of the given
+group and then executes the algorithm on the resulting permutation
+gorup. The idea for this project was to restrict attention to matrix
+groups and implement a version of the algorithm which works with the
+matrices directly, and see if one can obtain a more efficient
+implementation this way.  
+
+A survey of computational matrix group theory can be found in
+\cite{niemeyer01}. It should be noted that we are only interested in
+finite groups, ie matrix groups over finite fields, and therefore
+there is no need to worry about any noncomputability or undecidability
+issues.
+
+We will begin with a quick reference of the basic concepts from group
+theory and computer science, before moving on to the description of
+the Schreier-Sims algorithm. We will describe the algorithm in some
+detail, and then turn to the variants of the algorithm that have also
+been implemented in the project: the random (ie. probabilistic)
+Schreier-Sims algorithm and the Schreier-Todd-Coxeter-Sims algorithm.
+
+It must be mentioned that a report similar to this one is \cite{murray93}, from which a fair amount inspiration comes.
 
 \section{Preliminaries}
-We begin with some elementary definitions. First some graph theory, where we follow \cite{biggs89}.
+The definitions and statements in this section are assumed to be
+known, but we state them anyway, since authors often use different
+notation and sometimes put slightly different meaning to some of the
+following concepts (eg. the exact definition of graphs tend to
+vary). 
+
+First some graph theory, where we follow \cite{biggs89}.
 
 \begin{deff} \label{def_graph}
-A \emph{graph} is an ordered pair $G = (V, E)$ where $V$ is a finite non-empty set, the \emph{vertices} of $G$ and $E \subseteq V \times V$ is the \emph{edges} of $G$.
+A \emph{directed graph} is an ordered pair $G = (V, E)$ where $V$ is a finite non-empty set, the \emph{vertices} of $G$ and $E \subseteq V \times V$ is the \emph{edges} of $G$.
 \end{deff}
 \begin{remark}
   A graph in the sense of \ref{def_graph} is sometimes called a
@@ -100,7 +162,8 @@ A \emph{graph} is an ordered pair $G = (V, E)$ where $V$ is a finite non-empty s
 \end{remark}
 
 \begin{remark}
-The definition implies that our graphs are directed, have no multiple edges, but may have loops.
+The definition implies that our graphs have no multiple edges, but may have loops. We will henceforth omit the word ''directed'' since these are the only
+graphs we are interested in.
 \end{remark}
 
 \begin{deff} \label{def_graph_misc}
@@ -125,19 +188,85 @@ If $G = (V, E)$ is a graph, then a tree $T$ is a \emph{spanning tree} of $G$ if 
 
 The following are elementary and the proofs are omitted.
 \begin{pr}
-In a tree $T = (V, E)$ we have $\abs{E} = \abs{V} - 1$ and there exists a \emph{unique} path between every pair of distinct vertices. Moreover, if $G$ is a graph where every pair of distinct vertices can be joined by a unique path, then $G$ is a tree.
+In a tree $T = (V, E)$ we have $\abs{E} = \abs{V} - 1$ and there
+exists a \emph{unique} path between every pair of distinct
+vertices. Conversely, if $G$ is a graph where every pair of distinct
+vertices can be joined by a unique path, then $G$ is a tree.
 \end{pr}
 
 \begin{pr}
 Every graph has a spanning tree.
 \end{pr}
 
-Now some group theory.
+Now some group theory, where our standard references are \cite{bb96} and \cite{rose78}.
+\begin{note}
+All groups in this report are assumed to be finite.
+\end{note}
+
 \begin{deff}
-If $G = \gen{S}$ is a finite group, then the \emph{Cayley graph} $\C_G(S)$ is the graph with vertex set $G$ and edges $E = \set{ (g, sg) \mid g \in G, s \in S}$.
+If $G = \gen{S}$ is a group, then the \emph{Cayley graph} $\C_G(S)$ is the graph with vertex set $G$ and edges $E = \set{ (g, sg) \mid g \in G, s \in S}$.
 \end{deff}
 
-\bibliographystyle{amsalpha} 
+\begin{deff}
+An \emph{action} of a group $G$ on a finite set $X$ is a homomorphism
+$\lambda : G \to \Sym{X}$ (where $\Sym{X}$ is the group of
+permutations on $X$). If $\lambda$ is injective, the action is
+\emph{faithful}. 
+\end{deff}
+\begin{remark}
+Following a convention in computational group theory, we will
+abbreviate $\lambda(g)x$ with $x^g$, for $g \in G$ and $x \in X$. The elements of $X$ are called \emph{points}.
+\end{remark}
+
+\begin{deff}
+Let $G$ be a group acting on the finite set $X$. For each point
+$\alpha \in X$, the \emph{orbit} of $\alpha$ is $\alpha^G = \set{\beta
+\in X \mid \beta = \alpha^g, g \in G}$ and the \emph{stabiliser} of
+$\alpha$ is $G_{\alpha} = \set{g \in G \mid \alpha^g = \alpha}$.
+\end{deff}
+
+The following are elementary and the proofs are omitted.
+\begin{pr}
+Let $G$ be a group acting on the finite set $X$. For each $p \in X$ we have $G_p \leq G$, and so we can define inductively 
+\begin{equation}
+G_{\alpha_1, \alpha_2, \dotsc, \alpha_n} = (G_{\alpha_1, \alpha_2, \dotsc, \alpha_{n - 1}})_{\alpha_n}
+\end{equation}
+where $n > 1$ and $\alpha_1, \dotsc, \alpha_n \in X$.
+\end{pr}
+
+\begin{pr}
+Let $G$ be a group acting on the finite set $X$. For each $p \in X$, the map $\mu_p : G / G_p \to p^G$ given by
+\begin{equation}
+g G_p \mapsto p^g
+\end{equation}
+is a bijection. In particular, $\abs{p^G} = \abs{G : G_p}$.
+\end{pr}
+
+When it comes to computer science, our standard reference is
+\cite{clr90} where all basic computer science notions can be
+found. First of all, complexity analysis of algorithms and its
+asymptotic notation, in particular the $O$-notation, is assumed to be
+known. Basic graph algorithms like breadth-first search, computation
+of connected compontents and the spanning tree algorithms of Kruskal
+and Prim are also assumed to be known.
+
+Hash tables will likewise be used without further explanation. Even
+though the code in the project does not use hashing explicitly, but
+rely on \GAP for that, it is worth mentioning that, to the author's
+knowledge, the best general-purpose hash function known to humanity is
+described in \cite{jenkins97}.
+
+\section{The Schreier-Sims algorithm}
+
+\subsection{Schreier trees}
+
+\subsection{Schreier's Lemma}
+
+\subsection{Membership testing}
+
+\subsection{The main algorithm}
+
+\bibliographystyle{amsalpha}
 \bibliography{schreiersims}
 
 \end{document}
