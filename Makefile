@@ -27,7 +27,7 @@ DATE = $(shell date +%Y%m%d)
 # package default name
 ifeq ($(PACKAGE),)
 	PACKAGE = matrixss-0.9.$(DATE)
-	DEBPKG  = matrixss_0.9.$(DATE)
+	DEBPKG  = gap-matrix-schreiersims_0.9.$(DATE)
 endif
 
 # output package files
@@ -70,8 +70,8 @@ ChangeLog: NEWS
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
 deb: $(PACKAGES)
-	cp tmp/$(PACKAGE).tar.gz tmp/matrixss/$(DEBPKG).orig.tar.gz
-	cvs-buildpackage -R $(DIR)/tmp -rfakeroot -kredstar
+	cp tmp/$(PACKAGE).tar.gz tmp/gap-matrix-schreiersims/$(DEBPKG).orig.tar.gz
+	cvs-buildpackage -R $(DIR)/tmp -rfakeroot -kredstar -Mmatrixss
 
 manual: 
 	$(MAKE) -C doc $@
@@ -80,7 +80,9 @@ manual:
 package: manual $(PACKAGES)
 
 $(PACKAGES): ChangeLog checksums
-	mkdir --parents tmp/matrixss
+	mkdir --parents tmp/gap-matrix-schreiersims
+	mkdir --parents tmp/doc
+	cp ../../doc/gapmacro.tex tmp/doc/
 	cat $(PACKAGE_FILES) | sed --expression='s/^/$(CUR_DIR)\//' | tar --verify --verbose --create --directory .. --file tmp/$(PACKAGE).tar --files-from - 
 	bzip2 --keep --verbose --best --force tmp/$(PACKAGE).tar
 	bzip2 --test --verbose tmp/$(PACKAGE).tar.bz2
