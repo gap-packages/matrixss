@@ -70,7 +70,7 @@ ChangeLog: NEWS
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
 deb: $(PACKAGES)
-	cp tmp/$(PACKAGE).tar.gz tmp/gap-matrix-schreiersims/$(DEBPKG).orig.tar.gz
+#	cp tmp/$(PACKAGE).tar.gz tmp/gap-matrix-schreiersims/$(DEBPKG).orig.tar.gz
 	cvs-buildpackage -R $(DIR)/tmp -rfakeroot -kredstar -Mmatrixss
 
 manual: 
@@ -81,22 +81,22 @@ package: manual $(PACKAGES)
 
 $(PACKAGES): ChangeLog checksums
 	mkdir --parents tmp/gap-matrix-schreiersims
-	mkdir --parents tmp/doc
-	cp ../../doc/gapmacro.tex tmp/doc/
+#	mkdir --parents tmp/doc
+#	cp ../../doc/gapmacro.tex tmp/doc/
 	cat $(PACKAGE_FILES) | sed --expression='s/^/$(CUR_DIR)\//' | tar --verify --verbose --create --directory .. --file tmp/$(PACKAGE).tar --files-from - 
 	bzip2 --keep --verbose --best --force tmp/$(PACKAGE).tar
 	bzip2 --test --verbose tmp/$(PACKAGE).tar.bz2
 	gzip --best --force --verbose tmp/$(PACKAGE).tar
 	gzip --verbose --test tmp/$(PACKAGE).tar.gz
-	cd .. && cat $(CUR_DIR)/Manifest.text | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -l -9 $(CUR_DIR)/tmp/$(PACKAGE).win.zip -@ && cd $(CUR_DIR)
-	cd .. && cat $(CUR_DIR)/Manifest.bin | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -9 $(CUR_DIR)/tmp/$(PACKAGE).win.zip -@ && cd $(CUR_DIR)
+	cd .. && cat $(CUR_DIR)/Manifest.text | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -l -9 $(CUR_DIR)/tmp/$(PACKAGE)-win.zip -@ && cd $(CUR_DIR)
+	cd .. && cat $(CUR_DIR)/Manifest.bin | sed --expression='s/^/$(CUR_DIR)\//' | zip -v -9 $(CUR_DIR)/tmp/$(PACKAGE)-win.zip -@ && cd $(CUR_DIR)
 	unzip -t tmp/$(PACKAGE).win.zip
 	cd .. && cat $(CUR_DIR)/Manifest.text | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | perl -e '{ while(<>) { print; print "!TEXT!\n/END\n"; } }' | zoo achPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
 	cd .. && cat $(CUR_DIR)/Manifest.bin | sed --expression='s/^\([^!/]\)/$(CUR_DIR)\/\1/' | zoo ahPI $(CUR_DIR)/tmp/$(PACKAGE).zoo && cd $(CUR_DIR)
 	zoo xN tmp/$(PACKAGE).zoo
 
 upload:
-	ncftpput -u $(FTP_USER) -p $(FTP_PASSWD) $(FTP_HOST) $(FTP_DIR) $(PACKAGES) tmp/matrixss/$(DEBPKG)*
+	ncftpput -u $(FTP_USER) -p $(FTP_PASSWD) $(FTP_HOST) $(FTP_DIR) $(PACKAGES) tmp/gap-matrix-schreiersims/$(DEBPKG)*
 
 www: ChangeLog
 	scp $(WEB_FILES) $(SCP_USER)@$(WEB_SERVER):$(WEB_PATH)
