@@ -1,0 +1,88 @@
+\documentclass[draft]{amsart}
+\usepackage[english]{babel} 
+\usepackage[latin1]{inputenc} % svenska tecken skall tolkas
+\usepackage{amsmath}
+\usepackage{amsfonts} % for \mathbb
+\usepackage{amsthm}
+\usepackage{amscd}
+\usepackage{amsopn}
+\usepackage{amstext}
+\usepackage{amsxtra}
+\usepackage{amsbsy}
+\usepackage{bm} % for \boldsymbol
+%\usepackage{graphicx}
+\usepackage{draftcopy}
+\frenchspacing
+
+\title{Improving the matrix Schreier-Sims algorithm in GAP}
+
+\author{Henrik B\"a\"arnhielm}
+
+\email{henrik.baarnhielm@imperial.ac.uk}
+\urladdr{http://matrixss.sourceforge.net/}
+
+\date{2004-02-08}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{cl}[theorem]{Corollary}
+\newtheorem{pr}[theorem]{Proposition}
+\newtheorem{axiom}[theorem]{Axiom}
+
+\theoremstyle{definition}
+\newtheorem{deff}[theorem]{Definition}
+
+\theoremstyle{remark}
+\newtheorem{note}{Note}
+\newtheorem{remark}{Remark}
+
+\providecommand{\abs}[1]{\left\lvert #1 \right\rvert}
+\providecommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\providecommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\providecommand{\floor}[1]{\lfloor #1 \rfloor}
+\providecommand{\cf}[1]{\left\langle #1 \right\rangle}
+\providecommand{\set}[1]{\left\lbrace #1 \right\rbrace}
+
+\newcommand{\field}[1]{\mathbb{#1}}
+\newcommand{\vect}[1]{\boldsymbol{\mathrm{#1}}}
+\newcommand{\N}{\field{N}}
+\newcommand{\Z}{\field{Z}}
+\newcommand{\R}{\field{R}}
+\newcommand{\C}{\field{C}}
+\newcommand{\Q}{\field{Q}}
+\newcommand{\K}{\field{K}}
+\newcommand{\A}{\field{A}}
+
+\DeclareMathOperator{\sgd}{sgd}
+\DeclareMathOperator{\mgm}{mgm}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\GL}{Gl}
+\DeclareMathOperator{\IM}{Im}
+\DeclareMathOperator{\RE}{Re}
+\DeclareMathOperator{\I}{Id}
+
+\begin{document}
+\begin{titlepage}
+\begin{abstract}
+Bla bal
+\end{abstract}
+
+
+\maketitle
+\thispagestyle{empty}
+
+\end{titlepage}
+
+\tableofcontents
+
+\newpage
+
+\section{Preface}
+
+\section{Introduction} \label{intro}
+
+\bibliographystyle{amsalpha} 
+\bibliography{schreiersims}
+
+\end{document}
