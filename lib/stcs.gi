@@ -33,7 +33,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
               newPoint, oldSchreierTree, newBasePoint, oldOrbit,
               newInverseGenerator, newSGS, freeGroup, cosetTable, word,
               subgroupGens, relation, gens1, gens2, gens3, relations, 
-              levelGroup, freeGroupHomo;
+              levelGroup, freeGroupHomo, gen, relHomo;
         
         MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);
         
@@ -115,9 +115,21 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     # Map relations to current free group
                     relations := [];
                     for element in ssInfo[level].relations do
-                        AddSet(relations, MappedWord(element[1], 
-                                GeneratorsOfGroup(element[2]),
-                                GeneratorsOfGroup(ssInfo[level].freeGroup)));
+                        gens1 := GeneratorsOfGroup(element[2]);
+                        gens2 := GeneratorsOfGroup(ssInfo[level].freeGroup));
+                        
+                        MATRIXSS_DebugPrint(3, ["Mapping ", element[1],
+                                " from ", element[2], " to ",
+                                ssInfo[level].freeGroup]);
+                        if Length(gens1) <= Length(gens2) then
+                            AddSet(relations, 
+                                   MappedWord(element[1], gens1, 
+                                           gens2{[1 .. Length(gens1)]}));
+                        else
+                            MATRIXSS_DebugPrint(2, ["3 : Gens1 : ", gens1]);
+                            MATRIXSS_DebugPrint(2, ["3 : Gens2 : ", gens2]);
+                            
+                        fi;
                     od;
                     
                     # Express subgroup generators as words in generators
@@ -133,7 +145,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                                 subgroupGens]);
                     od;
                     
-                    MATRIXSS_DebugPrint(2, ["Running coset enum with gens : ", 
+                    MATRIXSS_DebugPrint(3, ["Running coset enum with gens : ", 
                             GeneratorsOfGroup(ssInfo[level].freeGroup), 
                             " relations ", relations, " subgroup gens ", 
                             subgroupGens]);
@@ -240,25 +252,23 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     fi;
                     
                     for recursiveLevel in [level .. strip[2] - 1] do
-                        # We must recompute free group homomorphism since
-                        # there are new generators 
                         freeGroup := 
                           FreeGroup(Length(ssInfo[recursiveLevel].
                                   partialSGS));
                         MATRIXSS_DebugPrint(6, ["Generators : ",
                                 List(ssInfo[recursiveLevel].
                                      partialSGS, i -> i[1])]);
+                        
+                        # Important to use GroupWithGenerators, since we want
+                        # all our matrices as generators to create the 
+                        # generator mapping, even if some are redundant as
+                        # generators (ie some are inverses of each other)
                         levelGroup := 
                           GroupWithGenerators(List(ssInfo[recursiveLevel].
                                   partialSGS, i -> i[1]), identity);
-                        MATRIXSS_DebugPrint(6, ["Free group : ",
-                                freeGroup]);
-                        MATRIXSS_DebugPrint(6, ["Group : ", levelGroup]);
-                        MATRIXSS_DebugPrint(6, ["Gens1 : ", 
-                                GeneratorsOfGroup(freeGroup)]);
-                        MATRIXSS_DebugPrint(6, ["Gens2 : " , 
-                                GeneratorsOfGroup(levelGroup)]);
                         
+                        # Recompute generator mapping, since we have added a
+                        # generator
                         gens1 := ShallowCopy(GeneratorsOfGroup(levelGroup));
                         gens2 := ShallowCopy(GeneratorsOfGroup(freeGroup));
                         SortParallel(gens1, gens2);
@@ -266,52 +276,44 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                           Immutable([gens1, gens2]);
                         ssInfo[recursiveLevel + 1].freeGroup := freeGroup;
                         
-                        MATRIXSS_DebugPrint(6, ["Schreier gen : ", 
-                                schreierGenerator[2][1]]);
-                        MATRIXSS_DebugPrint(6, ["Sift : ", strip[1][2]]);
-                        MATRIXSS_DebugPrint(6, ["Word : ", word[2]]);
-                        
+                        # Retrieve generators so that we can map all words to
+                        # the same free group
                         gens1 := GeneratorsOfGroup(word[3]);
                         gens2 := GeneratorsOfGroup(ssInfo[recursiveLevel + 1].
                                          freeGroup);
-                        gens3 := GeneratorsOfGroup(schreierGenerator[2][3]);
-                            
-                        MATRIXSS_DebugPrint(6, ["Gens1 : ", gens1]);
-                        MATRIXSS_DebugPrint(6, ["Gens2 : ", gens2]);
-                        MATRIXSS_DebugPrint(6, ["Gens3 : ", gens3]);
                         
-                        if Length(gens2) >= Length(gens3) and
-                           Length(gens2) >= Length(gens1) then
-                            
-                            # Map the words to the generators in the same
-                            # free group
+                        if Length(gens1) >= Length(gens2) then
                             MATRIXSS_DebugPrint(6, ["Looking up ", strip[1][2],
                                     " in ", ssInfo[recursiveLevel + 1].
                                     genMap[1]]);
                             
+                            # The identity is not among our generators
                             if strip[1][1] <> identity then
                                 element := 
                                   ssInfo[recursiveLevel + 1].genMap[2][
                                           Position(ssInfo[recursiveLevel + 1].
                                                   genMap[1], strip[1][2])];
+                                
+                                # Map the words to the generators in the same
+                                # free group                            
+                                relation := 
+                                  schreierGenerator[2][1] * word[2] *
+                                  MappedWord(element, gens2, 
+                                          gens1{[1 .. Length(gens2)]});
                             else
-                                element := Identity(freeGroup);
+                                relation := schreierGenerator[2][1] * word[2];
                             fi;
                             
-                            relation := 
-                              MappedWord(schreierGenerator[2][1], gens3,
-                                      gens2{[1 .. Length(gens3)]}) *
-                              MappedWord(word[2], gens1, 
-                                      gens2{[1 .. Length(gens1)]}) *
-                              element;
-                                                        
-                            MATRIXSS_DebugPrint(6, ["Adding relation : ",
+                            MATRIXSS_DebugPrint(3, ["Adding relation : ",
                                     relation]);
                             
                             # Save relation along with the its free group
                             # so that we can map its generators later
                             Add(ssInfo[recursiveLevel + 1].relations,
-                                Immutable([relation, freeGroup]));
+                                Immutable([relation, word[3]]));
+                        else
+                            MATRIXSS_DebugPrint(2, ["2 : Gens1 : ", gens1]);
+                            MATRIXSS_DebugPrint(2, ["2 : Gens2 : ", gens2]);
                         fi;
                     od;
                     

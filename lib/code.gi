@@ -94,7 +94,8 @@ MATRIXSS_CreateInitialSchreierTree := function(root, dictinfo, identity)
 end;
 
 # Create a Schreier tree containing only the root
-MATRIXSS_CreateInitialSchreierTree_NoInverse := function(root, dictinfo, identity)
+MATRIXSS_CreateInitialSchreierTree_NoInverse := 
+  function(root, dictinfo, identity)
     local tree;
     
     # Create Schreier vector
@@ -364,6 +365,8 @@ MATRIXSS_Membership_ToddCoxeter :=
   function(ssInfo, element, identity, freeGroup)
     local level, residue, representative, point, word, gens1, gens2;
     
+    # Apart from calculating the group element, calculate the word of the
+    # element in the generators
     word := [Identity(freeGroup), Identity(freeGroup), freeGroup];
     residue := [element, word];
     
@@ -399,9 +402,8 @@ MATRIXSS_Membership_ToddCoxeter :=
         
         gens1 := GeneratorsOfGroup(ssInfo[level].freeGroup);
         gens2 := GeneratorsOfGroup(freeGroup);
-        MATRIXSS_DebugPrint(8, ["Gens 1 : ", gens1]);
-        MATRIXSS_DebugPrint(8, ["Gens 2 : ", gens2]);
         
+        # Map the words to the same free group
         if Length(gens2) >= Length(gens1) and Length(gens1) > 0 then
             word := MappedWord(representative[2][2], gens1, 
                             gens2{[1 .. Length(gens1)]});
@@ -410,6 +412,9 @@ MATRIXSS_Membership_ToddCoxeter :=
             word := MappedWord(representative[2][1], gens1, 
                             gens2{[1 .. Length(gens1)]});
             residue[2][2] := word * residue[2][2];
+        else
+            MATRIXSS_DebugPrint(2, ["1 : Gens1 : ", gens1]);
+            MATRIXSS_DebugPrint(2, ["1 : Gens2 : ", gens2]);
         fi;
     od;
     
