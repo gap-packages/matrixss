@@ -541,14 +541,22 @@ MATRIXSS_VerifyMultipleGenerators :=
   function(generators, schreierTree, point, action, hash, subGenerators, 
           ssInfo, SGS, identity, points, IsIdentity, field)
   local lastSchreierTree, level, residue, gens, ssInfoNew, orbit,
-        dictinfo, element, newSchreierTree, testPoint, i;
+        dictinfo, element, newSchreierTree, testPoint, i, oldGens, newGens;
     
-    gens := Difference(generators, subGenerators);
-    gens := Union(gens, AsSet([subGenerators[1]]));
+    if IsEmpty(subGenerators) then
+        return Immutable([identity, identity]);
+    fi;
+        
+    newGens := ShallowCopy(generators);
+    SubtractSet(newGens, subGenerators);
+    AddSet(newGens, subGenerators[1]);
+    #gens := Difference(generators, subGenerators);
+    #gens := Union(gens, AsSet([subGenerators[1]]));
+    gens := AsSet(newGens);
     MATRIXSS_DebugPrint(3, ["Verifying single generator"]);
     
-    schreierTree := MATRIXSS_GetSchreierTree(fail, point, gens, [], action, 
-                            hash, identity);
+    schreierTree := MATRIXSS_GetSchreierTree(fail, point, gens, [], 
+                            action, hash, identity);
     residue := MATRIXSS_VerifySingleGenerator(gens, schreierTree, 
                        point, action, hash, subGenerators[1], ssInfo, SGS, 
                        identity);
@@ -563,7 +571,7 @@ MATRIXSS_VerifyMultipleGenerators :=
                       points := points,
                       hash := hash,
                       schreierTree := schreierTree,
-                      oldSGS := AsSSortedList([]),
+                      oldSGS := AsSet([]),
                       relations := [],
                       IsIdentity := IsIdentity)];
     Append(ssInfoNew, ssInfo);
@@ -583,9 +591,12 @@ MATRIXSS_VerifyMultipleGenerators :=
             MATRIXSS_DebugPrint(3, ["Residue does not fix base point"]);
             
             lastSchreierTree := schreierTree;
-            gens := Union(gens, AsSet([subGenerators[level]]));
-            schreierTree := MATRIXSS_GetSchreierTree(fail, point, gens, [], 
-                                    action, hash, identity);
+            oldGens := ShallowCopy(newGens);
+            AddSet(newGens, subGenerators[level]);
+            gens := AsSet(newGens);
+            #gens := Union(gens, AsSet([subGenerators[level]]));
+            schreierTree := MATRIXSS_GetSchreierTree(fail, point, gens, 
+                                    [], action, hash, identity);
             
             # check if orbit of lastSchreierTree is a block of imprimitivity
             orbit := 
@@ -620,15 +631,13 @@ MATRIXSS_VerifyMultipleGenerators :=
             MATRIXSS_DebugPrint(2, ["Schreier tree for point ", orbit]);
             MATRIXSS_DebugPrint(2, ["Using dictinfo ", dictinfo]);
             newSchreierTree := MATRIXSS_GetSchreierTree(fail, orbit, 
-                                       gens, [], OnSets, dictinfo, identity);
+                                       gens, [], OnSets, dictinfo, 
+                                       identity);
             
             MATRIXSS_DebugPrint(2, ["Verifying single gen"]);
             residue := MATRIXSS_VerifySingleGenerator(gens, newSchreierTree,
                                orbit, OnSets, dictinfo, subGenerators[level],
-                               ssInfoNew, 
-                               ShallowCopy(Difference(gens, 
-                                       AsSet([subGenerators[level]]))), 
-                               identity);
+                               ssInfoNew, oldGens, identity);
             if residue[1] <> identity then
                 element := MATRIXSS_OrbitElement(lastSchreierTree.Tree, 
                                    action(point, residue[1]), action, 
