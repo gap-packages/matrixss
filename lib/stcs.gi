@@ -33,7 +33,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
               newPoint, oldSchreierTree, newBasePoint, oldOrbit,
               newInverseGenerator, newSGS, freeGroup, cosetTable, word,
               subgroupGens, relation, gens1, gens2, gens3, relations, 
-              levelGroup;
+              levelGroup, freeGroupHomo;
         
         MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);
         
@@ -51,14 +51,23 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
         fi;
         MakeImmutable(SGS);
         
-        # Compute group homomorpism for current level
-        freeGroup := FreeGroup(Length(SGS));
+        # Compute free group for current level
+        ssInfo[level].freeGroup := FreeGroup(Length(SGS));
         MATRIXSS_DebugPrint(6, ["Generators : ", List(SGS, i -> i[1])]);
-        levelGroup := Group(List(SGS, i -> i[1]), identity);
-        ssInfo[level].freeGroupHomo := 
-          GroupHomomorphismByImagesNC(freeGroup, levelGroup,
-                  GeneratorsOfGroup(freeGroup), GeneratorsOfGroup(levelGroup));
-                
+        levelGroup := GroupWithGenerators(List(SGS, i -> i[1]), identity);
+        
+        # Save mapping between generators of current level group and free group
+        gens1 := ShallowCopy(GeneratorsOfGroup(levelGroup));
+        gens2 := ShallowCopy(GeneratorsOfGroup(ssInfo[level].freeGroup));
+        SortParallel(gens1, gens2);
+        ssInfo[level].genMap := Immutable([gens1, gens2]);
+        
+        # Compute homomorphism for use in coset enumeration
+        freeGroupHomo := 
+          GroupHomomorphismByImagesNC(ssInfo[level].freeGroup, levelGroup,
+                  GeneratorsOfGroup(ssInfo[level].freeGroup), 
+                  GeneratorsOfGroup(levelGroup));
+        
         MATRIXSS_DebugPrint(3, ["Saved SGS that fixes first ", level - 1, 
                 " points ", Length(SGS)]);
         
@@ -95,7 +104,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                 Length(orbit)]); 
         
         # We now want to make sure that SGS also fixes the current level
-        
+                
         for point in orbit do
             for generator in SGS do
                 
@@ -103,22 +112,12 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                 if not MATRIXSS_IsPointInOrbit(oldSchreierTree, point) or 
                    not generator in ssInfo[level].oldSGS then
                     
-                    # Create free group for use in coset enumeration
-                    freeGroup := FreeGroup(Length(SGS));
-                    MATRIXSS_DebugPrint(6, ["Generators : ", 
-                            List(SGS, i -> i[1])]);
-                    levelGroup := Group(List(SGS, i -> i[1]), identity);
-                    ssInfo[level].freeGroupHomo := 
-                      GroupHomomorphismByImagesNC(freeGroup, levelGroup,
-                              GeneratorsOfGroup(freeGroup), 
-                              GeneratorsOfGroup(levelGroup));
-                    
                     # Map relations to current free group
                     relations := [];
                     for element in ssInfo[level].relations do
                         AddSet(relations, MappedWord(element[1], 
                                 GeneratorsOfGroup(element[2]),
-                                GeneratorsOfGroup(freeGroup)));
+                                GeneratorsOfGroup(ssInfo[level].freeGroup)));
                     od;
                     
                     # Express subgroup generators as words in generators
@@ -126,8 +125,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     subgroupGens := [];
                     for element in List(ssInfo[level].partialSGS, i -> i[1]) do
                         element := 
-                          PreImagesRepresentative(ssInfo[level].freeGroupHomo, 
-                                  element);
+                          PreImagesRepresentative(freeGroupHomo, element);
                         MATRIXSS_DebugPrint(6, ["Adding ", element,
                                 " to subgroup gens"]);
                         AddSet(subgroupGens, element);
@@ -136,12 +134,14 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     od;
                     
                     MATRIXSS_DebugPrint(2, ["Running coset enum with gens : ", 
-                            GeneratorsOfGroup(freeGroup), " relations ", 
-                            relations, " subgroup gens ", subgroupGens]);
+                            GeneratorsOfGroup(ssInfo[level].freeGroup), 
+                            " relations ", relations, " subgroup gens ", 
+                            subgroupGens]);
                     
-                    # Perform (interrupted) Todd-Coxeter coset enumeration
+                    # Perform (interruptible) Todd-Coxeter coset enumeration
                     cosetTable := 
-                      CosetTableFromGensAndRels(GeneratorsOfGroup(freeGroup), 
+                      CosetTableFromGensAndRels(
+                              GeneratorsOfGroup(ssInfo[level].freeGroup), 
                               relations, subgroupGens :
                               max := 1 + MATRIXSS_GetOrbitSize(
                                       ssInfo[level].schreierTree),
@@ -150,20 +150,26 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     # If coset enumeration was successful and index of the
                     # subgroup was equal to our orbit size, then we know
                     # that the subgroup is stabiliser and we can exit
-                    MATRIXSS_DebugPrint(2, ["Coset table : ", cosetTable]);
-                    if cosetTable <> fail and Length(cosetTable) = 
-                       MATRIXSS_GetOrbitSize(ssInfo[level].schreierTree) then
-                        ssInfo[level].oldSGS := SGS;
-                        return;
+                    if cosetTable <> fail then
+                        MATRIXSS_DebugPrint(2, ["Nof cosets: ", 
+                                Length(cosetTable)]);
+                        MATRIXSS_DebugPrint(2, ["Orbit size: ", 
+                                MATRIXSS_GetOrbitSize(
+                                        ssInfo[level].schreierTree)]);
+                        if Length(cosetTable) = MATRIXSS_GetOrbitSize(
+                                   ssInfo[level].schreierTree) then
+                            ssInfo[level].oldSGS := SGS;
+                            return;
+                        fi;
                     fi;
-                
+                    
                     # Compute Schreier generator g for current level
                     schreierGenerator := 
                       MATRIXSS_GetSchreierGenerator_ToddCoxeter(
                               ssInfo[level].schreierTree,
                               generator, point, action, identity,
                               ssInfo[level].IsIdentity, 
-                              ssInfo[level].freeGroupHomo);
+                              ssInfo[level].freeGroup, ssInfo[level].genMap);
                                         
                     MATRIXSS_DebugPrint(6, ["Schreier Generator : ", 
                             schreierGenerator]);
@@ -181,7 +187,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                             schreierGenerator[1], " on levels ", points]);
                     strip := MATRIXSS_Membership_ToddCoxeter(ssInfo{points},
                                      schreierGenerator[1], 
-                                     identity, ssInfo[level].freeGroupHomo);
+                                     identity, ssInfo[level].freeGroup);
                     MATRIXSS_DebugPrint(6, ["Got sift: ", strip]);
                     word := ShallowCopy(strip[1][2]);
                     strip := [strip[1][1], strip[2]];
@@ -189,10 +195,13 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     MATRIXSS_DebugPrint(6, ["Word : ", word]);
                     MATRIXSS_DebugPrint(6, ["Sift : ", strip]);
                     
-                    # The drop-out level is in range 
-                    # [1 .. Length(ssInfo) + 1 - level] 
+                    # The drop-out level is in range
+                    # [1 .. Length(ssInfo) + 1 - level]
                     # but we want the range given by points
                     strip[2] := strip[2] + level;
+                    
+                    MakeImmutable(strip);
+                    MakeImmutable(word);
                     
                     MATRIXSS_DebugPrint(4, ["Dropout level : ", strip[2]]);
                     
@@ -220,6 +229,9 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                         
                         # Update partial SGS at each level
                         for recursiveLevel in [level .. strip[2] - 1] do
+                            MATRIXSS_DebugPrint(8, ["Adding ",
+                                    strip[1][1], " and ", strip[1][2],
+                                    " to generators"]);
                             AddSet(ssInfo[recursiveLevel].partialSGS, 
                                    strip[1]);
                             AddSet(ssInfo[recursiveLevel].partialSGS, 
@@ -236,9 +248,9 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                         MATRIXSS_DebugPrint(6, ["Generators : ",
                                 List(ssInfo[recursiveLevel].
                                      partialSGS, i -> i[1])]);
-                        levelGroup := Group(List(ssInfo[recursiveLevel].
-                                              partialSGS, i -> i[1]), 
-                                            identity);
+                        levelGroup := 
+                          GroupWithGenerators(List(ssInfo[recursiveLevel].
+                                  partialSGS, i -> i[1]), identity);
                         MATRIXSS_DebugPrint(6, ["Free group : ",
                                 freeGroup]);
                         MATRIXSS_DebugPrint(6, ["Group : ", levelGroup]);
@@ -247,22 +259,22 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                         MATRIXSS_DebugPrint(6, ["Gens2 : " , 
                                 GeneratorsOfGroup(levelGroup)]);
                         
-                        ssInfo[recursiveLevel + 1].freeGroupHomo := 
-                          GroupHomomorphismByImagesNC(freeGroup, levelGroup,
-                                  GeneratorsOfGroup(freeGroup),
-                                  GeneratorsOfGroup(levelGroup));
+                        gens1 := ShallowCopy(GeneratorsOfGroup(levelGroup));
+                        gens2 := ShallowCopy(GeneratorsOfGroup(freeGroup));
+                        SortParallel(gens1, gens2);
+                        ssInfo[recursiveLevel + 1].genMap := 
+                          Immutable([gens1, gens2]);
+                        ssInfo[recursiveLevel + 1].freeGroup := freeGroup;
                         
                         MATRIXSS_DebugPrint(6, ["Schreier gen : ", 
                                 schreierGenerator[2][1]]);
                         MATRIXSS_DebugPrint(6, ["Sift : ", strip[1][2]]);
                         MATRIXSS_DebugPrint(6, ["Word : ", word[2]]);
                         
-                        gens1 := GeneratorsOfGroup(PreImages(word[3]));
-                        gens2 := GeneratorsOfGroup(PreImages(
-                                         ssInfo[recursiveLevel + 1].
-                                         freeGroupHomo));
-                        gens3 := GeneratorsOfGroup(PreImages(
-                                         schreierGenerator[2][3]));
+                        gens1 := GeneratorsOfGroup(word[3]);
+                        gens2 := GeneratorsOfGroup(ssInfo[recursiveLevel + 1].
+                                         freeGroup);
+                        gens3 := GeneratorsOfGroup(schreierGenerator[2][3]);
                             
                         MATRIXSS_DebugPrint(6, ["Gens1 : ", gens1]);
                         MATRIXSS_DebugPrint(6, ["Gens2 : ", gens2]);
@@ -273,14 +285,25 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                             
                             # Map the words to the generators in the same
                             # free group
-                            relation := MappedWord(schreierGenerator[2][1], 
-                                                gens3,
-                                                gens2{[1 .. Length(gens3)]}) *
-                                        MappedWord(word[2], gens1,
-                                                gens2{[1 .. Length(gens1)]}) *
-                                        PreImagesRepresentative(
-                                                ssInfo[recursiveLevel + 1].
-                                                freeGroupHomo, strip[1][2]);
+                            MATRIXSS_DebugPrint(6, ["Looking up ", strip[1][2],
+                                    " in ", ssInfo[recursiveLevel + 1].
+                                    genMap[1]]);
+                            
+                            if strip[1][1] <> identity then
+                                element := 
+                                  ssInfo[recursiveLevel + 1].genMap[2][
+                                          Position(ssInfo[recursiveLevel + 1].
+                                                  genMap[1], strip[1][2])];
+                            else
+                                element := Identity(freeGroup);
+                            fi;
+                            
+                            relation := 
+                              MappedWord(schreierGenerator[2][1], gens3,
+                                      gens2{[1 .. Length(gens3)]}) *
+                              MappedWord(word[2], gens1, 
+                                      gens2{[1 .. Length(gens1)]}) *
+                              element;
                                                         
                             MATRIXSS_DebugPrint(6, ["Adding relation : ",
                                     relation]);
@@ -288,15 +311,15 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                             # Save relation along with the its free group
                             # so that we can map its generators later
                             Add(ssInfo[recursiveLevel + 1].relations,
-                                [relation, freeGroup]);
+                                Immutable([relation, freeGroup]));
                         fi;
                     od;
                     
                     if strip[1][1] <> identity then
                         # We must now recompute all levels downward from the
                         # dropout level
-                        for recursiveLevel in Reversed([level + 1 .. 
-                                strip[2]]) do
+                        for recursiveLevel in 
+                          Reversed([level + 1 .. strip[2]]) do
                             oldSGS := ssInfo[level].oldSGS;
                             ssInfo[level].oldSGS := SGS;
                             SchreierToddCoxeterSims(ssInfo, partialSGS,

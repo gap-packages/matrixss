@@ -279,14 +279,14 @@ end;
 # this function assumes that the point actually is in the orbit described by
 # the given Schreier tree
 MATRIXSS_OrbitElement_ToddCoxeter := 
-  function(schreierTree, point, action, identity, IsIdentity, freeGroupHomo)
+  function(schreierTree, point, action, identity, IsIdentity, freeGroup,
+          genMap)
     local element, edge, word;
     
     if ValueOption("SimpleSchreierTree") = fail then
         # the group element and its inverse
         element := [identity, identity];
-        word := [Identity(PreImage(freeGroupHomo)),
-                 Identity(PreImage(freeGroupHomo))];
+        word := [Identity(freeGroup), Identity(freeGroup)];
         repeat
             edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
             
@@ -300,10 +300,10 @@ MATRIXSS_OrbitElement_ToddCoxeter :=
             element[1] := edge[1] * element[1];
             element[2] := element[2] * edge[2];
             
-            word[1] := PreImagesRepresentative(freeGroupHomo, 
-                               edge[1]) * word[1];
-            word[2] := word[2] * PreImagesRepresentative(freeGroupHomo, 
-                               edge[2]);
+            MATRIXSS_DebugPrint(8, ["Looking up ", edge[1], " in ",
+                    genMap[1]]);
+            word[1] := genMap[2][Position(genMap[1], edge[1])] * word[1];
+            word[2] := word[2] * genMap[2][Position(genMap[1], edge[2])];
         until false;
     else
         # In this case the tree has height 1, so we are done with one
@@ -312,8 +312,8 @@ MATRIXSS_OrbitElement_ToddCoxeter :=
         edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
         
         Assert(1, not IsBool(edge), "Point not in orbit!\n");
-        return [edge, [PreImagesRepresentative(freeGroupHomo, edge[1]),
-                       PreImagesRepresentative(freeGroupHomo, edge[2])]];
+        return [edge, [genMap[2][Position(genMap[1], edge[1])],
+                       genMap[2][Position(genMap[1], edge[2])]]];
     fi;
 end;
 
@@ -361,11 +361,10 @@ end;
 # element - the element to check membership for
 # identity - group identity
 MATRIXSS_Membership_ToddCoxeter := 
-  function(ssInfo, element, identity, freeGroupHomo)
+  function(ssInfo, element, identity, freeGroup)
     local level, residue, representative, point, word, gens1, gens2;
     
-    word := [Identity(PreImage(freeGroupHomo)),
-             Identity(PreImage(freeGroupHomo)), freeGroupHomo];
+    word := [Identity(freeGroup), Identity(freeGroup), freeGroup];
     residue := [element, word];
     
     # Find an expression of element in terms of the generators of the
@@ -386,12 +385,11 @@ MATRIXSS_Membership_ToddCoxeter :=
             return [Immutable(residue), level];
         fi;
         
-        MATRIXSS_DebugPrint(9, ["homo : ", ssInfo[level].freeGroupHomo]);
-        
         representative := 
           MATRIXSS_OrbitElement_ToddCoxeter(ssInfo[level].schreierTree, 
                   point, ssInfo[level].action, identity, 
-                  ssInfo[level].IsIdentity, ssInfo[level].freeGroupHomo);
+                  ssInfo[level].IsIdentity, ssInfo[level].freeGroup,
+                  ssInfo[level].genMap);
         
         MATRIXSS_DebugPrint(9, ["residue : ", residue]);
         MATRIXSS_DebugPrint(9, ["representative : ", representative]);
@@ -399,8 +397,8 @@ MATRIXSS_Membership_ToddCoxeter :=
         residue[1][1] := residue[1][1] * representative[1][2];
         residue[1][2] := representative[1][1] * residue[1][2];
         
-        gens1 := GeneratorsOfGroup(PreImages(ssInfo[level].freeGroupHomo));
-        gens2 := GeneratorsOfGroup(PreImages(freeGroupHomo));
+        gens1 := GeneratorsOfGroup(ssInfo[level].freeGroup);
+        gens2 := GeneratorsOfGroup(freeGroup);
         MATRIXSS_DebugPrint(8, ["Gens 1 : ", gens1]);
         MATRIXSS_DebugPrint(8, ["Gens 2 : ", gens2]);
         
@@ -510,25 +508,24 @@ end;
 # "generator" as one of its generators. The stabiliser fixes "point".
 MATRIXSS_GetSchreierGenerator_ToddCoxeter := 
   function(schreierTree, generator, point, action, identity, IsIdentity,
-          freeGroupHomo)
+          freeGroup, genMap)
     local element1, element2, edge, inv_edge;
     
     element1 := MATRIXSS_OrbitElement_ToddCoxeter(schreierTree, point, action,
-                        identity, IsIdentity, freeGroupHomo);
+                        identity, IsIdentity, freeGroup, genMap);
     element2 := MATRIXSS_OrbitElement_ToddCoxeter(schreierTree, 
                         action(point, generator[1]), action, identity,
-                        IsIdentity, freeGroupHomo);
+                        IsIdentity, freeGroup, genMap);
     
     edge := [element1[1][1] * generator[1] * element2[1][2],
-             element1[2][1] * 
-             PreImagesRepresentative(freeGroupHomo, generator[1]) * 
+             element1[2][1] * genMap[2][Position(genMap[1], generator[1])] *
              element2[2][2]];
     inv_edge := [element2[1][1] * generator[2] * element1[1][2],
                  element2[2][1] * 
-                 PreImagesRepresentative(freeGroupHomo, generator[2]) * 
+                 genMap[2][Position(genMap[1], generator[2])] *
                  element1[2][2]];
     
-    return [[edge[1], inv_edge[1]], [edge[2], inv_edge[2], freeGroupHomo]];
+    return [[edge[1], inv_edge[1]], [edge[2], inv_edge[2], freeGroup]];
 end;
 
 
@@ -562,7 +559,6 @@ MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
                   ssInfo[length].hash, identity),
           oldSGS := AsSSortedList([]),
           relations := [],
-          #genMap := NewDictionary(identity, true, Group(generators)),
           IsIdentity := MATRIXSS_IsIdentity);
     Add(ssInfo, levelStruct); 
 
@@ -579,7 +575,6 @@ MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
                       identity),
               oldSGS := AsSSortedList([]),
               relations := [],
-              #genMap := NewDictionary(identity, true, Group(generators)),
               IsIdentity := MATRIXSS_ProjectiveIsIdentity);
         Add(ssInfo, levelStruct); 
     fi;
@@ -648,7 +643,6 @@ MATRIXSS_GetPartialBaseSGS :=
                               dictinfo, identity),
                       oldSGS := AsSSortedList([]),
                       relations := [],
-                      #genMap := NewDictionary(identity, true, Group(generators)),
                       IsIdentity := MATRIXSS_IsIdentity);
                 Add(ssInfo, levelStruct); 
 
@@ -666,7 +660,6 @@ MATRIXSS_GetPartialBaseSGS :=
                                   identity),
                           oldSGS := AsSSortedList([]),
                           relations := [],
-                       #   genMap := NewDictionary(identity, true, Group(generators)),
                           IsIdentity := MATRIXSS_ProjectiveIsIdentity);
                     
                     Add(ssInfo, levelStruct); 
