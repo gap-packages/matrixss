@@ -20,13 +20,14 @@ Revision.("matrixss/lib/random_gi") :=
 # An implementation of the Schreier-Sims algorithm, for matrix groups
 InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
     local ssInfo, list, generators, level, points, element, RandomSchreierSims,
-          identitySifts, UpdateSchreierTrees, ComputeOrder;
+          identitySifts, UpdateSchreierTrees, ComputeOrder, Rattle, InitRattle,
+          ScrambleRattle, AddRattleGenerator;
     
     # Updates the given Schreier trees w.r.t. to the given partial SGS
-    UpdateSchreierTrees := function(ssInfo, partialSGS, identity)
+    UpdateSchreierTrees := function(ssInfo, dropoutLevel, partialSGS, identity)
         local SGS, level;
         
-        for level in [1 .. Length(ssInfo)] do
+        for level in [1 .. dropoutLevel] do
             if level > 1 then
                 SGS := ShallowCopy(ssInfo[level - 1].partialSGS);
             else
@@ -68,6 +69,56 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
         return order;
     end;
     
+    # Initialise Rattle random element generator
+    InitRattle := function(partialSGS, length, identity, nScrambles)
+        local i, RattleState;
+        
+        RattleState := [ShallowCopy(partialSGS), [identity, identity]];
+        for i in [Length(partialSGS) + 1 .. length] do
+            Add(RattleState[1], Immutable([identity, identity]));
+        od;
+        
+        ScrambleRattle(RattleState, nScrambles);
+        return RattleState;
+    end;
+    
+    # Scramble the Rattle state
+    ScrambleRattle := function(RattleState, nScrambles)
+        while nScrambles > 0 do
+            Rattle(RattleState);
+            nScrambles := nScrambles - 1;
+        od;
+    end;
+    
+    # Generate a random group element using the given Rattle state
+    Rattle := function(RattleState)
+        local i, j;
+        
+        i := Random([1 .. Length(RattleState[1])]);
+        RattleState[2] := [RattleState[2][1] * 
+                           RattleState[1][i][1],
+                           RattleState[1][i][2] * 
+                           RattleState[2][2]];
+        
+        i := Random([1 .. Length(RattleState[1])]);
+        
+        repeat
+            j := Random([1 .. Length(RattleState[1])]);
+        until i <> j;
+        
+        if Random([true, false]) then
+            RattleState[1][i] := 
+              Immutable([RattleState[1][i][1] * RattleState[1][j][1], 
+                      RattleState[1][j][2] * RattleState[1][i][2]]);
+        else
+            RattleState[1][i] := 
+              Immutable([RattleState[1][j][1] * RattleState[1][i][1], 
+                      RattleState[1][i][2] * RattleState[1][j][2]]);
+        fi;
+        
+        return RattleState[2];
+    end;
+    
     # The main random Schreier-Sims function
     # ssInfo - main information structure for the Schreier-Sims 
     # partialSGS - given partial strong generating set
@@ -78,13 +129,18 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
     # high_order - upper bound on the group order, or 0 if not available
     RandomSchreierSims := 
       function(ssInfo, partialSGS, maxIdentitySifts, identity, 
-              low_order, high_order)
-      local nIdentitySifts, element, strip, newInverseGenerator, level, order;
+              low_order, high_order, nScrambles, RattleFactor)
+      local nIdentitySifts, element, strip, newInverseGenerator, level, order,
+            RattleState;
         
         # Check if we are already done
-        order := ComputeOrder(ssInfo);
-        if high_order > 0 and order >= high_order then
-            return;
+        if high_order > 0 or low_order > 1 then
+           order := ComputeOrder(ssInfo);
+            if order >= high_order then
+                return;
+            fi;
+        else
+            order := 1;
         fi;
         
         nIdentitySifts := 0;
@@ -93,17 +149,19 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
         Assert(1, low_order >= 1 and high_order >= 0 and 
                (low_order <= high_order or high_order = 0));
         
+        RattleState := InitRattle(partialSGS, RattleFactor * 
+                               Length(partialSGS), identity, nScrambles);
+        
         # Loop until our order meets the lower bound and we have sifted the
         # given number of consecutive random elements to identity
         while (nIdentitySifts <= maxIdentitySifts or
                order < low_order) do
             
             # Get a random element, from a hopefully uniform distribution
-            element := PseudoRandom(Group(List(partialSGS, i -> i[1])));
+            element := Rattle(RattleState);
             
             # Our functions expect the elements to be vectors with the element
             # and its inverse
-            element := [element, Inverse(element)];
             MATRIXSS_DebugPrint(8, ["Random element to sift : ", element]);
             
             # Sift the random element
@@ -115,6 +173,10 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
                 newInverseGenerator := Immutable(Reversed(strip[1]));
                 AddSet(partialSGS, strip[1]);
                 AddSet(partialSGS, newInverseGenerator);
+                
+                RattleState := InitRattle(partialSGS, 
+                                       RattleFactor * Length(partialSGS),
+                                       identity, nScrambles);
                 
                 # Update partial SGS at each level
                 for level in [1 .. strip[2] - 1] do
@@ -128,15 +190,18 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
                 fi;
                 
                 # Recompute Schreier trees
-                UpdateSchreierTrees(ssInfo, partialSGS, identity);
-                order := ComputeOrder(ssInfo);
+                UpdateSchreierTrees(ssInfo, strip[2], partialSGS, 
+                        identity);
+                if high_order > 0 or low_order > 1 then
+                    order := ComputeOrder(ssInfo);
                 
-                # Check if we are done
-                MATRIXSS_DebugPrint(4, ["Order is : ", order]);
-                if high_order > 0 and order >= high_order then
-                    return;
+                    # Check if we are done
+                    MATRIXSS_DebugPrint(4, ["Order is : ", order]);
+                    if order >= high_order then
+                        return;
+                    fi;
                 fi;
-                    
+                
                 nIdentitySifts := 0;
             else
                 nIdentitySifts := nIdentitySifts + 1;
@@ -214,7 +279,7 @@ InstallGlobalFunction(MatrixRandomSchreierSims, function(G, p)
     
     # Call Schreier-Sims algorithm for each level (starting from top)
     RandomSchreierSims(ssInfo, generators, identitySifts, Identity(G), 
-            Order(G), Order(G));
+            Order(G), Order(G), 2, 5);
     
     MATRIXSS_DebugPrint(2, ["Random matrix Schreier-Sims done"]);
     
