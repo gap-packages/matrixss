@@ -66,3 +66,4 @@ distclean:
 clean:
 	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog
 	rm --recursive --force *~ *.bak
+	$(MAKE) -C doc/report clean
