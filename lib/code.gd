@@ -29,6 +29,15 @@ DeclareGlobalFunction("MatrixGroupOrder");
 #      maxFieldSize - maximum GL finite field size to be tested
 DeclareGlobalFunction("MatrixSchreierSimsTest");
 
+# The Schreier-Sims algorithm for matrix groups
+# Input:
+#      G - a matrix group
+# Output: list L with contents
+#      L[1] - a base for G
+#      L[2] - a strong generating set for G, corresponding to L[1]
+#      L[3] - a list of Schreier trees
+DeclareGlobalFunction("MatrixSchreierSims");
+
 
 DeclareInfoClass("MatrixSchreierSimsInfo");
 

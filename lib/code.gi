@@ -32,6 +32,8 @@ end;
 MATRIXSS_MSSAction := function(element, point)
     
     if not IsMatrix(element) or not IsRowVector(point) then
+        MATRIXSS_DebugPrint(1, ["Element : ", element]);
+        MATRIXSS_DebugPrint(1, ["Point : ", point]);
         Error("<element> must be a matrix and <point> must be a row vector");
     fi;
     
@@ -164,47 +166,6 @@ MATRIXSS_OrbitElement :=
     until false;
 end;
 
-# return generating set of a point stabiliser
-# generators - generating set for group to compute in
-# root - point to compute stabiliser of
-# schreierTree - should have root as root
-# action - the action to use
-# identity - the identity element in the group
-MATRIXSS_Stabiliser := 
-  function(generators, root, schreierTree, action, identity)
-    local stabiliser, orbit, element1, element2, 
-          generator, point, edge, inv_edge, list;
-    
-    stabiliser := [];
-    orbit := MATRIXSS_GetOrbit(schreierTree);
-    
-    # Compute Schreier generators of the stabiliser
-    for generator in generators do
-        for point in orbit do
-            if not MATRIXSS_GetSchreierTreeEdge(schreierTree, point) = 
-               generator[1] then
-                element1 := MATRIXSS_OrbitElement(schreierTree, point, 
-                                    action, identity, false);
-                element2 := MATRIXSS_OrbitElement(schreierTree, 
-                                    action(generator[1], point), 
-                                    action, identity, false);
-                
-                edge := element1[1] * generator[1] * element2[2];
-                inv_edge := element2[1] * generator[2] * element1[2];
-                
-                # Important to make sure no generator is the identity
-                if not edge = identity then
-                    list := [edge, inv_edge];
-                    AddSet(stabiliser, Immutable(list));
-                    #AddSet(stabiliser, Immutable(Reversed(list)));
-                fi;
-            fi;
-        od;
-    od;
-    
-    return stabiliser;
-end;
-
 # check if an element belongs to a group, using sifting
 # schreierTrees - trees with the base points as roots, and with generators from
 # the stabiliser of the previos point
@@ -218,8 +179,8 @@ MATRIXSS_Membership :=
     
     residue := element;
     for level in [1 .. Length(base)] do
-        MATRIXSS_DebugPrint(3, ["residue: ", residue[1], "\nbase: ", base[level],
-                "\naction", action]);
+        MATRIXSS_DebugPrint(5, ["residue: ", residue[1], "\nbase: ", 
+                base[level], "\naction", action]);
         point := action(residue[1], base[level]);
         
         if not MATRIXSS_IsPointInOrbit(schreierTrees[level], point) then
@@ -257,13 +218,8 @@ MATRIXSS_NewBasePoint := function(base, element, action, identity, field)
     return basePoint;
 end;
 
-# ssInfo := rec(
-#           schreierTrees[1..k]
-#           partialSGS[1..n]
-#           partialBase[1..k]
-#           action[1..k]
-
-
+# Create a Schreier generator for the stabiliser in the group which has 
+# "generator" as one of its generators. The stabiliser fixes "point".
 MATRIXSS_GetSchreierGenerator := 
   function(schreierTree, generator, point, action, identity)
     local element1, element2, edge, inv_edge;
@@ -279,9 +235,9 @@ MATRIXSS_GetSchreierGenerator :=
     return [edge, inv_edge];
 end;
 
-MATRIXSS_SchreierSims1 := function(ssInfo, level, identity, field)
-    local generator, point, orbit, strip, schreierGenerator, element, action,
-          recursiveLevel, schreierTree, SGS, newSGS, points, newPoint;
+MATRIXSS_SchreierSims := function(ssInfo, level, identity, field)
+    local generator, point, orbit, strip, schreierGenerator, element, action, 
+          recursiveLevel, schreierTree, SGS, oldSGS, newSGS, points, newPoint, i;
     
     action := ssInfo.action[level];
     
@@ -294,21 +250,32 @@ MATRIXSS_SchreierSims1 := function(ssInfo, level, identity, field)
             fi;
         od;
     od;
-    MATRIXSS_DebugPrint(4, ["Bad SGS for level ", level, " is ", newSGS]);
+#    MATRIXSS_DebugPrint(4, ["Bad SGS for level ", level, " is ", newSGS]);
 
-    SGS := Difference(ssInfo.partialSGS, newSGS);
-    MakeImmutable(SGS);
+    SGS := Immutable(Difference(ssInfo.partialSGS, newSGS));
+#    oldSGS := ssInfo.fixingGens[level];
     
-    MATRIXSS_DebugPrint(4, ["SGS for level ", level, " is ", SGS]);
-    #ssInfo.oldSchreierTrees[level] := ssInfo.schreierTrees[level];
+#    SGS := Immutable(ssInfo.fixingGens[level]);
+#    oldSGS := Intersection(SGS, oldGens);
+    
+#    if IsEmpty(ssInfo.schreierTrees[level]) then
+        ssInfo.schreierTrees[level] := 
+          MATRIXSS_SchreierTree(SGS, field, ssInfo.partialBase[level], 
+                  ssInfo.action[level], identity);
+#        ssInfo.oldSchreierTrees[level] := ssInfo.schreierTrees[level];
+#    else
+        #MATRIXSS_DebugPrint(4, ["SGS for level ", level, " is ", SGS]);
+#        ssInfo.oldSchreierTrees[level] := ssInfo.schreierTrees[level];
+#        ssInfo.schreierTrees[level] := 
+#          MATRIXSS_ExtendSchreierTree(ssInfo.oldSchreierTrees[level],
+#                  ssInfo.partialBase[level], SGS, oldSGS, action);
+#    fi;
+    
+    #ssInfo.fixingGens[level] := SGS;
+    
     #ssInfo.schreierTrees[level] := 
-    #  MATRIXSS_ExtendSchreierTree(ssInfo.oldSchreierTrees[level],
-    #          ssInfo.partialBase[level], ssInfo.partialSGS,
-    #          ssInfo.oldSGS, ssInfo.action[level]);
-    
-    ssInfo.schreierTrees[level] := 
-      MATRIXSS_SchreierTree(SGS, field, ssInfo.partialBase[level], 
-              ssInfo.action[level], identity);
+    #  MATRIXSS_SchreierTree(SGS, field, ssInfo.partialBase[level], 
+    #          ssInfo.action[level], identity);
 
     orbit := MATRIXSS_GetOrbit(ssInfo.schreierTrees[level]);
     MakeImmutable(orbit);
@@ -317,50 +284,77 @@ MATRIXSS_SchreierSims1 := function(ssInfo, level, identity, field)
             MATRIXSS_GetOrbitSize(ssInfo.schreierTrees[level])]);
     
     for point in orbit do
+        #if MATRIXSS_IsPointInOrbit(ssInfo.oldSchreierTrees[level], point) then
+        #    newSGS := newGens;
+        #else
+        #    newSGS := SGS;
+        #fi;
+        
         for generator in SGS do
             #if not MATRIXSS_IsPointInOrbit(ssInfo.oldSchreierTrees[level],
-            #           point) or
-            #   not generator in ssInfo.oldSGS then
+            #           point) or not generator in oldGens then
                 schreierGenerator := 
                   MATRIXSS_GetSchreierGenerator(ssInfo.schreierTrees[level],
                           generator, point, ssInfo.action[level], identity);
                 
+                Assert(3, not schreierGenerator[1] = identity, 
+                       "Identity Schreier generator!");
+                if schreierGenerator[1] = identity then
+                    continue;
+                fi;
+                
                 MATRIXSS_DebugPrint(4, ["Schreier Generator : ", 
                         schreierGenerator]);
                 
-                points := [level .. Length(ssInfo.partialBase)];
-
-                strip := 
-                  MATRIXSS_Membership(ssInfo.schreierTrees{points},
-                          ssInfo.partialBase{points},
-                          schreierGenerator, 
-                          ssInfo.action[level], identity);
+                points := [level + 1 .. Length(ssInfo.partialBase)];
+                strip := MATRIXSS_Membership(ssInfo.schreierTrees{points},
+                                 ssInfo.partialBase{points},
+                                 schreierGenerator, 
+                                 ssInfo.action[level], identity);
+                
+                # The drop-out level is in range 
+                # [1 .. Length(ssInfo.partialBase) - level] 
+                # but we want the range given by points
+                strip[2] := strip[2] + level;
                 
                 MATRIXSS_DebugPrint(3, ["Dropout level : ", strip[2]]);
                 
                 if not strip[1][1] = identity then
                     MATRIXSS_DebugPrint(3, ["Residue found"]);
-                    #ssInfo.oldSGS := ssInfo.partialSGS;
+
                     AddSet(ssInfo.partialSGS, Immutable(strip[1]));
                     AddSet(ssInfo.partialSGS, Immutable(Reversed(strip[1])));
+                    
+                    #for i in [1 .. Minimum(strip[2], 
+                    #        Length(ssInfo.partialBase))] do
+                    #    AddSet(ssInfo.fixingGens[i], Immutable(strip[1]));
+                    #    AddSet(ssInfo.fixingGens[i], 
+                    #           Immutable(Reversed(strip[1])));
+                    #od;
+
                     if strip[2] = Length(ssInfo.partialBase) + 1 then
-                        MATRIXSS_DebugPrint(2, ["Finding new base point"]);
+                        MATRIXSS_DebugPrint(3, ["Finding new base point"]);
+                        
                         newPoint := 
                           MATRIXSS_NewBasePoint(ssInfo.partialBase, strip[1],
                                   ssInfo.action[level], identity, field);
+                        
                         Add(ssInfo.partialBase, newPoint);
                         Add(ssInfo.action, MATRIXSS_MSSAction);
-                        Add(ssInfo.schreierTrees,
-                            MATRIXSS_SchreierTree([], field, newPoint, 
-                                    MATRIXSS_MSSAction, identity));
+                        #Add(ssInfo.fixingGens, []);
+                        #Add(ssInfo.schreierTrees, []);
+                            #MATRIXSS_SchreierTree([], 
+                            #    field, newPoint, 
+                            #    MATRIXSS_MSSAction, identity));
                     fi;
                     
+                    
                     for recursiveLevel in Reversed([level + 1 .. strip[2]]) do
-                        #ssInfo.oldSGS := ShallowCopy(ssInfo.partialSGS);
-                        #RemoveSet(ssInfo.partialSGS, strip[1]);
-                        #RemoveSet(ssInfo.partialSGS, Reversed(strip[1]));
-                        MATRIXSS_SchreierSims1(ssInfo, recursiveLevel,
-                                identity, field);
+                        #newSGS := ShallowCopy(ssInfo.partialSGS);
+                        #RemoveSet(newSGS, strip[1]);
+                        #RemoveSet(newSGS, Reversed(strip[1]));
+                        MATRIXSS_SchreierSims(ssInfo, 
+                                recursiveLevel, identity, field);
                     od;
                 fi;
             #fi;
@@ -368,39 +362,46 @@ MATRIXSS_SchreierSims1 := function(ssInfo, level, identity, field)
     od;
 end;
 
-# Compute Schreier trees for the stabiliser chain generated by sgs and
-# associated to base.
-# Tree j is created with base point j as root, using generators in sgs that fix
-# base points 1 .. j-1 (or all generators, in case of j = 1)
-MATRIXSS_GetSchreierTrees := function(sgs, base, field, action, identity)
-    local generators, point, element, schreierTrees, gens;
+MATRIXSS_GetPartialBaseSGS := 
+  function(base, sgs, generators, action, field, identity)
+    local gens, point, nFixedPoints, newPoint, element, list, points, newSGS;
     
-    # Create mutable generator list
-    generators := [];
-    UniteSet(generators, sgs);
+    points := ShallowCopy(base);
+    gens := UnionSet(generators, sgs);
+    RemoveSet(gens, identity);
+    newSGS := [];
     
-    schreierTrees := [];
-    for point in base do
-        Add(schreierTrees, 
-            MATRIXSS_SchreierTree(generators, field, point, action, identity));
-        
-        gens := ShallowCopy(generators);
-        for element in generators do
-            if not action(element[1], point) = point then
-                RemoveSet(gens, element);
+    # we make a partial strong generating set which also contain
+    # inverses of all elements
+    for element in gens do
+        nFixedPoints := 0;
+        for point in points do
+            if action(element, point) = point then
+                nFixedPoints := nFixedPoints + 1;
+            else
+                break;
             fi;
         od;
-        generators := gens;
+        list := [element, Inverse(element)];
+        if nFixedPoints = Length(points) then
+            newPoint := MATRIXSS_NewBasePoint(points, list, action, 
+                                identity, field);
+            Add(points, newPoint);
+        fi;
+
+        # Save reference to generator and its inverse
+        # Then inverses need not be calculated later
+        AddSet(newSGS, Immutable(list));
+        if not element * element = identity then
+            AddSet(newSGS, Immutable(Reversed(list)));
+        fi;
     od;
     
-    # If sgs is a strong generating set, then no generator fixes all points
-    Assert(3, IsEmpty(generators), "Not a real base!\n");
-    
-    return schreierTrees;
+    return [points, newSGS];
 end;
 
 # An implementation of the Schreier-Sims algorithm, for matrix groups
-MatrixSchreierSims1 := function(G)
+InstallGlobalFunction(MatrixSchreierSims, function(G)
     local ssInfo, generators, base, trees, points, element, gens, list, level;
 
     if not IsMatrixGroup(G) then
@@ -411,35 +412,40 @@ MatrixSchreierSims1 := function(G)
     points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
     base := BasisVectors(CanonicalBasis(points));
     
-    # we make generators a partial strong generating set which also contain
-    # inverses of all elements
-    generators := [];
-    for element in gens do
-        if not element = Identity(G) then
-            # Save reference to generator and its inverse
-            # Then inverses need not be calculated later
-            list := [element, Inverse(element)];
-            AddSet(generators, Immutable(list));
-            AddSet(generators, Immutable(Reversed(list)));
-        fi;
-    od;
+    list := MATRIXSS_GetPartialBaseSGS([], [], gens, MATRIXSS_MSSAction, 
+                    points, Identity(G));
     
+    generators := list[2];
+    base := list[1];
+
     ssInfo := rec(
                   partialSGS := generators,
-                  oldSGS := [],
                   partialBase := base,
                   action := [],
                   schreierTrees := [],
-                  oldSchreierTrees := []
+                  oldSchreierTrees := [],
+                  fixingGens := []
                   );
     
+    #ssInfo.fixingGens[1] := ssInfo.partialSGS;
     
     for level in [1 .. Length(base)] do
         Add(ssInfo.action, MATRIXSS_MSSAction);
-        Add(ssInfo.schreierTrees, 
-          MATRIXSS_SchreierTree(ssInfo.oldSGS, points, 
-                  ssInfo.partialBase[level], ssInfo.action[level], 
-                  Identity(G)));
+        
+        #Add(ssInfo.schreierTrees, []);
+        #Add(ssInfo.schreierTrees, 
+        #  MATRIXSS_SchreierTree(ssInfo.fixingGens[level], points, 
+        #          ssInfo.partialBase[level], ssInfo.action[level], 
+        #          Identity(G)));
+        
+        #ssInfo.fixingGens[level + 1] := [];
+        #for element in ssInfo.fixingGens[level] do
+        #    if ssInfo.action[level](element[1], ssInfo.partialBase[level]) =
+        #       ssInfo.partialBase[level] then
+        #        AddSet(ssInfo.fixingGens[level + 1], element);
+        #    fi;
+        #od;
+        #MakeImmutable(ssInfo.fixingGens[level + 1]);                
     od;
     
     MATRIXSS_DebugPrint(3, ["Calling recursive Schreier-Sims"]);
@@ -447,182 +453,23 @@ MatrixSchreierSims1 := function(G)
     MATRIXSS_DebugPrint(3, ["Partial sgs : ", generators]);
     
     for level in Reversed([1 .. Length(base)]) do
-        MATRIXSS_SchreierSims1(ssInfo, level, Identity(G), points);
+        MATRIXSS_SchreierSims(ssInfo, level, Identity(G), points);
     od;
-    
-    #ssInfo.schreierTrees := 
-    #  MATRIXSS_GetSchreierTrees(ssInfo.partialSGS, ssInfo.partialBase, points, 
-    #          MATRIXSS_MSSAction, Identity(G));
     
     return [ssInfo.partialBase, ssInfo.partialSGS, ssInfo.schreierTrees];
-end;
+end);
     
-
-# Recursive Schreier-Sims over matrix group generated by S
-# partialBase - a partial base
-# partialSGS - a partial strong generating set
-MATRIXSS_SchreierSims := function(partialBase, partialSGS, schreierTrees, 
-                                 action, identity, field)
-                local newBase, newSGS, newSchreierTrees, ret, element, point, 
-                      orbit, generator, 
-                      numFixedBasePoints, stabiliser, generators;
-    
-    if IsEmpty(partialSGS) then
-        MATRIXSS_DebugPrint(2, ["Basis case, no generators"]);
-        return [partialBase, partialSGS, schreierTrees];
-    fi;
-    
-    repeat        
-        MATRIXSS_DebugPrint(3, ["At current level"]);
-        MATRIXSS_DebugPrint(3, ["Partial base : ", partialBase]);
-        MATRIXSS_DebugPrint(3, ["Partial sgs : ", partialSGS]);
-        
-        MATRIXSS_DebugPrint(2, ["Getting partial base and sgs for next lower level"]);
-        newBase := partialBase{[2 .. Length(partialBase)]};
-        newSchreierTrees := schreierTrees{[2 .. Length(schreierTrees)]};
-        newSGS  := [];
-        for element in partialSGS do
-            if action(element[1], partialBase[1]) = partialBase[1] then
-                AddSet(newSGS, element);
-            fi;
-        od;
-        
-        MATRIXSS_DebugPrint(3, ["Partial base : ", newBase]);
-        MATRIXSS_DebugPrint(3, ["Partial sgs : ", newSGS]);
-        
-        MATRIXSS_DebugPrint(2, ["Updating to complete base and sgs"]);
-        ret              := MATRIXSS_SchreierSims(newBase, newSGS, 
-                                    newSchreierTrees, 
-                                    action, identity, field);
-        newBase          := ret[1];
-        newSGS           := ret[2];
-        newSchreierTrees := ret[3];
-        
-        MATRIXSS_DebugPrint(3, ["Base : ", newBase]);
-        MATRIXSS_DebugPrint(3, ["SGS : ", newSGS]);
-
-        partialBase := partialBase{[1]};
-        Append(partialBase, newBase);
-        partialSGS := UnionSet(partialSGS, newSGS);
-        #MakeImmutable(partialSGS);
-        
-        # recompute Schreier trees, when base and SGS has changed
-        # only recompute first tree? we only need first one in this recursion
-        schreierTrees := MATRIXSS_GetSchreierTrees(partialSGS, partialBase, 
-                                 field, action, identity);
-        
-        # get Schreier generators of stabiliser
-        stabiliser := MATRIXSS_Stabiliser(partialSGS, partialBase[1],
-                              schreierTrees[1], action, identity);
-
-        # check each Schreier generators if they are in the group generated by
-        # newSGS
-        generators := [];
-        for element in stabiliser do                
-            if MATRIXSS_Membership(newSchreierTrees, newBase, newSGS, 
-                       element, action, identity) then
-                AddSet(generators, element);
-            else
-                break;
-            fi;
-        od;
-        
-        if Length(generators) = Length(stabiliser) then
-            MATRIXSS_DebugPrint(3, ["No extension needed"]);
-            return [partialBase, partialSGS, schreierTrees];
-        else
-            MATRIXSS_DebugPrint(3, ["Extending SGS with : ", element]);
-            
-            # element is an element in the stabiliser that is not in the
-            # group generated by newSGS
-            AddSet(partialSGS, element);
-            
-            # Check if new generator fixes all points
-            
-            numFixedBasePoints := 0;
-            for point in partialBase do
-                if action(element[1], point) = point then
-                    numFixedBasePoints := numFixedBasePoints + 1;
-                else
-                    break;
-                fi;
-            od;
-            
-            if numFixedBasePoints = Length(partialBase) then
-                # find point that is moved by the Schreier generator
-                # add point and compute its Schreier tree
-                
-                MATRIXSS_DebugPrint(6, ["Base : ", partialBase]);
-                point := MATRIXSS_NewBasePoint(partialBase, element,
-                                 action, identity, field);
-                Add(partialBase, point);
-                
-                MATRIXSS_DebugPrint(3, ["Adding new base point : ", point]);           
-                MATRIXSS_DebugPrint(8, ["Base : ", partialBase]);
-                
-                # recompute Schreier trees when base has changed
-                # do we really need to recompute all?
-                schreierTrees := MATRIXSS_GetSchreierTrees(partialSGS, 
-                                         partialBase, 
-                                         field, action, identity);             
-            fi;
-        fi;
-        
-    until false;
-    
-end;
-
-# An implementation of the Schreier-Sims algorithm, for matrix groups
-MatrixSchreierSims := function(G)
-    local generators, base, trees, points, element, gens, list;
-
-    if not IsMatrixGroup(G) then
-        Error("<G> must be a matrix group");
-    fi;
-    
-    gens := GeneratorsOfGroup(G);
-    points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
-    base := BasisVectors(CanonicalBasis(points));
-    
-    # we make generators a partial strong generating set which also contain
-    # inverses of all elements
-    generators := [];
-    for element in gens do
-        if not element = Identity(G) then
-            # Save reference to generator and its inverse
-            # Then inverses need not be calculated later
-            list := [element, Inverse(element)];
-            AddSet(generators, Immutable(list));
-            AddSet(generators, Immutable(Reversed(list)));
-        fi;
-    od;
-                
-    # Compute Schreier trees
-    trees := MATRIXSS_GetSchreierTrees(generators, base, points, 
-                     MATRIXSS_MSSAction, Identity(G));
-    
-    MATRIXSS_DebugPrint(3, ["Calling recursive Schreier-Sims"]);
-    MATRIXSS_DebugPrint(3, ["Partial base : ", base]);
-    MATRIXSS_DebugPrint(3, ["Partial sgs : ", generators]);
-    
-    return MATRIXSS_SchreierSims(base, generators, trees, MATRIXSS_MSSAction, 
-                   Identity(G), points);
-end;
-
 InstallGlobalFunction(MatrixGroupOrder, function(G)
     local ret, schreierTrees, tree, order;
     
     if not IsMatrixGroup(G) then
         Error("<G> must be a matrix group");
     fi;
-    
-    SetAssertionLevel(0);
-    SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
-    
+        
     MATRIXSS_DebugPrint(2, ["Entering MatrixGroupOrder"]);
     MATRIXSS_DebugPrint(2, ["Input group : ", G]);
     
-    ret := MatrixSchreierSims1(G);
+    ret := MatrixSchreierSims(G);
     
     MATRIXSS_DebugPrint(3, ["Base : ", ret[1]]);
     MATRIXSS_DebugPrint(3, ["SGS : ", ret[2]]);
