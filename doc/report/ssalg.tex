@@ -716,7 +716,7 @@ moved by $M$. Finally if $M$ is scalar, then $M_{11} \neq 1$ since $M
 \end{algorithm}
 
 \section{Complexity analysis}
-We now analyse the time complexity of the given algorithms, but we
+We now analyse the time complexity of some of the given algorithms, but we
 will not be interested in space complexity. For the analysis we assume
 that the external functions \texttt{Tree}, \texttt{AddChild} and
 \texttt{EdgeLabel}, that depend on the particular datastructure used,
@@ -726,12 +726,17 @@ used for sets is a sorted list, so that elements can be found, added and
 removed in logarithmic time using binary search. This assumption is
 satisfied in \GAP.
 
-Moreover, since we are working in a matrix group $G = \gen{S} \leq \GL(d, q)$
-that acts on the vector space $X = \F_q^d$, we know that the
-multiplication of two group elements takes time $\Theta(d^3)$ and that the action
-of a group element on a point takes time $\Theta(d^2)$, under the reasonable
-assumption that the multiplication of two elements from $\F_q$ takes time 
-$\Theta(1)$.
+Moreover, since we are working in a matrix group $G = \gen{S} \leq
+\GL(d, q)$ that acts on the vector space $X = \F_q^d$, we know that
+the multiplication of two group elements takes time $\Theta(d^3)$ and
+that the action of a group element on a point takes time
+$\Theta(d^2)$, under the assumption that the multiplication of two
+elements from $\F_q$ takes time $\Theta(1)$. This assumption is
+reasonable since we are mostly interested in the case when $q$ is
+small, so that one field element can be stored in a machine word and manipulated in constant time. Then
+we also see that testing equality between two group elements takes
+time $\OR{d^2}$ and testing equality between two points takes time
+$\OR{d}$.
 
 Consider first \ref{alg:orbit}. We know that it is a breadth-first
 search and we know that a simple breadth-first search on a graph
@@ -747,16 +752,30 @@ For \ref{alg:trace} we just note that in a tree with vertex set $V$,
 the depth of any node is bounded by $\abs{V}$. In our case the
 vertices of the Schreier tree is the points of the orbit, which may be
 the whole of $X$ is the action is transitive. Therefore we see that
-\ref{alg:trace} takes time $\OR{\abs{X} d^3}$.
+\ref{alg:trace} takes time $\OR{\abs{X} d^4}$.
 
-It is obvious that \ref{alg:new_base_point} takes time $\OR{d^2}$, and it is also obvious that \ref{alg:get_schreier_gen} takes time $\OR{\abs{X} d^2 + d^3} = \OR{\abs{X} d^2}$. In
-\ref{alg:partial_bsgs} we see that line
-\ref{alg:partial_bsgs_innerloop2} takes time $\OR{1}$ because the base
-is just a list and can therefore be augmented in constant time. We see
-that line \ref{alg:partial_bsgs_innerloop1} takes time $\OR{\abs{B}
-  d^2}$ since we might have to multiply every base point with the
-group element, in the case where it actually fixes the base. Thus,
-\ref{alg:partial_bsgs} takes time $\OR{\abs{S} \log{\abs{S}} \abs{B}
-  d^2}$.
+It is obvious that \ref{alg:new_base_point} takes time $\OR{d^2}$, and
+it is also obvious that \ref{alg:get_schreier_gen} takes time
+$\OR{\abs{X} d^2 + d^3} = \OR{\abs{X} d^2}$. In \ref{alg:partial_bsgs}
+we see that line \ref{alg:partial_bsgs_innerloop2} takes time $\OR{1}$
+because the base is just a list and can therefore be augmented in
+constant time. We see that line \ref{alg:partial_bsgs_innerloop1}
+takes time $\OR{\abs{B} d^3}$ since we might have to multiply every
+base point with the group element and check equality, in the case
+where it actually fixes the base. Thus, \ref{alg:partial_bsgs} takes
+time $\OR{\abs{S} \log{\abs{S}} \abs{B} d^3}$.
 
+Since \ref{alg:pre_ss} is not used in the \GAP~package of the project,
+we skip the complexity analysis of it and its related algorithms. We also skip any detailed complexity
+of the Schreier-Sims algorithm itself, since we will see that for
+matrix groups, this is futile anyway. The case of permutation groups is
+analysed in \cite{butler91} and the result is that the Schreier-Sims
+algorithm has time complexity $\OR{\abs{X}^5}$. 
+
+The essential problem
+when using the algorithm for matrix groups is then that $X = \F_q^d$
+so $\abs{X} = q^d$ and the Schreier-Sims algorithm is thus exponential
+in $d$. This is quite disheartening, since it is the case when $d$
+grows large that we are interested in, more often than when $q$ is
+large. However, it is possible to make the implementation fast enough for many practical purposes, so all is not lost.
 
