@@ -1,4 +1,4 @@
-gap-matrix-schreiersims (0.9.20040928-1) unstable; urgency=low
+gap-matrix-schreiersims (0.9.20040929-1) unstable; urgency=low
 
   * Debian directory is now not included in .orig.tar.gz
   * Diff now contains debian directory
