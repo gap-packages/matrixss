@@ -114,7 +114,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 3,
                   MATRIXSS_RandomSchreierGenerator(
                           ssInfo[level].schreierTree.Tree, elements, 
                           ssInfo[level].action, identity);
-                MATRIXSS_DebugPrint(3, ["Random Schreier gen: ", schreierGen]);
+                MATRIXSS_DebugPrint(8, ["Random Schreier gen: ", schreierGen]);
                 
                 if not ssInfo[level].IsIdentity(schreierGen[1], identity) then
                     ret := MATRIXSS_Membership(ssInfo{[level .. 
@@ -187,6 +187,9 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 3,
             dropoutLevel := ret[2];
             
             if residue[1] <> identity then
+                if dropoutLevel > Length(ssInfo) then
+                    MATRIXSS_ExtendBase(ssInfo, residue, identity);
+                fi;
                 for level in Reversed([1 .. dropoutLevel]) do
                     CompletePointStabiliserSubgroup(ssInfo, residue, level, 
                             identity, 4);

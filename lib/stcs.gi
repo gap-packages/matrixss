@@ -284,7 +284,7 @@ MATRIXSS_SchreierToddCoxeterSims :=
                     # the same free group
                     gens1 := GeneratorsOfGroup(word[3]);
                     
-                    if Length(gens1) >= Length(gens2) then
+                    if Length(gens2) >= Length(gens1) then
                         MATRIXSS_DebugPrint(6, ["Looking up ", residue[2],
                                 " in ", ssInfo[recursiveLevel + 1].
                                 genMap.FreeGenerators]);
@@ -308,7 +308,9 @@ MATRIXSS_SchreierToddCoxeterSims :=
                         fi;
                         
                         MATRIXSS_DebugPrint(3, ["Adding relation : ",
-                                relation]);
+                                Immutable([relation, word[3]])]);
+                        MATRIXSS_DebugPrint(3, ["Relations: ",
+                                ssInfo[recursiveLevel + 1].relations]);
                         
                         # Save relation along with the its free group
                         # so that we can map its generators later
