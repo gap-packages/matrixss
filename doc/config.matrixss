@@ -1,0 +1,5 @@
+@msfiles = ("code");
+@gdfiles = ("code", "standard", "stcs", "random", "test");
+LIB      = "../lib";
+DIR      = ".";
+check;
