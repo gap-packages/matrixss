@@ -1,27 +1,62 @@
 ###############################################################################
-##
+#1
 #W    random.gi  The Matrix Schreier Sims package 
 #W               Standard Schreier-Sims implementation
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
-##    Dev start : 2004-07-01 
+#H    Dev start : 2004-07-01 
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
 #H    Last edit : $Author$
 ##
 #H    @(#)$Id$
+##
+## These are the special routines for the probabilistic implementation of 
+## Schreier-Sims algorithm.
+##
 ###############################################################################
 
 Revision.("matrixss/lib/random_gi") := 
   "@(#)$Id$";
 
-# An implementation of the Schreier-Sims algorithm, for matrix groups
+###############################################################################
+##
+#M StabChainMatrixGroup(G)
+##
+## An implementation of the Schreier-Sims algorithm, for matrix groups,
+## probabilistic version. See "StabChainMatrixGroup!general" for general information
+## about the attribute.
+##
+## In addition to the general Options of the attribute `StabChainMatrixGroup',
+## the probabilistic algorithm is aware of the following:
+## \beginitems
+## Probability & (lower bound for) probability of correct solution, which
+##                    defaults to 3/4
+##
+## Verify & Boolean parameter which signifies if the base and SGS computed
+##          using the random Schreir-Sims algorithm should be verified
+##          using the Schreier-Todd-Coxeter-Sims algorithm.
+##          Defaults to `false.'
+##
+## OrderLowerBound & Lower bound for the order of `G', must be >= 1.
+##                   Defaults to 1.
+##
+## OrderUpperBound & Upper bound for the order of `G', or 0 if unknown.
+##                   Defaults to 0.
+##
+## Note that if the order of `G' is known, so that 
+## `OrderLowerBound' = `OrderUpperBound' = |G|
+## then the randomized algorithm always produces a correct base and SGS, so
+## there is no need of verification. Also, the verification will extend the
+## given base and SGS to a complete base and SGS if needed.
+##
+###############################################################################
 InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2, 
         function(G)
     local ssInfo, list, generators, level, points, element, RandomSchreierSims,
-          identitySifts, UpdateSchreierTrees, ComputeOrder, Rattle, InitRattle,
+          identitySifts, UpdateSchreierTrees, Rattle, InitRattle,
           ScrambleRattle, AddRattleGenerator, low_order, high_order, p, verify;
     
     # Updates the given Schreier trees w.r.t. to the given partial SGS
@@ -57,19 +92,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
             ssInfo[level].oldSGS := SGS;
         od;
     end;
-    
-    # Computes the order of the group defined by the given Schreier trees
-    ComputeOrder := function(ssInfo)
-        local order, levelStruct;
         
-        order := 1;
-        for levelStruct in ssInfo do
-            order := order * MATRIXSS_GetOrbitSize(levelStruct.schreierTree);
-        od;
-        
-        return order;
-    end;
-    
     # Initialise Rattle random element generator
     InitRattle := function(partialSGS, length, identity, nScrambles)
         local i, RattleState;
@@ -120,14 +143,33 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         return RattleState[2];
     end;
     
-    # The main random Schreier-Sims function
-    # ssInfo - main information structure for the Schreier-Sims 
-    # partialSGS - given partial strong generating set
-    # maxIdentitySifts - maximum number of consecutive elements that sifts to 
-    #                    identity before the algorithm terminates
-    # identity - the group identity
-    # low_order - lower bound on the group order (must be >= 1)
-    # high_order - upper bound on the group order, or 0 if not available
+###############################################################################
+##
+#F RandomSchreierSims(ssInfo, partialSGS, maxIdentitySifts, identity, low_order, high_order, nScrambles, RattleFactor)
+##    
+## The main random Schreier-Sims function.
+## \beginitems    
+## `ssInfo' & main information structure for the Schreier-Sims 
+##    
+## `partialSGS' & given partial strong generating set
+##
+## `maxIdentitySifts' & maximum number of consecutive elements that sifts to 
+##                    identity before the algorithm terminates
+##    
+## `identity' & the group identity
+##    
+## `low_order' & lower bound on the group order (must be >= 1)
+##    
+## `high_order' & upper bound on the group order, or 0 if not available
+##
+## `nScrambles' & number of initial scrambles of the Rattle pool each time
+##              a new pool is created
+##    
+## `RattleFactor' & the Rattle pool is this many times bigger than the
+##                partial SGS
+## \enditems
+##
+###############################################################################
     RandomSchreierSims := 
       function(ssInfo, partialSGS, maxIdentitySifts, identity, 
               low_order, high_order, nScrambles, RattleFactor)
@@ -136,7 +178,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         
         # Check if we are already done
         if high_order > 0 or low_order > 1 then
-           order := ComputeOrder(ssInfo);
+           order := MATRIXSS_ComputeOrder(ssInfo);
             if order >= high_order then
                 return;
             fi;
@@ -194,7 +236,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 UpdateSchreierTrees(ssInfo, strip[2], partialSGS, 
                         identity);
                 if high_order > 0 or low_order > 1 then
-                    order := ComputeOrder(ssInfo);
+                    order := MATRIXSS_ComputeOrder(ssInfo);
                 
                     # Check if we are done
                     MATRIXSS_DebugPrint(4, ["Order is : ", order]);
@@ -255,26 +297,6 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
     
     # Main structure holding information needed by the algorithm
     ssInfo := [];
-        
-    # ssInfo has a record for each level in the algorithm, and there is one
-    # level for each base point. The members of the record are:
-    #   partialSGS - the elements in the current partial SGS that fixes all
-    #                points at lower levels, or the whole partial SGS for the
-    #                first level
-    #   partialBase - the base point for this level
-    #   action - the action (function) at this level
-    #   points - the field where the base points come from
-    #   hash - the hash function for the Schreier tree at this level
-    #   schreierTree - the Schreier tree for this level, representing the
-    #                  basic orbit at this level, ie the orbit of the member
-    #                  "partialBase" at this level, under the action of
-    #                  "partialSGS" at the previous (lower) level
-    #                  Thus, the root of the tree is "partialBase".
-    #   oldSGS - the whole partial SGS at the last call of SchreierSims at
-    #            this level
-    #   IsIdentity - the function to check if a point is the identity at this
-    #                level
-    
     
     MATRIXSS_DebugPrint(3, ["Group generators : ", generators]);
     
@@ -313,12 +335,8 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         od;
     fi;
     
-    # Create output structure
-    list := [[], generators, []];
-    for level in [1 .. Length(ssInfo)] do
-        Add(list[1], ssInfo[level].partialBase);
-        Add(list[3], ssInfo[level].schreierTree);
-    od;
-    
-    return Immutable(list);
+    return Immutable(ssInfo);
 end);
+
+###############################################################################
+#E

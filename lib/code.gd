@@ -1,22 +1,90 @@
 ###############################################################################
-##
+#1
 #W    code.gd     The Matrix Schreier Sims package                
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik B‰‰rnhielm
-##    Dev start : 2004-01-10 
+#H    Dev start : 2004-01-10 
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
 #H    Last edit : $Author$
 ##
 #H    @(#)$Id$
+##
+## These are the general declarations used by the package. Most notably the
+## attribute `StabChainMatrixGroup' which is the core of the package 
+## functionality.
+##
 ###############################################################################
 
 Revision.("matrixss/lib/code_gd") := 
   "@(#)$Id$";
 
-# Info class used for debugging
+###############################################################################
+##
+#A StabChainMatrixGroup(G)
+##
+## Declare new attribute for storing base, SGS and Schreier trees.
+## The attribute is computed using the Schreier-Sims algorithm for finite
+## matrix groups, which is the main content of the package.
+##
+## The attribute is a list of records, and it has the same structure as the
+## `ssInfo' structure, see "ssInfo".
+##
+## The corresponding attribute operations are aware of a few Options.
+## \beginitems
+## `SimpleSchreierTree' & calculate coset representatives at the moment of
+##                      creation of the Schreier trees, thus making them
+##                      have height 1.
+##                      This should make the algorithm significantly 
+##                      faster.
+##
+## `ExtendSchreierTree' & Do not recompute Schreier trees at each run of a
+##                        given level, but extend the Schreier trees from 
+##                        the last run at that level.
+##
+## `AlternatingActions' & Always prepend a base point with the line that
+##                        contains it, using the projective action on the 
+##                        line.
+##
+## `CleverBasePoints' & Choose an initial list of base points using 
+##                      BasisVectorsForMatrixAction, which is due to
+##                      O'Brien and Murray.
+## \enditems
+##
+###############################################################################
+DeclareAttribute("StabChainMatrixGroup", IsMatrixGroup and IsFinite);
+
+###############################################################################
+##
+#V MatrixSchreierSimsInfo
+##
+## The {\GAP} InfoClass used by the package, for debugging purposes.
+##
+###############################################################################
 DeclareInfoClass("MatrixSchreierSimsInfo");
+
+###############################################################################
+##
+#V MATRIXSS_DEBUGLEVEL
+##
+## The internal debugging level. This is really obsolete and the above info
+## class should be used instead.
+##
+###############################################################################
+MATRIXSS_DEBUGLEVEL := 0;
+
+###############################################################################
+##
+#V MATRIXSS_BasePointStore
+##
+## A list of hopefully good base points, ie base points with small orbits.
+## They are fetched with `BasisVectorsForMatrixAction' which is due to
+## O{\rq}Brien and Murray, and as long as the list is non-empty, 
+## new base points will be shifted from it.
+##
+###############################################################################
+MATRIXSS_BasePointStore := [];
 
 #E

@@ -1,31 +1,54 @@
 ###############################################################################
-##
+#1
 #W    standard.gi  The Matrix Schreier Sims package 
 #W                 Standard Schreier-Sims implementation
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik B‰‰rnhielm
-##    Dev start : 2004-07-01 
+#H    Dev start : 2004-07-01 
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
 #H    Last edit : $Author$
 ##
 #H    @(#)$Id$
+##
+## These are the special routines for the deterministic version of 
+## Schreier-Sims algorithm.
 ###############################################################################
 
 Revision.("matrixss/lib/standard_gi") := 
   "@(#)$Id$";
 
-# An implementation of the Schreier-Sims algorithm, for matrix groups
-InstallGlobalFunction(MatrixSchreierSims, function(G)
+###############################################################################
+##
+#A StabChainMatrixGroup(G)
+##
+## An implementation of the Schreier-Sims algorithm, for matrix groups,
+## probabilistic version. See "StabChainMatrixGroup!general" for general information
+## about the attribute.
+##
+###############################################################################
+InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1, 
+        function(G)
     local ssInfo, list, generators, level, points, element, SchreierSims;
         
-    # The main Schreier-Sims function
-    # ssInfo - main information structure for the current Schreier-Sims run
-    # partialSGS - given partial strong generating set
-    # level - the level of the call to Schreier-Sims
-    # identity - the group identity
+###############################################################################
+##
+#F SchreierSims(ssInfo, partialSGS, level, identity)
+##
+## The main Schreier-Sims function, which is called for each level.
+## \beginitems    
+## ssInfo & main information structure for the current Schreier-Sims run
+##    
+## partialSGS & given partial strong generating set
+##    
+## level & the level of the call to Schreier-Sims
+##
+## identity & the group identity
+## \enditems
+##
+###############################################################################
     SchreierSims := function(ssInfo, partialSGS, level, identity)
         local generator, point, orbit, strip, schreierGenerator, element, 
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
@@ -171,10 +194,6 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     
 
     ### MAIN Schreier-Sims 
-
-    if not IsMatrixGroup(G) then
-        Error("<G> must be a matrix group");
-    fi;
     
     # Get initial set of generators, to be extended to a partial SGS
     generators := GeneratorsOfGroup(G);
@@ -187,28 +206,46 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     # The vector space on which the group acts
     points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
     
-    # Main structure holding information needed by the algorithm
+###############################################################################
+##
+#V ssInfo
+##
+## Main structure holding information for the algorithm. This is not a global
+## variable, but the same structure is used in all the variants of the 
+## algorithm, but all members are not necessarily used.
+##
+## The structure `ssInfo' is a list of records, with a record for each level 
+## in the algorithm, ie one record for each base point. New base points
+## may of course be added to the base during the execution of the algorithm,
+## and then a new record is added to the end of the list.
+##
+## The members of the record are:
+## \beginitems
+## `partialSGS' & the elements in the current partial SGS that fixes all
+##              points at lower levels, or the whole partial SGS for the
+##              first level
+##
+## `partialBase' & the base point for this level
+##
+## `action' & the action (function) at this level
+##
+## `points' & the field where the base point `partialBase' comes from
+##
+## `hash' & the hash function for the Schreier tree at this level
+##
+## `schreierTree' & the Schreier tree for this level, representing the
+##                  basic orbit at this level, ie the orbit of `partialBase'
+##                  under the action of `partialSGS' at the previous (lower) 
+##                  level. Thus, the root of the tree is `partialBase'.
+##
+## `oldSGS' & the whole partial SGS at the last call of SchreierSims at
+##            this level
+##
+## IsIdentity & the function to check if a point is the identity at this
+##                level
+##    
+###############################################################################
     ssInfo := [];
-        
-    # ssInfo has a record for each level in the algorithm, and there is one
-    # level for each base point. The members of the record are:
-    #   partialSGS - the elements in the current partial SGS that fixes all
-    #                points at lower levels, or the whole partial SGS for the
-    #                first level
-    #   partialBase - the base point for this level
-    #   action - the action (function) at this level
-    #   points - the field where the base points come from
-    #   hash - the hash function for the Schreier tree at this level
-    #   schreierTree - the Schreier tree for this level, representing the
-    #                  basic orbit at this level, ie the orbit of the member
-    #                  "partialBase" at this level, under the action of
-    #                  "partialSGS" at the previous (lower) level
-    #                  Thus, the root of the tree is "partialBase".
-    #   oldSGS - the whole partial SGS at the last call of SchreierSims at
-    #            this level
-    #   IsIdentity - the function to check if a point is the identity at this
-    #                level
-    
     
     MATRIXSS_DebugPrint(3, ["Group generators : ", generators]);
     
@@ -227,14 +264,8 @@ InstallGlobalFunction(MatrixSchreierSims, function(G)
     
     MATRIXSS_DebugPrint(2, ["Matrix Schreier-Sims done"]);
     
-    # Create output structure
-    list := [[], generators, []];
-    for level in [1 .. Length(ssInfo)] do
-        Add(list[1], ssInfo[level].partialBase);
-        Add(list[3], ssInfo[level].schreierTree);
-    od;
-    
-    return Immutable(list);
+    return Immutable(ssInfo);
 end);
 
+###############################################################################
 #E

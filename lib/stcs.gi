@@ -1,27 +1,37 @@
 ###############################################################################
-##
+#1
 #W    stcs.gi  The Matrix Schreier Sims package 
 #W             Schreier-Todd-Coxeter-Sims implementation
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik B‰‰rnhielm
-##    Dev start : 2004-07-05 
+#H    Dev start : 2004-07-05 
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
 #H    Last edit : $Author$
 ##
 #H    @(#)$Id$
+##
+## These are the Schreier-Todd-Coxeter-Sims routines, ie Schreier-Sims 
+## algorithm with additional calls to Todd-Coxeter coset enumeration to
+## possibly speed up the process. It is known to be fast when the input is
+## already a base and SGS, and therefore it is good for verifying a proposed
+## base and SGS, for example the output of a probabilistic algorithm.
+##
 ###############################################################################
 
 Revision.("matrixss/lib/stcs_gi") := 
   "@(#)$Id$";
 
-    # The main Schreier-Sims function
-    # ssInfo - main information structure for the current Schreier-Sims run
-    # partialSGS - given partial strong generating set
-    # level - the level of the call to Schreier-Sims
-    # identity - the group identity
+###############################################################################
+##
+#F MATRIXSS_SchreierToddCoxeterSims(ssInfo, partialSGS, level, identity)
+##
+## It has the same interface as the deterministic algorithm, see 
+## "SchreierSims".
+##
+###############################################################################
 MATRIXSS_SchreierToddCoxeterSims := function(ssInfo, partialSGS, level, 
                                             identity)
         local generator, point, orbit, strip, schreierGenerator, element, 
@@ -332,80 +342,6 @@ MATRIXSS_SchreierToddCoxeterSims := function(ssInfo, partialSGS, level,
         
         ssInfo[level].oldSGS := SGS;
     end;
-    
 
-# An implementation of the Schreier-Sims algorithm, for matrix groups
-InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
-    local ssInfo, list, generators, level, points, element, 
-          SchreierToddCoxeterSims;
-        
-
-    ### MAIN Schreier-Sims 
-
-    if not IsMatrixGroup(G) then
-        Error("<G> must be a matrix group");
-    fi;
-    
-    # Get initial set of generators, to be extended to a partial SGS
-    generators := GeneratorsOfGroup(G);
-    
-    if ValueOption("CleverBasePoints") <> fail then
-        # Get a list of possibly good base points for this group
-        MATRIXSS_BasePointStore := BasisVectorsForMatrixAction(G);
-    fi;
-    
-    # The vector space on which the group acts
-    points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
-    
-    # Main structure holding information needed by the algorithm
-    ssInfo := [];
-        
-    # ssInfo has a record for each level in the algorithm, and there is one
-    # level for each base point. The members of the record are:
-    #   partialSGS - the elements in the current partial SGS that fixes all
-    #                points at lower levels, or the whole partial SGS for the
-    #                first level
-    #   partialBase - the base point for this level
-    #   action - the action (function) at this level
-    #   points - the field where the base points come from
-    #   hash - the hash function for the Schreier tree at this level
-    #   schreierTree - the Schreier tree for this level, representing the
-    #                  basic orbit at this level, ie the orbit of the member
-    #                  "partialBase" at this level, under the action of
-    #                  "partialSGS" at the previous (lower) level
-    #                  Thus, the root of the tree is "partialBase".
-    #   oldSGS - the whole partial SGS at the last call of SchreierSims at
-    #            this level
-    #   IsIdentity - the function to check if a point is the identity at this
-    #                level
-    
-    
-    MATRIXSS_DebugPrint(3, ["Group generators : ", generators]);
-    
-    # Compute initial partial SGS and base and fill ssInfo
-    generators := MATRIXSS_GetPartialBaseSGS(generators, ssInfo, Identity(G), 
-                          points);
-    
-    MATRIXSS_DebugPrint(3, ["Partial sgs : ", generators]);
-    MATRIXSS_DebugPrint(3, ["Initial base length : ", Length(ssInfo)]);
-    MATRIXSS_DebugPrint(3, ["Calling recursive Schreier-Sims"]);
-    
-    # Call Schreier-Sims algorithm for each level (starting from top)
-    for level in Reversed([1 .. Length(ssInfo)]) do
-        MATRIXSS_SchreierToddCoxeterSims(ssInfo, generators, level, 
-                Identity(G));
-    od;
-    
-    MATRIXSS_DebugPrint(2, ["Matrix Schreier-Sims done"]);
-    
-    # Create output structure
-    list := [[], generators, []];
-    for level in [1 .. Length(ssInfo)] do
-        Add(list[1], ssInfo[level].partialBase);
-        Add(list[3], ssInfo[level].schreierTree);
-    od;
-    
-    return Immutable(list);
-end);
-
+###############################################################################
 #E

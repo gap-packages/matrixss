@@ -1,69 +1,41 @@
 ###############################################################################
-##
+#1
 #W    test.gi     The Matrix Schreier Sims package - Test code                
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik B‰‰rnhielm
-##    Dev start : 2004-07-01
+#H    Dev start : 2004-07-01
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
 #H    Last edit : $Author$
 ##
 #H    @(#)$Id$
+##
+## These are auxiliary functions for test and benchmark.
+##
 ###############################################################################
 
 Revision.("matrixss/lib/test_gi") := 
   "@(#)$Id$";
 
-InstallGlobalFunction(MatrixGroupOrder, function(G)
-    local ret, orbit, order;
-    
-    if not IsMatrixGroup(G) then
-        Error("<G> must be a matrix group");
-    fi;
-    
-    if ValueOption("ToddCoxeter") <> fail then
-        # Compute SGS and base and orbits (ie Schreier trees)
-        ret := MatrixSchreierToddCoxeterSims(G);
-    else
-        # Compute SGS and base and orbits (ie Schreier trees)
-        ret := MatrixSchreierSims(G);
-    fi;
-    
-    # Compute order of group using computed orbit sizes
-    order := 1;
-    for orbit in ret[3] do
-        order := order * Size(orbit);
-    od;
-    
-    return order;
-end);
-
-InstallGlobalFunction(RandomMatrixGroupOrder, function(G)
-    local ret, orbit, order;
-    
-    if not IsMatrixGroup(G) then
-        Error("<G> must be a matrix group");
-    fi;
-    
-    # Compute SGS and base and orbits (ie Schreier trees)
-    ret := MatrixRandomSchreierSims(G, 99/100);
-    
-    # Compute order of group using computed orbit sizes
-    order := 1;
-    for orbit in ret[3] do
-        order := order * Size(orbit);
-    od;
-    
-    return order;
-end);
-
-# Creates a list of matrix groups to test the Schreier-Sims algorithm
-#      maxFieldSize - maximum finite field size to be tested
-#      maxMatrixSize - maximum degree of matrix groups
+###############################################################################
+##
+#F MATRIXSS_GetTestGroups(maxDegree, maxFieldSize)
+##
+## Creates a list of classical matrix groups to use when testing the package.
+## The groups are `GL', `SL', `GO' and `SO'.
+## \beginitems
+## `maxDegree' & maximum matrix size for classical matrix groups to be used
+##             for testing
+##
+## `maxFieldSize' & maximum finite field size for classical matrix groups to be
+##                used for testing
+## \enditems
+##
+###############################################################################
 MATRIXSS_GetTestGroups := 
-  function(maxFieldSize, maxMatrixSize) 
+  function(maxDegree, maxFieldSize) 
     local degree, power, primeNr, prime, groups, groupTypes, type;
     
     # Use the following group creation functions to make some test groups
@@ -75,7 +47,7 @@ MATRIXSS_GetTestGroups :=
     # List of test groups
     groups := [];
     
-    for degree in [2 .. maxMatrixSize] do
+    for degree in [2 .. maxDegree] do
         primeNr := 1;
         while primeNr <= 168 and Primes[primeNr] <= maxFieldSize do
             prime := Primes[primeNr];
@@ -101,24 +73,37 @@ MATRIXSS_GetTestGroups :=
     return groups;
 end;
 
-# Creates a list of matrix groups to benchmark the Schreier-Sims algorithm
-#      maxClassicalGroupFieldSize - maximum finite field size to use for the
-#         classical matrix groups
-#      maxClassicalGroupDegree - maximum matrix size for classical 
-#         matrix groups
-#      maxReeSize - maximum ReeGroup size
-#      maxSuzukiSize - maximum SuzukiGroup size
+###############################################################################
+##
+#F MATRIXSS_GetBenchmarkGroups(maxDegree, maxFieldSize)
+##
+## Creates a list of classical matrix groups and sporadic groups to use when 
+## benchmarking the package.
+## The classical groups are `GL', `SL', `GO' and `SO'. The sporadic groups are
+## `Ree' and `Sz'.
+## \beginitems
+## `maxDegree' & maximum matrix size for classical matrix groups to be used
+##             for testing
+##
+## `maxFieldSize' & maximum finite field size for classical matrix groups to be
+##                used for testing
+##
+## `maxReeSize' & maximum `ReeGroup' size, see "ref:Ree" in the reference 
+##                manual.
+##
+## `maxSuzukiSize' & maximum `SuzukiGroup' size, see "ref:Sz" in the reference 
+##                   manual.
+## \enditems
+##
+###############################################################################
 MATRIXSS_GetBenchmarkGroups := 
-  function(maxClassicalGroupFieldSize, maxClassicalGroupDegree,
-          maxReeGroupSize, maxSuzukiSize)
+  function(maxDegree, maxFieldSize, maxReeGroupSize, maxSuzukiSize)
   local groups, size;
     
     # Use all test groups as benchmark groups
-    groups := MATRIXSS_GetTestGroups(maxClassicalGroupFieldSize,
-                      maxClassicalGroupDegree);
+    groups := MATRIXSS_GetTestGroups(maxDegree, maxFieldSize);
     
     # Also use some sporadic matrix groups as benchmark groups
-    
     size := 1;
     while 3^(1 + 2 * size) <= maxReeGroupSize do
         Add(groups, ReeGroup(3^(1 + 2 * size)));
@@ -145,12 +130,8 @@ InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
     for group in groups do
         Print("Checking group : ", group, "\n");
         
-        size1 := Order(group);
-        if ValueOption("UseRandomSS") <> fail then
-            size2 := RandomMatrixGroupOrder(group);
-        else
-            size2 := MatrixGroupOrder(group);
-        fi;
+        size1 := Size(group);
+        size2 := MATRIXSS_ComputeOrder(StabChainMatrixGroup(group));
         
         if size1 <> size2 then
             Print("Correct order: ", size1, "\n");
@@ -173,54 +154,21 @@ InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(maxDegree,
     
     Print("Group\t\tTime [ms]\n\n");
     
-    if ValueOption("UseRandomSS") <> fail then
+    # Start test timer
+    test_time := Runtime();
     
-        # Start test timer
-        test_time := Runtime();
+    for group in groups do
+        # Time each run of Schreier-Sims        
+        group_time := Runtime();
+        StabChainMatrixGroup(group);
+            
+        Print(group, "\t", Runtime() - group_time, "\n");
+    od;
         
-        for group in groups do
-            # Time each run of Schreier-Sims        
-            group_time := Runtime();
-            MatrixRandomSchreierSims(group, 3/4);
-            
-            Print(group, "\t", Runtime() - group_time, "\n");
-        od;
-        
-        Print("Total time for test : ", Runtime() - test_time, "\n");
-    else
-        if ValueOption("ToddCoxeter") <> fail then
-            
-            # Start test timer
-            test_time := Runtime();
-        
-            for group in groups do
-                # Time each run of Schreier-Sims        
-                group_time := Runtime();
-                MatrixSchreierToddCoxeterSims(group);
-                
-                Print(group, "\t", Runtime() - group_time, "\n");
-            od;
-            
-            Print("Total time for test : ", Runtime() - test_time, "\n");
-        else
-            # Start test timer
-            test_time := Runtime();
-            
-            for group in groups do
-                # Time each run of Schreier-Sims        
-                group_time := Runtime();
-                MatrixSchreierSims(group);
-                
-                Print(group, "\t", Runtime() - group_time, "\n");
-            od;
-            
-            Print("Total time for test : ", Runtime() - test_time, "\n");
-        fi;
-        
-    fi;
-    
+    Print("Total time for test : ", Runtime() - test_time, "\n");
     Print("Benchmark completed\n");
     return true;
 end);
 
+###############################################################################
 #E

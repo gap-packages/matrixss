@@ -1,45 +1,63 @@
 ###############################################################################
-##
-#W    test.gd     The Matrix Schreier Sims package - Test code                
+#1
+#W    test.gd     The Matrix Schreier Sims package - Test & Benchmark routines
 ##
 #H    File      : $RCSfile$
 #H    Author    : Henrik B‰‰rnhielm
-##    Dev start : 2004-07-01
+#H    Dev start : 2004-07-01
 ##
 #H    Version   : $Revision$
 #H    Date      : $Date$
 #H    Last edit : $Author$
 ##
 #H    @(#)$Id$
+##
+## These are the main routines for testing and benchmarking the package.
+##
 ###############################################################################
 
 Revision.("matrixss/lib/test_gd") := 
   "@(#)$Id$";
 
-# Uses our version of Schreier-Sims to compute the order of a group
-# Input:
-#      G - a matrix group
-DeclareGlobalFunction("MatrixGroupOrder");
-
-# Uses our version of random Schreier-Sims to compute the order of a group
-# Input:
-#      G - a matrix group
-DeclareGlobalFunction("RandomMatrixGroupOrder");
-
-# Compares results of the above function with the Order function for a bunch
-# of classical matrix groups
-# Input:
-#      maxDegree - maximum matrix size to be tested
-#      maxFieldSize - maximum finite field size to be tested
+###############################################################################
+##
+#F MatrixSchreierSimsTest(maxDegree, maxFieldSize)
+##
+## Compares results of the above function with the built-in GAP Size method for
+## a bunch of classical matrix groups. (`GL', `SL', etc)
+## \beginitems
+## `maxDegree' & maximum matrix size for classical matrix groups to be used
+##             for testing
+##
+## `maxFieldSize' & maximum finite field size for classical matrix groups to be
+##                used for testing
+## \enditems
+##
+###############################################################################
 DeclareGlobalFunction("MatrixSchreierSimsTest");
 
-# Check speed of routines against some classical groups and Ree groups
-#
-# Input:
-#      maxDegree - maximum matrix size for classical groups to be tested
-#      maxFieldSize - maximum finite field size to be tested
-#      maxReeSize - maximum ReeGroup size
-#      maxSuzukiSize - maximum SuzukiGroup size
+###############################################################################
+##
+#F MatrixSchreierSimsBenchmark(maxDegree, maxFieldSize, maxReeSize, maxSuzukiSize)
+##
+## Check speed of package routines against classical matrix groups and the
+## matrix representations of Ree and Suzuki sporadic groups.
+## \beginitems
+## `maxDegree' & maximum matrix size for classical matrix groups to be used
+##             for testing
+##
+## `maxFieldSize' & maximum finite field size for classical matrix groups to be
+##                used for testing
+##
+## `maxReeSize' & maximum `ReeGroup' size, see "ref:Ree" in the reference 
+##                manual.
+##
+## `maxSuzukiSize' & maximum `SuzukiGroup' size, see "ref:Sz" in the reference 
+##                   manual.
+## \enditems
+##
+###############################################################################
 DeclareGlobalFunction("MatrixSchreierSimsBenchmark");
 
+###############################################################################
 #E
