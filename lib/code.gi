@@ -274,6 +274,49 @@ MATRIXSS_OrbitElement :=
     fi;
 end;
 
+# Compute the group element that connects the root of the Schreier tree to
+# a given point
+# this function assumes that the point actually is in the orbit described by
+# the given Schreier tree
+MATRIXSS_OrbitElement_ToddCoxeter := 
+  function(schreierTree, point, action, identity, IsIdentity, freeGroupHomo)
+    local element, edge, word;
+    
+    if ValueOption("SimpleSchreierTree") = fail then
+        # the group element and its inverse
+        element := [identity, identity];
+        word := [Identity(PreImage(freeGroupHomo)),
+                 Identity(PreImage(freeGroupHomo))];
+        repeat
+            edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
+            
+            Assert(1, not IsBool(edge), "Point not in orbit!\n");
+            
+            if IsIdentity(edge[1], identity) then
+                return [element, word];
+            fi;
+            
+            point := action(point, edge[2]);
+            element[1] := edge[1] * element[1];
+            element[2] := element[2] * edge[2];
+            
+            word[1] := PreImagesRepresentative(freeGroupHomo, 
+                               edge[1]) * word[1];
+            word[2] := word[2] * PreImagesRepresentative(freeGroupHomo, 
+                               edge[2]);
+        until false;
+    else
+        # In this case the tree has height 1, so we are done with one
+        # single lookup
+        
+        edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
+        
+        Assert(1, not IsBool(edge), "Point not in orbit!\n");
+        return [edge, [PreImagesRepresentative(freeGroupHomo, edge[1]),
+                       PreImagesRepresentative(freeGroupHomo, edge[2])]];
+    fi;
+end;
+
 # check if an element belongs to a group, using sifting
 # ssInfo - main information structure about our base
 # element - the element to check membership for
@@ -303,6 +346,69 @@ MATRIXSS_Membership :=
                         ssInfo[level].IsIdentity);
         residue[1] := residue[1] * word[2];
         residue[2] := word[1] * residue[2];
+    od;
+    
+    level := Length(ssInfo) + 1;
+    if ValueOption("AlternatingActions") <> fail then
+        level := level + 1;
+    fi;
+
+    return [Immutable(residue), level];
+end; 
+
+# check if an element belongs to a group, using sifting
+# ssInfo - main information structure about our base
+# element - the element to check membership for
+# identity - group identity
+MATRIXSS_Membership_ToddCoxeter := 
+  function(ssInfo, element, identity)
+    local level, residue, representative, point, mappedWord, gens1, gens2;
+    
+    residue := [element, [Identity(PreImage(ssInfo[1].freeGroupHomo)),
+                       Identity(PreImage(ssInfo[1].freeGroupHomo))]];
+    
+    # Find an expression of element in terms of the generators of the
+    # groups in our stabiliser chain, using the Schreier trees
+    for level in [1 .. Length(ssInfo)] do
+        MATRIXSS_DebugPrint(9, ["residue: ", residue[1], "\nbase: ", 
+                ssInfo[level].partialBase, "\naction", 
+                ssInfo[level].action]);
+        point := ssInfo[level].action(ssInfo[level].partialBase, 
+                         residue[1][1]);
+        
+        MATRIXSS_DebugPrint(9, ["Check if point ", point, " is in orbit"]);
+        MATRIXSS_DebugPrint(9, ["Orbit is ", ssInfo[level].schreierTree]);
+        
+        MATRIXSS_DebugPrint(9, ["residue : ", residue]);
+        if not MATRIXSS_IsPointInOrbit(ssInfo[level].schreierTree, 
+                   point) then
+            return [Immutable(residue), level];
+        fi;
+        
+        MATRIXSS_DebugPrint(9, ["homo : ", ssInfo[level].freeGroupHomo]);
+        
+        representative := 
+          MATRIXSS_OrbitElement_ToddCoxeter(ssInfo[level].schreierTree, 
+                  point, ssInfo[level].action, identity, 
+                  ssInfo[level].IsIdentity, ssInfo[level].freeGroupHomo);
+        
+        MATRIXSS_DebugPrint(9, ["residue : ", residue]);
+        MATRIXSS_DebugPrint(9, ["representative : ", representative]);
+        
+        residue[1][1] := residue[1][1] * representative[1][2];
+        residue[1][2] := representative[1][1] * residue[1][2];
+        
+        gens1 := GeneratorsOfGroup(PreImages(ssInfo[level].freeGroupHomo));
+        gens2 := GeneratorsOfGroup(PreImages(ssInfo[1].freeGroupHomo));
+        Assert(1, Length(gens1) >= Length(gens2));
+          
+        mappedWord := 
+          MappedWord(representative[2][2], gens1, gens2{[1 .. Length(gens1)]});
+        residue[2][1] := residue[2][1] * mappedWord;
+        
+        mappedWord := 
+          MappedWord(representative[2][1], gens1, gens2{[1 .. Length(gens1)]});
+        residue[2][2] := mappedWord * residue[2][2];
     od;
     
     level := Length(ssInfo) + 1;
@@ -394,6 +500,31 @@ MATRIXSS_GetSchreierGenerator :=
     return [edge, inv_edge];
 end;
 
+# Create a Schreier generator for the stabiliser in the group which has 
+# "generator" as one of its generators. The stabiliser fixes "point".
+MATRIXSS_GetSchreierGenerator_ToddCoxeter := 
+  function(schreierTree, generator, point, action, identity, IsIdentity,
+          freeGroupHomo)
+    local element1, element2, edge, inv_edge;
+    
+    element1 := MATRIXSS_OrbitElement_ToddCoxeter(schreierTree, point, action,
+                        identity, IsIdentity, freeGroupHomo);
+    element2 := MATRIXSS_OrbitElement_ToddCoxeter(schreierTree, 
+                        action(point, generator[1]), action, identity,
+                        IsIdentity, freeGroupHomo);
+    
+    edge := [element1[1][1] * generator[1] * element2[1][2],
+             element1[2][1] * 
+             PreImagesRepresentative(freeGroupHomo, generator[1]) * 
+             element2[2][2]];
+    inv_edge := [element2[1][1] * generator[2] * element1[1][2],
+                 element2[2][1] * 
+                 PreImagesRepresentative(freeGroupHomo, generator[2]) * 
+                 element1[2][2]];
+    
+    return [[edge[1], inv_edge[1]], [edge[2], inv_edge[2]]];
+end;
+
 
 # Add a new base point to the base, so that a given element is not in the
 # stabiliser of the point
@@ -424,6 +555,8 @@ MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
           schreierTree := MATRIXSS_CreateInitialSchreierTree(newPoint, 
                   ssInfo[length].hash, identity),
           oldSGS := AsSSortedList([]),
+          relations := [],
+          #genMap := NewDictionary(identity, true, Group(generators)),
           IsIdentity := MATRIXSS_IsIdentity);
     Add(ssInfo, levelStruct); 
 
@@ -439,6 +572,8 @@ MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
                       NormedRowVector(newPoint), ssInfo[length].hash, 
                       identity),
               oldSGS := AsSSortedList([]),
+              relations := [],
+              #genMap := NewDictionary(identity, true, Group(generators)),
               IsIdentity := MATRIXSS_ProjectiveIsIdentity);
         Add(ssInfo, levelStruct); 
     fi;
@@ -506,6 +641,8 @@ MATRIXSS_GetPartialBaseSGS :=
                       MATRIXSS_CreateInitialSchreierTree(newPoint, 
                               dictinfo, identity),
                       oldSGS := AsSSortedList([]),
+                      relations := [],
+                      #genMap := NewDictionary(identity, true, Group(generators)),
                       IsIdentity := MATRIXSS_IsIdentity);
                 Add(ssInfo, levelStruct); 
 
@@ -522,6 +659,8 @@ MATRIXSS_GetPartialBaseSGS :=
                                   NormedRowVector(newPoint), dictinfo, 
                                   identity),
                           oldSGS := AsSSortedList([]),
+                          relations := [],
+                       #   genMap := NewDictionary(identity, true, Group(generators)),
                           IsIdentity := MATRIXSS_ProjectiveIsIdentity);
                     
                     Add(ssInfo, levelStruct); 

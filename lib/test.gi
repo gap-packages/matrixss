@@ -23,8 +23,13 @@ InstallGlobalFunction(MatrixGroupOrder, function(G)
         Error("<G> must be a matrix group");
     fi;
     
-    # Compute SGS and base and orbits (ie Schreier trees)
-    ret := MatrixSchreierSims(G);
+    if ValueOption("ToddCoxeter") <> fail then
+        # Compute SGS and base and orbits (ie Schreier trees)
+        ret := MatrixSchreierToddCoxeterSims(G);
+    else
+        # Compute SGS and base and orbits (ie Schreier trees)
+        ret := MatrixSchreierSims(G);
+    fi;
     
     # Compute order of group using computed orbit sizes
     order := 1;
@@ -176,25 +181,42 @@ InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(maxDegree,
         for group in groups do
             # Time each run of Schreier-Sims        
             group_time := Runtime();
-            MatrixRandomSchreierSims(group, 99/100);
+            MatrixRandomSchreierSims(group, 3/4);
             
             Print(group, "\t", Runtime() - group_time, "\n");
         od;
         
         Print("Total time for test : ", Runtime() - test_time, "\n");
     else
-        # Start test timer
-        test_time := Runtime();
-        
-        for group in groups do
-            # Time each run of Schreier-Sims        
-            group_time := Runtime();
-            MatrixSchreierSims(group);
+        if ValueOption("ToddCoxeter") <> fail then
             
-            Print(group, "\t", Runtime() - group_time, "\n");
-        od;
+            # Start test timer
+            test_time := Runtime();
         
-        Print("Total time for test : ", Runtime() - test_time, "\n");
+            for group in groups do
+                # Time each run of Schreier-Sims        
+                group_time := Runtime();
+                MatrixSchreierToddCoxeterSims(group);
+                
+                Print(group, "\t", Runtime() - group_time, "\n");
+            od;
+            
+            Print("Total time for test : ", Runtime() - test_time, "\n");
+        else
+            # Start test timer
+            test_time := Runtime();
+            
+            for group in groups do
+                # Time each run of Schreier-Sims        
+                group_time := Runtime();
+                MatrixSchreierSims(group);
+                
+                Print(group, "\t", Runtime() - group_time, "\n");
+            od;
+            
+            Print("Total time for test : ", Runtime() - test_time, "\n");
+        fi;
+        
     fi;
     
     Print("Benchmark completed\n");
