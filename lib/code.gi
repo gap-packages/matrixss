@@ -365,7 +365,8 @@ MATRIXSS_Membership_ToddCoxeter :=
     local level, residue, representative, point, mappedWord, gens1, gens2;
     
     residue := [element, [Identity(PreImage(ssInfo[1].freeGroupHomo)),
-                       Identity(PreImage(ssInfo[1].freeGroupHomo))]];
+                       Identity(PreImage(ssInfo[1].freeGroupHomo)),
+                       ssInfo[1].freeGroupHomo]];
     
     # Find an expression of element in terms of the generators of the
     # groups in our stabiliser chain, using the Schreier trees
@@ -411,11 +412,13 @@ MATRIXSS_Membership_ToddCoxeter :=
         residue[2][2] := mappedWord * residue[2][2];
     od;
     
-    level := Length(ssInfo) + 1;
-    if ValueOption("AlternatingActions") <> fail then
-        level := level + 1;
+    if residue[1][1] <> identity then
+        level := Length(ssInfo) + 1;
+        if ValueOption("AlternatingActions") <> fail then
+            level := level + 1;
+        fi;
     fi;
-
+    
     return [Immutable(residue), level];
 end; 
 
@@ -522,7 +525,7 @@ MATRIXSS_GetSchreierGenerator_ToddCoxeter :=
                  PreImagesRepresentative(freeGroupHomo, generator[2]) * 
                  element1[2][2]];
     
-    return [[edge[1], inv_edge[1]], [edge[2], inv_edge[2]]];
+    return [[edge[1], inv_edge[1]], [edge[2], inv_edge[2], freeGroupHomo]];
 end;
 
 

@@ -32,9 +32,9 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
               newPoint, oldSchreierTree, newBasePoint, oldOrbit,
               newInverseGenerator, newSGS, freeGroup, cosetTable, word,
-              groupGens, subgroupGens, subgroupRels, tc1, tc2, tc3, tc4,
+              groupGens, subgroupGens, subgroupRels, levelFPGroup,
               relation, gens1, gens2, gens3, relations, homo, G, H,
-              sgens, fgens, fsgens, grels, T;
+              sgens, fgens, fsgens, grels, levelGroup;
         
         MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);
         
@@ -52,16 +52,12 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
         fi;
         MakeImmutable(SGS);
         freeGroup := FreeGroup(Length(SGS));
-        MATRIXSS_DebugPrint(2, ["Generators : ", List(SGS, i -> i[1])]);
-        tc1 := Group(List(SGS, i -> i[1]), identity);
+        MATRIXSS_DebugPrint(6, ["Generators : ", List(SGS, i -> i[1])]);
+        levelGroup := Group(List(SGS, i -> i[1]), identity);
         ssInfo[level].freeGroupHomo := 
-          GroupHomomorphismByImages(freeGroup, tc1,
-                  GeneratorsOfGroup(freeGroup), GeneratorsOfGroup(tc1));
-        
-        MATRIXSS_DebugPrint(2, ["Free group : ", freeGroup]);
-        MATRIXSS_DebugPrint(2, ["Free group homo : ", 
-                ssInfo[level].freeGroupHomo]);
-        
+          GroupHomomorphismByImages(freeGroup, levelGroup,
+                  GeneratorsOfGroup(freeGroup), GeneratorsOfGroup(levelGroup));
+                
         MATRIXSS_DebugPrint(3, ["Saved SGS that fixes first ", level - 1, 
                 " points ", Length(SGS)]);
         
@@ -106,113 +102,82 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                 if not MATRIXSS_IsPointInOrbit(oldSchreierTree, point) or 
                    not generator in ssInfo[level].oldSGS then
                     
-                    if level < Length(ssInfo) then
-                        freeGroup := FreeGroup(Length(SGS));
-                        MATRIXSS_DebugPrint(2, ["Generators : ", 
-                                List(SGS, i -> i[1])]);
-                        tc1 := Group(List(SGS, i -> i[1]), identity);
-                        ssInfo[level].freeGroupHomo := 
-                          GroupHomomorphismByImages(freeGroup, tc1,
-                                  GeneratorsOfGroup(freeGroup), 
-                                  GeneratorsOfGroup(tc1));
-                        
-                        groupGens := [];
-                        for element in List(SGS, i -> i[1]) do
-                            MATRIXSS_DebugPrint(2, ["Adding ", 
-                                    PreImagesRepresentative(ssInfo[level].
-                                            freeGroupHomo, element), 
-                                    " to group gens"]);
-                            element := PreImagesRepresentative(ssInfo[level].
-                                               freeGroupHomo, element);
-                            if not Inverse(element) in groupGens then
-                                AddSet(groupGens, element);
-                            fi;
-                            MATRIXSS_DebugPrint(2, ["Group gens : ", groupGens]);
-                        od;
-                        
-                        relations := [];
-                        for element in ssInfo[level].relations do
-                            AddSet(relations,
-                                MappedWord(element[1], 
-                                        GeneratorsOfGroup(element[2]),
-                                        GeneratorsOfGroup(freeGroup)));
-                        od;
-                        
-                        tc3 := freeGroup / relations;
-                        homo := GroupHomomorphismByImages(tc3, tc1,
-                                        GeneratorsOfGroup(tc3),
-                                        GeneratorsOfGroup(tc1));
-                                        
-                        subgroupGens := [];
-                        for element in List(ssInfo[level].partialSGS, 
-                                i -> i[1]) do
-                            element := PreImagesRepresentative(homo, element);
-                            MATRIXSS_DebugPrint(2, ["Adding ", element,
-                                    " to subgroup gens"]);
-                            if not Inverse(element) in subgroupGens then
-                                AddSet(subgroupGens, element);
-                            fi;
-                            MATRIXSS_DebugPrint(2, ["SubGroup gens : ", 
-                                    groupGens]);
-                        od;
-                                               
-                        MATRIXSS_DebugPrint(2, ["Group1 : ", tc3]);
-                        MATRIXSS_DebugPrint(2, ["Type1 : ", TypeObj(tc3)]);
-                        MATRIXSS_DebugPrint(2, ["Type2 : ", 
-                                TypeObj(subgroupGens)]);
-                        tc2 := Subgroup(tc3, subgroupGens);
-                        
-                        H := tc2;
-                        
-                        # Get whole group <G> of <H>.
-                        G := FamilyObj( H )!.wholeGroup;
-                        
-                        # get some variables
-                        fgens := FreeGeneratorsOfFpGroup( G );
-                        grels := RelatorsOfFpGroup( G );
-                        sgens := GeneratorsOfGroup( H );
-                        fsgens := List( sgens, gen -> UnderlyingElement( gen ) );
-                        
-                        # Construct the coset table of <G> by <H>.
-                        T := CosetTableFromGensAndRels( fgens, grels, fsgens :
-                                     
-                                     max := Int(11/10 * MATRIXSS_GetOrbitSize(
-                                             ssInfo[level].schreierTree)),
-                                     silent);
-                        cosetTable := T;
-                        
-                        #CosetTableDefaultMaxLimit := 
-                        #  Int(11/10 * MATRIXSS_GetOrbitSize(
-                        #          ssInfo[level].schreierTree));
-                        #cosetTable := 
-                        #  CosetTable(tc3, tc2 : 
-                        #          max := 11/10 * MATRIXSS_GetOrbitSize(
-                        #                  ssInfo[level].schreierTree),
-                        #          silent := true);
-                        
-                        MATRIXSS_DebugPrint(2, ["Running coset enum with gens : ", 
-                                groupGens, " relations ", 
-                                relations,
-                                " subgroup gens ", subgroupGens]);
-                                                
-                        #cosetTable := 
-                        #  CosetTableFromGensAndRels(
-                        #          groupGens,
-                        #          relations,
-                        #          subgroupGens : 
-                        #          max := 11/10 * 
-                        #          MATRIXSS_GetOrbitSize(
-                        #                  ssInfo[level].schreierTree),
-                        #          silent);
-                        
-                        MATRIXSS_DebugPrint(2, ["Coset table : ", cosetTable]);
-                        if cosetTable <> fail and Length(cosetTable) = 
-                           MATRIXSS_GetOrbitSize(ssInfo[level].schreierTree) then
-                            ssInfo[level].oldSGS := SGS;
-                            return;
-                        fi;
-                    fi;
+                    freeGroup := FreeGroup(Length(SGS));
+                    MATRIXSS_DebugPrint(6, ["Generators : ", 
+                            List(SGS, i -> i[1])]);
+                    levelGroup := Group(List(SGS, i -> i[1]), identity);
+                    ssInfo[level].freeGroupHomo := 
+                      GroupHomomorphismByImages(freeGroup, levelGroup,
+                              GeneratorsOfGroup(freeGroup), 
+                              GeneratorsOfGroup(levelGroup));
                     
+                    groupGens := [];
+                    for element in List(SGS, i -> i[1]) do
+                        MATRIXSS_DebugPrint(6, ["Adding ", 
+                                PreImagesRepresentative(ssInfo[level].
+                                        freeGroupHomo, element), 
+                                " to group gens"]);
+                        element := PreImagesRepresentative(ssInfo[level].
+                                           freeGroupHomo, element);
+                        if not Inverse(element) in groupGens then
+                            AddSet(groupGens, element);
+                        fi;
+                        MATRIXSS_DebugPrint(6, ["Group gens : ", groupGens]);
+                    od;
+                    
+                    relations := [];
+                    for element in ssInfo[level].relations do
+                        AddSet(relations, MappedWord(element[1], 
+                                GeneratorsOfGroup(element[2]),
+                                GeneratorsOfGroup(freeGroup)));
+                    od;
+                    
+                    levelFPGroup := freeGroup / relations;
+                    homo := GroupHomomorphismByImages(levelFPGroup, levelGroup,
+                                    GeneratorsOfGroup(levelFPGroup),
+                                    GeneratorsOfGroup(levelGroup));
+                    
+                    subgroupGens := [];
+                    for element in List(ssInfo[level].partialSGS, i -> i[1]) do
+                        element := PreImagesRepresentative(homo, element);
+                        MATRIXSS_DebugPrint(6, ["Adding ", element,
+                                " to subgroup gens"]);
+                        if not Inverse(element) in subgroupGens then
+                            AddSet(subgroupGens, element);
+                        fi;
+                        MATRIXSS_DebugPrint(6, ["SubGroup gens : ", 
+                                subgroupGens]);
+                    od;
+                    
+                    H := Subgroup(levelFPGroup, subgroupGens);
+                    
+                    # Get whole group <G> of <H>.
+                    G := FamilyObj(H)!.wholeGroup;
+                    
+                    # get some variables
+                    fgens := FreeGeneratorsOfFpGroup(G);
+                    grels := RelatorsOfFpGroup(G);
+                    sgens := GeneratorsOfGroup(H);
+                    fsgens := List(sgens, gen->UnderlyingElement(gen));
+                    
+                    MATRIXSS_DebugPrint(2, ["Running coset enum with gens : ", 
+                            fgens, " relations ", grels, " subgroup gens ", 
+                            fsgens]);
+                    
+                    # Construct the coset table of <G> by <H>.
+                    cosetTable := 
+                      CosetTableFromGensAndRels(fgens, grels, fsgens :
+                              max := Int(11/10 * MATRIXSS_GetOrbitSize(
+                                      ssInfo[level].schreierTree)),
+                              silent);
+                    
+                    MATRIXSS_DebugPrint(2, ["Coset table : ", cosetTable]);
+                    if cosetTable <> fail and Length(cosetTable) = 
+                       MATRIXSS_GetOrbitSize(ssInfo[level].schreierTree) then
+                        ssInfo[level].oldSGS := SGS;
+                        return;
+                    fi;
+                
                     # Compute Schreier generator g for current level
                     schreierGenerator := 
                       MATRIXSS_GetSchreierGenerator_ToddCoxeter(
@@ -236,12 +201,12 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                     strip := MATRIXSS_Membership_ToddCoxeter(ssInfo{points},
                                      schreierGenerator[1], 
                                      identity);
-                    MATRIXSS_DebugPrint(2, ["Got sift: ", strip]);
+                    MATRIXSS_DebugPrint(6, ["Got sift: ", strip]);
                     word := ShallowCopy(strip[1][2]);
                     strip := [strip[1][1], strip[2]];
                     
-                    MATRIXSS_DebugPrint(2, ["Word : ", word]);
-                    MATRIXSS_DebugPrint(2, ["Sift : ", strip]);
+                    MATRIXSS_DebugPrint(6, ["Word : ", word]);
+                    MATRIXSS_DebugPrint(6, ["Sift : ", strip]);
                     
                     # The drop-out level is in range 
                     # [1 .. Length(ssInfo) + 1 - level] 
@@ -278,100 +243,71 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                                    strip[1]);
                             AddSet(ssInfo[recursiveLevel].partialSGS, 
                                    newInverseGenerator);
-                            
-                            # Recompute free group homomorphism and add new
-                            # relation, which involves residue
-                            freeGroup := 
-                              FreeGroup(Length(ssInfo[recursiveLevel].
-                                      partialSGS));
-                            MATRIXSS_DebugPrint(6, ["Generators : " ,
-                                    List(ssInfo[recursiveLevel].
-                                           partialSGS, i -> i[1])]);
-                            tc1 := Group(List(ssInfo[recursiveLevel].
-                                           partialSGS, i -> i[1]));
-                            MATRIXSS_DebugPrint(6, ["Free group : " ,
-                                    freeGroup]);
-                            MATRIXSS_DebugPrint(6, ["Group : " , tc1]);
-                            MATRIXSS_DebugPrint(6, ["Gens1 : " , 
-                                    GeneratorsOfGroup(freeGroup)]);
-                            MATRIXSS_DebugPrint(6, ["Gens2 : " , 
-                                    GeneratorsOfGroup(tc1)]);
-
-                            ssInfo[recursiveLevel + 1].freeGroupHomo := 
-                              GroupHomomorphismByImages(freeGroup, tc1,
-                                      GeneratorsOfGroup(freeGroup),
-                                      GeneratorsOfGroup(tc1));
-                            
-                            MATRIXSS_DebugPrint(2, ["Schreier gen : " , 
-                                    schreierGenerator[2][1]]);
-                            MATRIXSS_DebugPrint(6, ["Sift : " , 
-                                    strip[1][2]]);
-                            MATRIXSS_DebugPrint(6, ["Type1 : ",
-                                    TypeObj(schreierGenerator[2][1])]);
-                            MATRIXSS_DebugPrint(6, ["Type2 : ",
-                                    TypeObj(word[2])]);
-                            MATRIXSS_DebugPrint(6, ["Type3 : ",
-                                    TypeObj(PreImagesRepresentative(
-                                            ssInfo[recursiveLevel].
-                                            freeGroupHomo, strip[1][2]))]);
-                            MATRIXSS_DebugPrint(2, ["Word : ", word[2]]);
-                            
-                            gens1 := GeneratorsOfGroup(
-                                             PreImages(ssInfo[level + 
-                                                     1].freeGroupHomo));
-                            gens2 := GeneratorsOfGroup(
-                                             PreImages(ssInfo[recursiveLevel + 1].
-                                                     freeGroupHomo));
-                            gens3 := GeneratorsOfGroup(
-                                             PreImages(ssInfo[level].
-                                                     freeGroupHomo));
-                            
-                            MATRIXSS_DebugPrint(2, ["Gens1 : ", gens1]);
-                            MATRIXSS_DebugPrint(2, ["Gens2 : ", gens2]);
-                            MATRIXSS_DebugPrint(2, ["Gens3 : ", gens3]);
-                            
-                            if Length(gens2) >= Length(gens3) and
-                               Length(gens2) >= Length(gens1) then
-                                
-                                tc4 := MappedWord(schreierGenerator[2][1],
-                                               gens3,
-                                               gens2{[1 .. Length(gens3)]});
-                                
-                                if Length(ExtRepOfObj(word[2])) > 0 then
-                                    tc3 := 
-                                      MappedWord(word[2], 
-                                              gens1,
-                                              gens2{[1 .. Length(gens1)]});
-                                else
-                                    tc3 := Identity(freeGroup);
-                                fi;
-                                
-                                tc2 := PreImagesRepresentative(
-                                               ssInfo[recursiveLevel + 1].
-                                               freeGroupHomo, strip[1][2]);
-
-                                MATRIXSS_DebugPrint(2, ["Word1 : ", tc3]);
-                                MATRIXSS_DebugPrint(2, ["Word2 : ", tc4]);
-                                MATRIXSS_DebugPrint(2, ["Word3 : ", tc2]);
-                                
-                                relation := tc4 * tc3 * tc2;
-                            
-                                MATRIXSS_DebugPrint(2, ["Adding relation : ",
-                                        relation]);
-                                AddSet(ssInfo[recursiveLevel + 1].relations,
-                                       [relation, freeGroup]);
-                            fi;
-                            #Add(ssInfo[recursiveLevel + 1].relations, 
-                            #    ObjByExtRep(FamilyObj(tc2),
-                            #            schreierGenerator[2][1]) *
-                            #    ObjByExtRep(FamilyObj(tc2), word[2]) * tc2);
-                            #Add(ssInfo[recursiveLevel + 1].relations,
-                            #    schreierGenerator[2][1] * word[2] * 
-                            #    PreImagesRepresentative(
-                            #            ssInfo[recursiveLevel + 1].
-                            #            freeGroupHomo, strip[1][2]));
                         od;
-                                                
+                    fi;
+                    
+                    for recursiveLevel in [level .. strip[2] - 1] do
+                        
+                        # We must recompute free group homomorphism since
+                        # there are new generators 
+                        freeGroup := 
+                          FreeGroup(Length(ssInfo[recursiveLevel].
+                                  partialSGS));
+                        MATRIXSS_DebugPrint(6, ["Generators : ",
+                                List(ssInfo[recursiveLevel].
+                                     partialSGS, i -> i[1])]);
+                        levelGroup := Group(List(ssInfo[recursiveLevel].
+                                              partialSGS, i -> i[1]), 
+                                            identity);
+                        MATRIXSS_DebugPrint(6, ["Free group : ",
+                                freeGroup]);
+                        MATRIXSS_DebugPrint(6, ["Group : ", levelGroup]);
+                        MATRIXSS_DebugPrint(6, ["Gens1 : ", 
+                                GeneratorsOfGroup(freeGroup)]);
+                        MATRIXSS_DebugPrint(6, ["Gens2 : " , 
+                                GeneratorsOfGroup(levelGroup)]);
+                        
+                        ssInfo[recursiveLevel + 1].freeGroupHomo := 
+                          GroupHomomorphismByImages(freeGroup, levelGroup,
+                                  GeneratorsOfGroup(freeGroup),
+                                  GeneratorsOfGroup(levelGroup));
+                        
+                        MATRIXSS_DebugPrint(6, ["Schreier gen : ", 
+                                schreierGenerator[2][1]]);
+                        MATRIXSS_DebugPrint(6, ["Sift : ", strip[1][2]]);
+                        MATRIXSS_DebugPrint(6, ["Word : ", word[2]]);
+                        
+                        gens1 := GeneratorsOfGroup(PreImages(word[3]));
+                        gens2 := GeneratorsOfGroup(PreImages(
+                                         ssInfo[recursiveLevel + 1].
+                                         freeGroupHomo));
+                        gens3 := GeneratorsOfGroup(PreImages(
+                                         schreierGenerator[2][3]));
+                            
+                        MATRIXSS_DebugPrint(6, ["Gens1 : ", gens1]);
+                        MATRIXSS_DebugPrint(6, ["Gens2 : ", gens2]);
+                        MATRIXSS_DebugPrint(6, ["Gens3 : ", gens3]);
+                        
+                        if Length(gens2) >= Length(gens3) and
+                           Length(gens2) >= Length(gens1) then
+                            
+                            relation := MappedWord(schreierGenerator[2][1], 
+                                                gens3,
+                                                gens2{[1 .. Length(gens3)]}) *
+                                        MappedWord(word[2], gens1,
+                                                gens2{[1 .. Length(gens1)]}) *
+                                        PreImagesRepresentative(
+                                                ssInfo[recursiveLevel + 1].
+                                                freeGroupHomo, strip[1][2]);
+                                                        
+                            MATRIXSS_DebugPrint(6, ["Adding relation : ",
+                                    relation]);
+                            Add(ssInfo[recursiveLevel + 1].relations,
+                                [relation, freeGroup]);
+                        fi;
+                    od;
+                    
+                    if strip[1][1] <> identity then
                         # We must now recompute all levels downward from the
                         # dropout level
                         for recursiveLevel in Reversed([level + 1 .. 
@@ -382,21 +318,7 @@ InstallGlobalFunction(MatrixSchreierToddCoxeterSims, function(G)
                                     recursiveLevel, identity);
                             ssInfo[level].oldSGS := oldSGS;
                         od;
-                    else
-                        # Add new relation (without residue) to all affected
-                        # levels
-                        #for recursiveLevel in [level .. strip[2] - 1] do
-                        #    AddSet(ssInfo[recursiveLevel].relations, 
-                        #           schreierGenerator[2][1] * word[2]);
-                        #od;
                     fi;
-                    #for recursiveLevel in [level .. strip[2] - 1] do
-                    #    Add(ssInfo[recursiveLevel].relations, 
-                    #        PreImagesRepresentative(
-                    #                ssInfo[level].freeGroupHomo,
-                    #                schreierGenerator[1][1] * strip[1][2]));
-                    #od;
-                    
                 fi;
             od;
         od;
