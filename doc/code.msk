@@ -59,7 +59,7 @@ These are the core functions of the package.
 
 \Declaration{MATRIXSS_ExtendBase}
 
-\Declaration{MATRIXSS_OrbitElement}{`MATRIXSS_OrbitElement'}
+\Declaration{MATRIXSS_OrbitElement}{MATRIXSS_OrbitElement}
 
 \Declaration{MATRIXSS_ComputeSchreierTree}
 
