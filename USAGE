@@ -1,16 +1,15 @@
 Matrix Schreier-Sims short introduction
 =======================================
 
-When the package is loaded in GAP using "RequirePackage", a new
-Attribute "StabChainMatrixGroup" is installed for finite matrix
-groups, which contains a base and generating set, as well as the
-Schreier trees for the orbits of the base points. The corresponding
-Operation has two Methods. One is the standard deterministic
-Schreier-Sims algorithm and the other one is the standard
-probabilistic Schreier-Sims algorithm, possibly with verification
-using Schreier-Todd-Coxeter-Sims algorithm. The default is the
-deterministic algorithm, and the probabilistic can be chosen by
-passing an Option.
+When the package is loaded in GAP using "LoadPackage", a new Attribute
+"StabChainMatrixGroup" is installed for finite matrix groups, which
+contains a base and generating set, as well as the Schreier trees for
+the orbits of the base points. The corresponding Operation has two
+Methods. One is the standard deterministic Schreier-Sims algorithm and
+the other one is the standard probabilistic Schreier-Sims algorithm,
+possibly with verification using Schreier-Todd-Coxeter-Sims algorithm
+or using the Verify routine by Sims, the latter being the default. The
+default main algorithm is the deterministic one, since it is the fastest one at the moment. The probabilistic algorithm can be chosen by passing an Option.
 
 The package also installs a new Method for the "Size" Attribute for
 finite matrix groups. The Method uses the above mentioned Attribute
@@ -20,6 +19,8 @@ multiplying the sizes of the orbits of the base points.
 The Option to define in order to select the probabilistic algorithm is
 "Random". There are also a few more Options for the probabilistic
 algorithm itself. If "Verify" is defined, the probabilistic algorithm
-will execute Schreier-Todd-Coxeter-Sims algorithm at the end, to
-verify the probabilistic computation, so that a correct result is
-guaranteed. For other options, see the manual.
+will execute the Verify routine at the end, to verify the
+probabilistic computation, so that a correct result is guaranteed. If
+also "STCS" is defined, the Schreier-Todd-Coxeter-Sims algorithm will
+be used instead for the verification. For other options, see the
+manual.

@@ -1,6 +1,19 @@
 ********** PPrroojjeecctt NNeewwss **********
 The dates are given in the format YYYY-MM-DD. More details can be found in the
 _C_h_a_n_g_e_L_o_g.
+22000044--0088--1199 The so-called Verify routine by Sims has been implemented, from the
+           description in Seress book. This seems to be a better strong
+           generating test than the STCS algorithm, and one can now choose
+           between them with an Option when using the probabilistic algorithm.
+           The Verify algorithm is still neither cleaned up nor optimised in
+           any way, so it is not fast, but it appears to be both sound and
+           complete.
+
+           The probabilistic algorithm now again uses the GAP function
+           PseudoRandom to generate random group elements, since further
+           testing has indicated that this is the fastest method, even though
+           we have to calculate inverse matrices for the elements returned by
+           this function.
 22000044--0088--1100 An algorithm highly inspired by the nearly linear time algorithm,
            described in Seress book as well as in the 1991 paper by Babai et
            al, has been implemented. Some parts of the nearly linear time

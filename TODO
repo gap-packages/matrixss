@@ -1,14 +1,11 @@
 Matrix Schreier-Sims TODO
 =========================
 
-- Implement a randomized algorithm, together with some verification step.
-1) Implement Sim's Verify routine
-2) Implement Seress heuristic algorithm that tests only one random Schreier 
-   generator at each level for membership in the stabiliser. 
-   Seress 4.5 (especially 4.5.1) and 2.3
-   Use normal sifting (not speedup using base images).
-   Use normal Schreier trees, not shallow trees as decribed by Seress.
-3) Try to speed up heuristic by using shallow Schreier trees
-   Seress 4.4, especially 4.4.2 and 4.4.3
-4) Try to speed up by using base images instead of normal sifting
-   Seress 5.2
+- Implement Seress heuristic algorithm that tests only one random Schreier 
+  generator at each level for membership in the stabiliser. 
+  Seress 4.5 (especially 4.5.1) and 2.3
+  Use normal sifting (not speedup using base images).
+- Try to speed up heuristic by using shallow Schreier trees
+  Seress 4.4, especially 4.4.2 and 4.4.3
+- Try to speed up by using base images instead of normal sifting
+  Seress 5.2

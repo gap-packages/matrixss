@@ -21,6 +21,10 @@ lib/test.gi
 lib/test.gd
 lib/stcs.gi
 lib/stcs.gd
+lib/verify.gi
+lib/verify.gd
+lib/linear.gi
+lib/linear.gd
 tst/test.g
 tst/bench.g
 tst/profile.g

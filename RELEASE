@@ -1,19 +1,16 @@
 Matrix Schreier-Sims Release Notes
 ==================================
-Release date : 2004-08-10
+Release date : 2004-08-19
 
-An algorithm highly inspired by the nearly linear time algorithm,
-described in Seress book as well as in the 1991 paper by Babai et al,
-has been implemented. Some parts of the nearly linear time algorithm
-has not yet been implemented though, in particular the "short Schreier
-trees". The implementation is still very slow, though, so the fastest
-version is still the standard deterministic algorithm.
+The so-called Verify routine by Sims has been implemented, from the
+description in Seress book. This seems to be a better strong
+generating test than the STCS algorithm, and one can now choose
+between them with an Option when using the probabilistic
+algorithm. The Verify algorithm is still neither cleaned up nor
+optimised in any way, so it is not fast, but it appears to be both
+sound and complete.
 
-Other changes include the use of random subproducts in the
-probabilistic algorithm, instead of random elements computed using the
-Rattle algorithm. The representation of Schreier trees has been
-somewhat augmented, to include the depth of each node, as well as the
-height of the tree. There is a possibility to create shallow Schreier
-trees, which are guaranteed to have at most logarithmic depth. These
-changes are described in Seress book as well as in the above paper,
-and are needed in the nearly linear time algorithm.
+The probabilistic algorithm now again uses the GAP function
+PseudoRandom to generate random group elements, since further testing
+has indicated that this is the fastest method, even though we have to
+calculate inverse matrices for the elements returned by this function.
