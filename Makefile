@@ -70,7 +70,7 @@ ChangeLog: NEWS
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
 deb: $(PACKAGES)
-	cp tmp/$(PACKAGE).tar.gz tmp/matrixss/$(PACKAGE).orig.tar.gz
+	cp tmp/$(PACKAGE).tar.gz tmp/matrixss/$(DEBPKG).orig.tar.gz
 	cvs-buildpackage -R $(DIR)/tmp -rfakeroot -kredstar
 
 manual: 
