@@ -1,3 +1,27 @@
+2004-01-17 16:19  redstar_
+
+	* lib/: code.gd, code.gi: Added a test function for Schreier-Sims
+	that compares the order calculation using our Schreier-Sims with
+	GAP's Order function.
+
+2004-01-17 16:18  redstar_
+
+	* INSTALL, README: Added simple installation instructions.
+
+2004-01-17 15:35  redstar_
+
+	* doc/www/: main.html, news.html: Cosmetic fixes.
+
+2004-01-17 15:24  redstar_
+
+	* doc/www/: index.html, main.html, news.html, toc.html: Project
+	homepage added
+
+2004-01-17 04:11  redstar_
+
+	* ChangeLog: The ChangeLog containing detailed changes in the
+	revisions.
+
 2004-01-17 04:10  redstar_
 
 	* NEWS, TODO: Auxiliary files updated, now when the algorithm seems
