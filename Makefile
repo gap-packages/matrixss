@@ -14,7 +14,9 @@ FTP_HOST      = upload.sourceforge.net
 WEB_SERVER    = shell.sourceforge.net
 WEB_PATH      = /home/groups/m/ma/matrixss/htdocs
 SCP_USER      = redstar_
-WEB_FILES     = doc/www/*.html README PackageInfo.g ChangeLog
+WEB_FILES     = doc/www/*.html README PackageInfo.g ChangeLog 
+WEBMAN_PATH   = /home/groups/m/ma/matrixss/htdocs/manual
+WEBMAN_FILES  = htm/*
 
 # to perform test/benchmark
 TEST_FILE     = tst/test.g
@@ -37,6 +39,9 @@ SHA1 := $(word 1, $(CHECK_SUMS))
 MD5  := $(word 2, $(CHECK_SUMS))
 CHECKS := $(SHA1)\|$(MD5)
 
+# for making html manual
+HTML_MAN = ../../etc/convert.pl
+
 all:
 
 test:
@@ -52,24 +57,25 @@ release: upload www
 
 checksums: $(CHECK_SUMS)
 
-$(CHECK_SUMS): ChangeLog
+$(CHECK_SUMS): ChangeLog manual
 	md5sum `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.text` > $(MD5)
 	md5sum -b `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.bin` >> $(MD5)
 	sha1sum --text `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.text` > $(SHA1)
 	sha1sum --binary `grep --invert-match --extended-regexp --regexp=$(CHECKS) Manifest.bin` >> $(SHA1)
 
 NEWS: doc/www/news.html
-	html2text -style pretty < $< > $@
+	html2text < $< > $@
 
 ChangeLog: NEWS
 	echo -e "Matrix Schreier-Sims ChangeLog\n" | cvs2cl --prune --separate-header --gmt --usermap AUTHORS --header -
 
 deb: $(PACKAGES)
 	cp tmp/$(PACKAGE).tar.gz tmp/matrixss/$(PACKAGE).orig.tar.gz
-	cvs-buildpackage -R $(DIR)/tmp -rfakeroot
+	cvs-buildpackage -R $(DIR)/tmp -rfakeroot -kredstar
 
 manual: 
 	$(MAKE) -C doc $@
+	$(HTML_MAN) -c -t -i -n matrixss doc htm
 
 package: manual $(PACKAGES)
 
@@ -92,11 +98,12 @@ upload:
 
 www: ChangeLog
 	scp $(WEB_FILES) $(SCP_USER)@$(WEB_SERVER):$(WEB_PATH)
+	scp $(WEBMAN_FILES) $(SCP_USER)@$(WEB_SERVER):$(WEBMAN_PATH)
 
 distclean:
-	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog
+	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog NEWS
 
 clean:
-	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog
+	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog NEWS htm/*
 	rm --recursive --force tmp *~ *.bak
 	$(MAKE) -C doc clean
