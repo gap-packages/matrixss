@@ -14,5 +14,8 @@ PackageInfo.g
 lib/code.gi
 lib/code.gd
 tst/test.g
-tst/matrixss.tst
+tst/bench.tst
+tst/profile.tst
+tst/test.tst
 SHA1SUMS
+MD5SUMS
