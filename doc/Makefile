@@ -1,14 +1,20 @@
 TEX = tex
 TEXFLAGS = -recorder
+PDFTEX = pdftex
 GAP = ~/gap
 BUILDMAN = $(GAP)/etc/buildman.pe
 BIBTEX = bibtex
 BIBFLAGS = -terse
 OUTPUT = manual.ps manual.bbl manual.ind manual.blg manual.ilg code.tex \
-	 notfound 
+	 notfound manual.pdf
 FLS = manual.fls
 MANUALINDEX = $(GAP)/doc/manualindex
 DVIPS = dvips
+
+manual: manual.dvi manual.pdf
+
+manual.pdf: manual.tex matrixss.tex code.tex manual.ind
+	$(PDFTEX) $(TEXFLAGS) $<
 
 manual.dvi: manual.tex matrixss.tex code.tex manual.ind
 	$(TEX) $(TEXFLAGS) $<
