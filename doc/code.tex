@@ -74,6 +74,17 @@ The corresponding attribute operations are aware of a few Options.
 `CleverBasePoints' & Choose an initial list of base points using 
                     `BasisVectorsForMatrixAction', which is made by
                     O'Brien and Murray.
+
+`ShallowSchreierTree' & Create the Schreier trees using the method described
+                       by Babai et al (1991) which guarantees logarithmic
+                       depth. This Option is only used when the option
+                       `SimpleSchreierTree' is <not> defined.
+
+`Random' & Use probabilistic algorithm.
+
+`Linear' & Use nearly linear-time algorithm. This takes precedence over
+          `Random', if it is present.
+
 \enditems
 
 
@@ -155,14 +166,13 @@ algorithm implemented in the package.
 
 These are the core functions of the package.
 
-\>MATRIXSS_GetPartialBaseSGS( generators, ssInfo, identity, field ) F
+\>MATRIXSS_GetPartialBaseSGS( generators, identity, field ) F
 
 Constructs a partial base and a partial SGS given a set of generators
-for a group.
+for a group. Returns the partial SGS and the `ssInfo' structure, 
+see "ssInfo".
 \beginitems
 `generators' & given set of generators
-
-`ssInfo'     & main information structure for algorithm
 
 `identity'   & group identity element (the identity matrix)
 
@@ -247,16 +257,23 @@ orbit described by the given Schreier tree.
 
 
 
-\>MATRIXSS_ComputeSchreierTree( tree, generators, action ) F
+\>MATRIXSS_ComputeSchreierTree( tree, generators, action, root, hash, identity ) F
 
 Fill a Schreier tree that contains only the root.
 \beginitems
-`tree' & The Schreier tree to fill, ie a Dictionary.
+`tree' & The Schreier tree to fill.
 
 `generators' & The generators for the group that gives rise to the orbit
               represented by the Schreier tree.
 
 `action' & The action of the group on the point set.
+
+`root' & The root point of the tree.
+
+`hash' & The dictionary info for the tree, used to create hash function.
+
+`identity' & the group identity (the identity matrix)
+
 \enditems
 
 
@@ -554,7 +571,7 @@ given base and SGS to a complete base and SGS if needed.
 
 
 
-\>RandomSchreierSims( ssInfo, partialSGS, maxIdentitySifts, identity, low_order, high_order, nScrambles, RattleFactor ) F
+\>RandomSchreierSims( ssInfo, partialSGS, maxIdentitySifts, identity, low_order, high_order ) F
 
 The main random Schreier-Sims function.
 \beginitems    
@@ -567,15 +584,9 @@ The main random Schreier-Sims function.
   
 `identity' & the group identity
   
-`low_order' & lower bound on the group order (must be $\geq$ 1)
+`lowOrder' & lower bound on the group order (must be $\geq$ 1)
   
-`high_order' & upper bound on the group order, or 0 if not available
-
-`nScrambles' & number of initial scrambles of the Rattle pool each time
-            a new pool is created
-  
-`RattleFactor' & the Rattle pool is this many times bigger than the
-              partial SGS
+`highOrder' & upper bound on the group order, or 0 if not available
 \enditems
 
 
@@ -597,10 +608,22 @@ base and SGS, for example the output of a probabilistic algorithm.
 
 
 
-\>MATRIXSS_SchreierToddCoxeterSims( ssInfo, partialSGS, level, identity ) F
+\>MATRIXSS_SchreierToddCoxeterSims( ssInfo, partialSGS, level, identity, cosetFactor ) F
 
-It has the same interface as the deterministic algorithm, see 
-"SchreierSims".
+The main function for the Schreier-Todd-Coxeter-Sims algorithm. It is very
+similar to ordinary Schreier-Sims algorithm and has a similar interface.
+\beginitems    
+`ssInfo' & main information structure for the current Schreier-Sims run
+  
+`partialSGS' & given partial strong generating set
+  
+`level' & the level of the call to Schreier-Sims
+
+`identity' & the group identity
+
+`cosetFactor' & the quotient of the maximum number of cosets generated 
+                during coset enumeration and the corresponding orbit size
+\enditems
 
 
 
