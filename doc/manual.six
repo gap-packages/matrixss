@@ -1,4 +1,5 @@
 C matrixss.tex 1. Introduction
+S 1.1. Usage
 C code.tex 2. Implementation
 S 2.1. General code
 F 2.1. StabChainMatrixGroup!general
@@ -6,18 +7,28 @@ F 2.1. ssInfo
 F 2.1. MatrixSchreierSimsInfo
 F 2.1. MATRIXSS_DEBUGLEVEL
 F 2.1. MATRIXSS_BasePointStore
+F 2.1. MatrixGroupOrderStabChain![code.gd]
+F 2.1. Size!finite matrix group
 F 2.1. MATRIXSS_GetPartialBaseSGS
 F 2.1. MATRIXSS_Membership
 F 2.1. MATRIXSS_NewBasePoint
 F 2.1. MATRIXSS_GetSchreierGenerator
 F 2.1. MATRIXSS_ExtendBase
+F 2.1. MATRIXSS_AugmentBase
 F 2.1. MATRIXSS_OrbitElement
 F 2.1. MATRIXSS_ComputeSchreierTree
 F 2.1. MATRIXSS_ExtendSchreierTree
 F 2.1. MATRIXSS_OrbitElement_ToddCoxeter
 F 2.1. MATRIXSS_Membership_ToddCoxeter
 F 2.1. MATRIXSS_GetSchreierGenerator_ToddCoxeter
-F 2.1. MATRIXSS_ComputeOrder
+F 2.1. MATRIXSS_CreateShallowSchreierTree
+F 2.1. MATRIXSS_GetSchreierTree
+F 2.1. MATRIXSS_MonotoneTree
+F 2.1. MATRIXSS_RandomCosetRepresentative
+F 2.1. MATRIXSS_RandomOrbitPoint
+F 2.1. MATRIXSS_RandomSchreierGenerator
+F 2.1. MATRIXSS_RandomSubproduct
+F 2.1. MATRIXSS_SubProdGroups
 F 2.1. MATRIXSS_CopySchreierTree
 F 2.1. MATRIXSS_GetOrbitSize
 F 2.1. MATRIXSS_GetOrbit
@@ -37,8 +48,21 @@ F 2.3. StabChainMatrixGroup!probabilistic
 F 2.3. RandomSchreierSims
 S 2.4. STCS algorithm
 F 2.4. MATRIXSS_SchreierToddCoxeterSims
-S 2.5. Test and benchmark routines
-F 2.5. MatrixSchreierSimsTest
-F 2.5. MatrixSchreierSimsBenchmark
-F 2.5. MATRIXSS_GetTestGroups
-F 2.5. MATRIXSS_GetBenchmarkGroups
+S 2.5. Nearly linear time algorithm
+F 2.5. StabChainMatrixGroup!nearly linear time
+F 2.5. ConstructSGS
+F 2.5. CompletePointStabiliserSubgroup
+S 2.6. Verify routine
+F 2.6. MatrixSchreierSimsVerify
+F 2.6. MATRIXSS_VerifyLevel
+F 2.6. MATRIXSS_VerifyMultipleGenerators
+F 2.6. MATRIXSS_VerifySingleGenerator
+F 2.6. MATRIXSS_StabiliserGens
+F 2.6. MATRIXSS_IsBlockOfImprimitivity
+F 2.6. MATRIXSS_DecomposeOrbit
+F 2.6. MATRIXSS_BaseChange
+S 2.7. Test and benchmark routines
+F 2.7. MatrixSchreierSimsTest
+F 2.7. MatrixSchreierSimsBenchmark
+F 2.7. MATRIXSS_GetTestGroups
+F 2.7. MATRIXSS_GetBenchmarkGroups

@@ -16,17 +16,20 @@
 
 \Chapter{Introduction}
 
-This is a manual for the {\matrixss} package, which is a
-package for the {\GAP} system for computational group theory. It
-contains an implementation of Schreier-Sims algorithm for matrix
-groups, including both the standard deterministic and the standard
-probabilistic approach. There is also an implementation of the
-so-called Schreier-Todd-Coxeter-Sims algorithm, which uses coset
-enumeration to possibly speed up the process, but this algorithm is
-mainly used for verifying the output of the probabilistic algorithm.
+This is a manual for the {\matrixss} package, which is a package for
+the {\GAP} system for computational group theory. It contains an
+implementation of Schreier-Sims algorithm for matrix groups, including
+both the standard deterministic and the standard probabilistic
+approach. There is also an implementation of the so-called
+Schreier-Todd-Coxeter-Sims algorithm, which uses coset enumeration to
+possibly speed up the process, but this algorithm is mainly used for
+verifying the output of the probabilistic algorithm. An implementation
+of the <Verify> routine by Sims can also be used for verification
+purposes, and finally, an implementation of the nearly linear time
+Schreier-Sims algorithm is also included in the package.
 
 No theory about the Schreier-Sims algorithm will be covered in this
-manual, since the theory is well-known and covered elsewhere. For
+manual, since the theory is well-known and can easily be found elsewhere. For
 example, the author of the package has written a report about it, see
 \cite{baarnhielm04}. Other references are \cite{butler91},
 \cite{soicher98} and \cite{seress03}. In this manual, we are instead only
@@ -37,6 +40,16 @@ The package can be downloaded from its homepage, which is
 \URL{http://matrixss.sourceforge.net}
 
 The package author can be reached at \Mailto{redstar_@sourceforge.net}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Usage}
+
+Since the Schreier-Sims algorithm usually is just an initial step for
+other algorithms, there is little actual user interaction. When the package is loaded, a method for `Size' is installed for finite matrix groups, which uses the algorithms in this package to compute the order of the group. 
+
+At a lower level, the package installs an attribute `StabChainMatrixGroup'  for finite matrix groups, see "StabChainMatrixGroup!general", where the base and strong generating set are stored. They can thus easily be used by anyone.
+
+Currently, this is the only interaction between the package and the rest of {\GAP}, but it should be sufficient.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%

@@ -52,8 +52,12 @@ Declare new attribute for storing base, SGS and Schreier trees.
 The attribute is computed using the Schreier-Sims algorithm for finite
 matrix groups, which is the main content of the package.
 
-The attribute is a list of records, and it has the same structure as the
-`ssInfo' structure, see "ssInfo".
+The attribute is a record with two components:
+\beginitems
+`SchreierStructure' & the main information structure, see "ssInfo".
+
+`SGS' & a list of the strong generators
+\enditems
 
 The corresponding attribute operations are aware of a few Options.
 \beginitems
@@ -123,7 +127,7 @@ The members of the record are:
 `oldSGS' & the whole partial SGS at the last call of SchreierSims at
           this level
 
-IsIdentity & the function to check if a point is the identity at this
+`IsIdentity' & the function to check if a point is the identity at this
               level
   
 
@@ -154,6 +158,14 @@ new base points will be shifted from it.
 
 
 
+\>`MatrixGroupOrderStabChain( ssInfo )'{MatrixGroupOrderStabChain![code.gd]}@{`MatrixGroupOrderStabChain'!`[code.gd]'} F
+
+Computes the order of the group defined by the given Schreier trees, see
+"ssInfo".
+
+
+
+
 
 
 
@@ -165,6 +177,18 @@ algorithm implemented in the package.
 
 
 These are the core functions of the package.
+
+\>`Size( G )'{Size}!{finite matrix group} A
+
+A method for `Size' for finite matrix groups, that uses the implementation 
+of Schreier-Sims algorithm in this package, ie it uses the 
+`StabChainMatrixGroup' attribute to compute the order of `G'.
+
+This method is only installed if `MATRIXSS_TEST' is not defined when the 
+package is loaded.
+
+
+
 
 \>MATRIXSS_GetPartialBaseSGS( generators, identity, field ) F
 
@@ -229,6 +253,25 @@ stabiliser of the point
 `ssInfo' & main information structure for the current Schreier-Sims run
 
 `badElement' & the element that fixes all current base points
+
+`identity' & the group identity
+\enditems
+
+
+
+
+\>MATRIXSS_AugmentBase( ssInfo, newPoint, action, hash, identity ) F
+
+Add a new base point to the base, so that the given element is not in the
+stabiliser of the point
+\beginitems
+`ssInfo' & main information structure for the current Schreier-Sims run
+
+`newPoint' & the point to add to the base
+
+`action' & the action for the new point
+
+`hash' & the dictionary info for the new point
 
 `identity' & the group identity
 \enditems
@@ -359,10 +402,110 @@ generators to the free group. See "MATRIXSS_OrbitElement_ToddCoxeter".
 
 
 
-\>MATRIXSS_ComputeOrder( ssInfo ) F
+\>MATRIXSS_CreateShallowSchreierTree( orbitTree, root, generators, labels, action, identity, hash ) F
 
-Computes the order of the group defined by the given Schreier trees, see
-"ssInfo".
+Create a shallow Schreier tree, ie with at most logarithmic height.
+\beginitems
+`orbitTree' & Given tree representing the same orbit as the shallow Schreier
+             to be computed.
+
+`root' & The root point of the tree.
+
+`generators' & From this set will any new edge labels be taken.
+
+`labels' & The elements that, together with its inverses, will form the
+            edge labels of the tree.
+
+`action' & The action of the group on the point set.
+
+`identity' & the group identity (the identity matrix)
+
+`hash' & The dictionary info for the tree, used to create hash function.
+
+\enditems
+
+
+
+
+\>MATRIXSS_GetSchreierTree( oldTree, root, generators, oldGenerators, action, hash, identity ) F
+
+Returns a Schreier tree. This routine encapsulates the other Schreier tree
+functions.
+\beginitems
+`oldTree' & The Schreier tree to extend, in case there should be an 
+           extension.
+
+`root' & The root point of the tree.
+
+`generators' & The generators for the group that gives rise to the orbit
+              represented by the Schreier tree.
+
+`oldGenerators' & The current generators (edge-labels) of `oldTree'.
+
+`action' & The action of the group on the point set.
+
+`hash' & The dictionary info for the tree, used to create hash function.
+
+`identity' & the group identity (the identity matrix)
+
+\enditems
+
+
+
+
+\>MATRIXSS_MonotoneTree( root, elements, action, identity, dictinfo ) F
+
+Create a monotone Schreier tree with given root and edge labels.
+\beginitems
+`root' & The root point of the tree.
+
+`elements' & The elements that, together with its inverses, will form the
+            edge labels of the tree.
+
+`action' & The action of the group on the point set.
+
+`identity' & the group identity (the identity matrix)
+
+`dictinfo' & The dictionary info for the tree, used to create hash function.
+
+\enditems
+
+
+
+
+\>MATRIXSS_RandomCosetRepresentative( schreierTree, action, identity ) F
+
+Return a random coset representative from the transversal defined by 
+`schreierTree'.
+
+
+
+
+\>MATRIXSS_RandomOrbitPoint( schreierTree ) F
+
+Returns a random point in the orbit given by `schreierTree'.
+
+
+
+
+\>MATRIXSS_RandomSchreierGenerator( schreierTree, elements, action, identity ) F
+
+Return a random Schreier generator constructed from the points in 
+`schreierTree' and the generators in `elements'.
+
+
+
+
+\>MATRIXSS_RandomSubproduct( elements, identity ) F
+
+Return a random subproduct of `elements'.
+
+
+
+
+\>`MATRIXSS_SubProdGroups' V
+
+A Dictionary of SymmetricGroups, used when permuting random subproducts.
 
 
 
@@ -629,6 +772,258 @@ similar to ordinary Schreier-Sims algorithm and has a similar interface.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Nearly linear time algorithm}
+
+
+
+
+
+These are the special routines for the nearly linear-time version, described
+in Babai et al, 1991.
+
+
+
+\>`StabChainMatrixGroup( G )'{StabChainMatrixGroup}!{nearly linear time} A
+
+An implementation of the Schreier-Sims algorithm, for matrix groups.
+This version is inspired by the nearly linear time algorithm, described in 
+\cite{seress03}. See "StabChainMatrixGroup!general" for general information
+about the attribute.
+
+
+
+
+\>ConstructSGS( ssInfo, partialSGS, identity ) F
+
+The main Schreier-Sims function for the nearly linear-time algorithm.
+\beginitems    
+`ssInfo' & main information structure for the current Schreier-Sims run
+  
+`partialSGS' & given partial strong generating set
+  
+`identity' & the group identity
+\enditems
+
+
+
+
+\>CompletePointStabiliserSubgroup( ssInfo, element, level, identity, maxIdentitySifts ) F
+
+The work-horse of the nearly linear-time algorithm, called for each level.
+\beginitems    
+`ssInfo' & main information structure for the current Schreier-Sims run
+  
+`element' & the element which
+
+`partialSGS' & given partial strong generating set
+  
+`identity' & the group identity
+\enditems
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Verify routine}
+
+
+
+\>MatrixSchreierSimsVerify( ssInfo, SGS, identity ) F
+
+The <Verify> routine by Sims. Checks whether the given `ssInfo' and `SGS' 
+encodes a base and strong generating set, and returns a record with 
+components `Residue' and `Level'. In case the verification succeeds, the
+level is 0 and the residue is the identity. Otherwise the residue is an
+element that is in the stabiliser of the group at the indicated level, but
+is not in the group at the next higher level.
+
+\beginitems    
+`ssInfo' & proposed structure to check
+  
+`SGS' & proposed SGS to check
+  
+`identity' & the group identity
+\enditems
+
+
+
+
+\>MATRIXSS_VerifyLevel( ssInfo, partialSGS, level, identity ) F
+
+Checks that the stabiliser of the group at the given level is the same as
+the group at the next higher level.
+
+\beginitems    
+`ssInfo' & proposed structure to check
+  
+`partialSGS' & proposed SGS to check
+  
+`level' & level to check
+
+`identity' & the group identity
+\enditems
+
+
+
+
+\>MATRIXSS_VerifyMultipleGenerators( generators, schreierTree, point, action, hash, subGenerators, ssInfo, SGS, identity, points, IsIdentity, field ) F
+
+Verifies that the stabiliser of the group generated by `generators', at the
+point `point' is the same group as the group generated by `generators' minus
+`subGenerators'. If so, the identity is returned, and otherwise an element
+that is in the difference is returned.
+
+`ssInfo' and `SGS' should be a base and strong generating set for the 
+smaller group.
+
+\beginitems    
+`generators' & generators of the bigger group
+  
+`schreierTree' & Schreier tree for the orbit of `point' under `action' of 
+                the group generated by `generators'
+  
+`point' & the point to get the stabiliser of
+
+`action' & the action to use when calculating the stabiliser
+
+`hash' & the dictionary info of `schreierTree'
+
+`subGenerators' & the additional generators of the bigger group
+
+`ssInfo' & main structure for the base and sgs of the smaller group
+
+`SGS' & strong generating set for the smaller group
+
+`identity' & the group identity
+
+`points' & the point set to which `point' belong
+
+`IsIdentity' & the identity check function for the larger group
+
+`field' & the finite field of the larger group
+\enditems
+
+
+
+
+\>MATRIXSS_VerifySingleGenerator( generators, schreierTree, point, action, hash, subGenerator, ssInfo, SGS, identity ) F
+
+Verifies that the stabiliser of the group generated by `generators', at the
+point `point' is the same group as the group generated by `generators' minus
+`subGenerator'. If so, the identity is returned, and otherwise an element
+that is in the difference is returned.
+
+`ssInfo' and `SGS' should be a base and strong generating set for the 
+smaller group.
+
+\beginitems    
+`generators' & generators of the bigger group
+  
+`schreierTree' & Schreier tree for the orbit of `point' under `action' of 
+                the group generated by `generators'
+  
+`point' & the point to get the stabiliser of
+
+`action' & the action to use when calculating the stabiliser
+
+`hash' & the dictionary info of `schreierTree'
+
+`subGenerator' & the additional generator of the bigger group
+
+`ssInfo' & main structure for the base and sgs of the smaller group
+
+`SGS' & strong generating set for the smaller group
+
+`identity' & the group identity
+\enditems
+
+
+
+
+\>MATRIXSS_StabiliserGens( ssInfo, partialSGS, point, action, dictinfo, identity ) F
+
+Return generators of the stabiliser of the group generated by the strong
+generators `partialSGS' at `point' under `action'. The `ssInfo' structure
+should be a base for the group.
+
+\beginitems        
+`ssInfo' & main structure for the base
+  
+`partialSGS' & strong generating set for the given group
+
+`point' & the point to get stabiliser at
+
+`action' & the action to use when computing stabiliser
+
+`dictinfo' & the dictionary info of `schreierTree'
+
+`identity' & the group identity
+\enditems
+
+
+
+
+\>MATRIXSS_IsBlockOfImprimitivity( schreierTree, generators, block, action, identity ) F
+
+Checks whether `block' is a block of imprimitivity for `action' of the group
+given by `generators' on the set of points given by `schreierTree'.
+
+\beginitems        
+`schreierTree' & Schreier tree for the point set
+  
+`generators' & generators of the acting group 
+
+`block' & the block to check for imprimitivity
+
+`action' & the action to use
+
+`identity' & the group identity
+\enditems
+
+
+
+
+\>MATRIXSS_DecomposeOrbit( schreierTree, root, generators, action, hash, identity ) F
+
+Decompose the orbit given by `schreierTree', with root point `root', into
+orbits of the group generated by `generators', under `action'.
+
+\beginitems        
+`schreierTree' & Schreier tree for the orbit to decompose
+  
+`root' & root point of `schreierTree'
+
+`generators' & generators of the decomposing group 
+
+`action' & the action of the decomposing group
+
+`hash' & the dictionary info of `schreierTree'
+
+`identity' & the group identity
+\enditems
+
+
+
+
+\>MATRIXSS_BaseChange( ssInfo, partialSGS, level, identity ) F
+
+Flips the base point at `level' with the next higher base point and update
+the `ssInfo' structure.
+
+\beginitems        
+`ssInfo' & main structure for the base
+  
+`partialSGS' & strong generating set corresponding to `ssInfo'
+
+`level' & the level for the base change
+
+`identity' & the group identity
+\enditems
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Test and benchmark routines}
 
 
@@ -688,7 +1083,7 @@ These are auxiliary functions for test and benchmark.
 \>MATRIXSS_GetTestGroups( maxDegree, maxFieldSize ) F
 
 Creates a list of classical matrix groups to use when testing the package.
-The groups are `GL', `SL', `GO' and `SO'.
+The groups are `GL', `SL', `GO', `SO', `GU' and `SU'.
 \beginitems
 `maxDegree' & maximum matrix size for classical matrix groups to be used
            for testing

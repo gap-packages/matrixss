@@ -45,9 +45,13 @@ matrices that are inverses to each other.
 
 \Declaration{MATRIXSS_BasePointStore}
 
+\Declaration{MatrixGroupOrderStabChain}[code.gd]
+
 \FileHeader{code.gi}
 
 These are the core functions of the package.
+
+\Declaration{Size}[code.gi]{Size}!{finite matrix group}
 
 \Declaration{MATRIXSS_GetPartialBaseSGS}
 
@@ -58,6 +62,8 @@ These are the core functions of the package.
 \Declaration{MATRIXSS_GetSchreierGenerator}{MATRIXSS_GetSchreierGenerator}
 
 \Declaration{MATRIXSS_ExtendBase}
+
+\Declaration{MATRIXSS_AugmentBase}
 
 \Declaration{MATRIXSS_OrbitElement}{MATRIXSS_OrbitElement}
 
@@ -71,7 +77,21 @@ These are the core functions of the package.
 
 \Declaration{MATRIXSS_GetSchreierGenerator_ToddCoxeter}
 
-\Declaration{MATRIXSS_ComputeOrder}
+\Declaration{MATRIXSS_CreateShallowSchreierTree}
+
+\Declaration{MATRIXSS_GetSchreierTree}
+
+\Declaration{MATRIXSS_MonotoneTree}
+
+\Declaration{MATRIXSS_RandomCosetRepresentative}
+
+\Declaration{MATRIXSS_RandomOrbitPoint}
+
+\Declaration{MATRIXSS_RandomSchreierGenerator}
+
+\Declaration{MATRIXSS_RandomSubproduct}
+
+\Declaration{MATRIXSS_SubProdGroups}
 
 These are also core function, but of slightly less importance, or mainly of technical nature.
 
@@ -122,6 +142,38 @@ These are also core function, but of slightly less importance, or mainly of tech
 \FileHeader{stcs.gi}
 
 \Declaration{MATRIXSS_SchreierToddCoxeterSims}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Nearly linear time algorithm}
+
+\FileHeader{linear.gi}
+
+\Declaration{StabChainMatrixGroup}[linear.gi]{StabChainMatrixGroup}!{nearly linear time}
+
+\Declaration{ConstructSGS}
+
+\Declaration{CompletePointStabiliserSubgroup}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Verify routine}
+
+\FileHeader{verify.gi}
+
+\Declaration{MatrixSchreierSimsVerify}
+
+\Declaration{MATRIXSS_VerifyLevel}
+
+\Declaration{MATRIXSS_VerifyMultipleGenerators}
+
+\Declaration{MATRIXSS_VerifySingleGenerator}
+
+\Declaration{MATRIXSS_StabiliserGens}
+
+\Declaration{MATRIXSS_IsBlockOfImprimitivity}
+
+\Declaration{MATRIXSS_DecomposeOrbit}
+
+\Declaration{MATRIXSS_BaseChange}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Test and benchmark routines}
