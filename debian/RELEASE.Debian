@@ -1,5 +1,7 @@
 Matrix Schreier-Sims Debian Release Notes
 =========================================
-Release date : 2004-10-07
+Release date : 2004-10-09
 
-The buildman.pe should not be needed when building the package.
+* The path to manualindex is now set correctly.
+* The copyright is now compatible with GPL and DFSG.
+* gzip should not be in Build-Depends.

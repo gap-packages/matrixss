@@ -108,5 +108,5 @@ distclean:
 
 clean:
 	rm --force $(PACKAGES) $(CHECK_SUMS) ChangeLog NEWS htm/*.htm
-	rm --recursive --force tmp *~ *.bak
+	rm --recursive --force tmp *~ *.bak debian/*~
 	$(MAKE) -C doc clean
