@@ -1,4 +1,4 @@
-gap-matrix-schreiersims (0.9.20041006-1) unstable; urgency=low
+gap-matrix-schreiersims (0.9.20041007-1) unstable; urgency=low
 
   * The buildman.pe should not be needed when building the package.
 
