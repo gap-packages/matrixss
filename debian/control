@@ -1,7 +1,7 @@
 Source: matrixss
 Section: math
 Priority: optional
-Maintainer: Henrik B√§√§rnhielm <redstar@abc.se>
+Maintainer: Henrik B‰‰rnhielm <redstar@abc.se>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.0
 
