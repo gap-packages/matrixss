@@ -1,0 +1,9 @@
+\chapcontents {1}{Introduction}{5}
+\chapcontents {2}{Implementation}{6}
+\seccontents {2.1}{General code} {6}
+\seccontents {2.2}{Deterministic algorithm} {12}
+\seccontents {2.3}{Probabilistic algorithm} {12}
+\seccontents {2.4}{STCS algorithm} {13}
+\seccontents {2.5}{Test and benchmark routines} {13}
+\chapcontents {}{Bibliography}{15}
+\chapcontents {}{Index}{16}

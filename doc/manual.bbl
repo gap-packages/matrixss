@@ -1,0 +1,28 @@
+\begin{thebibliography}{B{\accent127a}{\accent127a}04}
+
+\bibitem[B{\accent127a}{\accent127a}04]{baarnhielm04}
+Henrik B{\accent127a}{\accent127a}rnhielm.
+\newblock The {S}chreier-{S}ims algorithm for matrix groups.
+\newblock Master's thesis, Imperial College of Science, Technology and
+  Medicine, 2004.
+
+\bibitem[But91]{butler91}
+Gregory Butler.
+\newblock {\em Fundamental algorithms for permutation groups}, volume 559 of
+  {\em Lecture Notes in Computer Science}.
+\newblock Springer, 1991.
+
+\bibitem[CSS99]{soicher98}
+Hans Cuypers, Leonard~H. Soicher, and Hans Sterk.
+\newblock Working with finite groups.
+\newblock In Arjeh~M. Cohen, Hans Cuypers, and Hans Sterk, editors, {\em Some
+  Tapas of Computer Algebra}, volume~4 of {\em Algorithms and Computation in
+  Mathematics}, chapter~8, pages 184--207. Springer, 1999.
+
+\bibitem[Ser03]{seress03}
+\'Akos Seress.
+\newblock {\em Permutation group algorithms}, volume 152 of {\em Cambridge
+  Tracts in Mathematics}.
+\newblock Cambridge University Press, 2003.
+
+\end{thebibliography}

@@ -1,0 +1,705 @@
+% This file was created automatically from code.msk.
+% DO NOT EDIT!
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%W    code.msk     The Matrix Schreier Sims package - Documentation
+%%
+%H    File      : $RCSfile$
+%H    Author    : Henrik Bäärnhielm
+%H    Dev start : 2004-07-28 
+%%
+%H    Version   : $Revision$
+%H    Date      : $Date$
+%H    Last edit : $Author$
+%%
+%H    @(#)$Id$
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\Chapter{Implementation}
+
+Here is the documentation from the package source code. As the package
+works with matrix groups acting on vector spaces, references to <group
+elements> means <matrices>, ie a list of row vectors, each of which is
+list of field elements. References to <points> means <row vectors>, ie
+elements of the vector space on which the group acts.
+
+The code tries to avoid the computation of inverse matrices as much as
+possible, and to accomplish this, the inverse of a group element is
+stored together with the element in a list of length 2. Each time some
+computation is made with the element, a similar computation is made
+with the inverse, so that they are kept consistent. Therefore, in many
+cases in the code, <group element> means an immutable list of 2
+matrices that are inverses to each other.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{General code}
+
+
+
+
+
+These are the general declarations used by the package. Most notably the
+attribute `StabChainMatrixGroup' which is the core of the package 
+functionality.
+
+
+
+
+\>`StabChainMatrixGroup( G )'{StabChainMatrixGroup}!{general} A
+
+Declare new attribute for storing base, SGS and Schreier trees.
+The attribute is computed using the Schreier-Sims algorithm for finite
+matrix groups, which is the main content of the package.
+
+The attribute is a list of records, and it has the same structure as the
+`ssInfo' structure, see "ssInfo".
+
+The corresponding attribute operations are aware of a few Options.
+\beginitems
+`SimpleSchreierTree' & calculate coset representatives at the moment of
+                    creation of the Schreier trees, thus making them
+                    have height 1.
+                    This should make the algorithm significantly 
+                    faster.
+
+`ExtendSchreierTree' & Do not recompute Schreier trees at each run of a
+                      given level, but extend the Schreier trees from 
+                      the last run at that level.
+
+`AlternatingActions' & Always prepend a base point with the line that
+                      contains it, using the projective action on the 
+                      line.
+
+`CleverBasePoints' & Choose an initial list of base points using 
+                    `BasisVectorsForMatrixAction', which is made by
+                    O'Brien and Murray.
+\enditems
+
+
+
+
+\>`ssInfo' V
+
+Main structure holding information for the algorithm. This is not a global
+variable, but the same structure is used in all the variants of the 
+algorithm, but all members are not necessarily used.
+
+The structure `ssInfo' is a list of records, with a record for each level 
+in the algorithm, ie one record for each base point. New base points
+may of course be added to the base during the execution of the algorithm,
+and then a new record is added to the end of the list.
+
+The members of the record are:
+\beginitems
+`partialSGS' & the elements in the current partial SGS that fixes all
+            points at lower levels, or the whole partial SGS for the
+            first level
+
+`partialBase' & the base point for this level
+
+`action' & the action (function) at this level
+
+`points' & the field where the base point `partialBase' comes from
+
+`hash' & the hash function for the Schreier tree at this level
+
+`schreierTree' & the Schreier tree for this level, representing the
+                basic orbit at this level, ie the orbit of `partialBase'
+                under the action of `partialSGS' at the previous (lower) 
+                level. Thus, the root of the tree is `partialBase'.
+
+`oldSGS' & the whole partial SGS at the last call of SchreierSims at
+          this level
+
+IsIdentity & the function to check if a point is the identity at this
+              level
+  
+
+
+
+\>`MatrixSchreierSimsInfo' V
+
+The {\GAP} InfoClass used by the package, for debugging purposes.
+
+
+
+
+\>`MATRIXSS_DEBUGLEVEL'{MATRIXSS_DEBUGLEVEL} V
+
+The internal debugging level. This is really obsolete and the above info
+class should be used instead.
+
+
+
+
+\>`MATRIXSS_BasePointStore' V
+
+A list of hopefully good base points, ie base points with small orbits.
+They are fetched with `BasisVectorsForMatrixAction' which is due to
+O{\rq}Brien and Murray, and as long as the list is non-empty, 
+new base points will be shifted from it.
+
+
+
+
+
+
+
+
+These are the common functions used by all the variants of the Schreier-Sims
+algorithm implemented in the package.
+
+
+
+
+These are the core functions of the package.
+
+\>MATRIXSS_GetPartialBaseSGS( generators, ssInfo, identity, field ) F
+
+Constructs a partial base and a partial SGS given a set of generators
+for a group.
+\beginitems
+`generators' & given set of generators
+
+`ssInfo'     & main information structure for algorithm
+
+`identity'   & group identity element (the identity matrix)
+
+`field'      & the vector space on which the group acts
+\enditems
+
+
+
+
+\>`MATRIXSS_Membership( ssInfo, element, identity )'{MATRIXSS_Membership} F
+
+Check if an element belongs to a group, using sifting
+\beginitems
+`ssInfo' & Main information structure about our stabiliser chain. The Schreier
+        trees is used during the sifting.
+
+`element' & the element to check for membership 
+
+`identity' & group identity
+\enditems
+
+
+
+
+\>MATRIXSS_NewBasePoint( element, identity, field ) F
+
+Find a point not in base that is moved by the given element 
+(which fixes the base)
+\beginitems
+`element' & the bad element that fixes the whole base
+
+`identity' & the group identity (the identity matrix)
+
+`field'    & the vector space on which the group acts
+\enditems
+
+
+
+
+\>`MATRIXSS_GetSchreierGenerator( schreierTree, generator, point, action, identity, IsIdentity )'{MATRIXSS_GetSchreierGenerator} F
+
+Creates a Schreier generator for the stabiliser in the group which has 
+`generator' as one of its generators. The stabiliser fixes `point' under
+`action'.
+
+
+
+
+\>MATRIXSS_ExtendBase( ssInfo, badElement, identity ) F
+
+Add a new base point to the base, so that the given element is not in the
+stabiliser of the point
+\beginitems
+`ssInfo' & main information structure for the current Schreier-Sims run
+
+`badElement' & the element that fixes all current base points
+
+`identity' & the group identity
+\enditems
+
+
+
+
+\>`MATRIXSS_OrbitElement( schreierTree, point, action, identity, IsIdentity )'{MATRIXSS_OrbitElement} F
+
+Compute the group element that connects the root of the Schreier tree to
+a given point. This function assumes that the point actually is in the 
+orbit described by the given Schreier tree.
+\beginitems
+`schreierTree' & Schreier tree for the orbit to use
+
+`point' & the point to check if it is in the orbit
+
+`action' & the action that was used to create the Schreier tree
+
+`identity' & the group identity (the identity matrix)
+
+`IsIdentity' & function to use when checking if a group element is equal
+              to the identity
+\enditems
+
+
+
+
+\>MATRIXSS_ComputeSchreierTree( tree, generators, action ) F
+
+Fill a Schreier tree that contains only the root.
+\beginitems
+`tree' & The Schreier tree to fill, ie a Dictionary.
+
+`generators' & The generators for the group that gives rise to the orbit
+              represented by the Schreier tree.
+
+`action' & The action of the group on the point set.
+\enditems
+
+
+
+
+\>MATRIXSS_ExtendSchreierTree( oldTree, generators, oldGenerators, action, dictinfo ) F
+
+Extends an existing Schreier tree by a given set of generators
+\beginitems
+`oldTree' & The Schreier tree to extend, ie a Dictionary.
+
+`generators' & The generators for the group that gives rise to the orbit
+              represented by the Schreier tree.
+
+`oldGenerators' & The current generators (edge-labels) of `oldTree'.
+
+`action' & The action of the group on the point set.
+
+`dictinfo' & The Dictionary info used when `oldTree' was created.
+\enditems
+
+
+
+
+\>`MATRIXSS_OrbitElement_ToddCoxeter( schreierTree, point, action, identity, IsIdentity, freeGroup, genMap )'{MATRIXSS_OrbitElement_ToddCoxeter} F
+
+Special version of `MATRIXSS_OrbitElement', see "MATRIXSS_OrbitElement", 
+that also calculates the Word in the generators of the group element it 
+returns.
+
+More specifically, it computes the Word of the generators of the 
+corresponding free group.
+\beginitems
+`schreierTree' & Schreier tree for the orbit to use
+
+`point' & the point to check if it is in the orbit
+
+`action' & the action that was used to create the Schreier tree
+
+`identity' & the group identity (the identity matrix)
+
+`IsIdentity' & function to use when checking if a group element is equal
+              to the identity
+
+`freeGroup' & corresponding free group to the group whose generators form
+             the set of edge labels of `schreierTree'
+
+`genMap' & list of 2 lists of the same length, the first being the edge 
+          labels of `schreierTree' (the generators of the corresponding 
+          group), and the second being the corresponding generators of
+          `freeGroup'
+\enditems
+
+
+
+
+\>MATRIXSS_Membership_ToddCoxeter( ssInfo, element, identity, freeGroup ) F
+
+Special version of `MATRIXSS_Membership', see "MATRIXSS_Membership", that 
+also expresses the sifted group element as a word in the generators of a 
+given free group.
+\beginitems
+`ssInfo' & Main information structure about our stabiliser chain. 
+          The Schreier trees is used during the sifting.
+
+`element' & the element to check for membership 
+
+`identity' & group identity
+
+`freeGroup' & the free group in which the sifted element will be expressed
+\enditems
+
+
+
+
+\>MATRIXSS_GetSchreierGenerator_ToddCoxeter( schreierTree, generator, point, action, identity, IsIdentity, freeGroup, genMap ) F
+
+Special version of `MATRIXSS_GetSchreierGenerator', see 
+"MATRIXSS_GetSchreierGenerator", that also returns the Schreier generator
+as a Word in the generators of `freeGroup', using `genMap' to map the
+generators to the free group. See "MATRIXSS_OrbitElement_ToddCoxeter".
+
+
+
+
+\>MATRIXSS_ComputeOrder( ssInfo ) F
+
+Computes the order of the group defined by the given Schreier trees, see
+"ssInfo".
+
+
+
+
+These are also core function, but of slightly less importance, or mainly of technical nature.
+
+\>MATRIXSS_CopySchreierTree( tree, dictinfo ) F
+
+Creates a copy of a whole Schreier tree, ie of makes a copy of the 
+Dictionary.
+\beginitems
+`tree' & the Dictionary to copy
+
+`dictinfo' & the dictinfo that was used when creating `tree'
+\enditems
+
+
+
+
+\>MATRIXSS_GetOrbitSize( schreierTree ) F
+
+Get size of orbit defined by the given Schreier tree.
+
+
+
+
+\>MATRIXSS_GetOrbit( schreierTree ) F
+
+Return all points (as a list) in the orbit of the point which is root of 
+the Schreier tree, ie return all keys in the Dictionary.
+The list is not necessarily sorted, and it is mutable.
+
+
+
+
+\>MATRIXSS_IsPointInOrbit( schreierTree, point ) F
+
+Check if the given point is in the orbit defined by the given Schreier tree.
+
+
+
+
+\>MATRIXSS_CreateInitialSchreierTree( root, dictinfo, identity ) F
+
+Create a Schreier tree containing only the root.
+\beginitems
+`root' & The base point that is to be the root of the Schreier tree.
+
+`dictinfo' & Used when creating the Dictionary that is the Schreier tree
+
+`identity' & the group identity element
+\enditems
+
+
+
+
+\>MATRIXSS_GetSchreierTreeEdge( schreierTree, point ) F
+
+Get the label of the edge originating at the given point, and directed 
+towards the root of the given Schreier tree.
+
+
+
+
+\>MATRIXSS_ProjectiveIsIdentity( element, identity ) F
+
+Identity check when using projective action (all scalar matrices are
+considered equal to the identity)
+\beginitems
+`element' & the group element to check if it is equal to identity
+
+`identity' & the group identity (the identity matrix)
+\enditems
+
+
+
+
+\>MATRIXSS_IsIdentity( element, identity ) F
+
+Identity check when using normal point action 
+\beginitems
+`element' & the group element to check if it is equal to identity
+
+`identity' & the group identity (the identity matrix)
+\enditems
+
+
+
+
+\>MATRIXSS_PointAction( point, element ) F
+
+The action of a group element (a matrix) on a point (a row vector).
+The action is from the right 
+\beginitems
+`point' & The point (row vector) to act on.
+
+`element' & The group element (matrix) that acts.
+\enditems
+
+
+
+
+\>MATRIXSS_ProjectiveAction( point, element ) F
+
+The projective action of a matrix on a row vector.
+The one-dimensional subspace corresponding to the point is represented
+by the corresponding normed row vector
+\beginitems
+`point' & The point to act on. Must be a *normed* row vector.
+
+`element' & The group element (matrix) that acts.
+\enditems
+
+
+
+
+\>MATRIXSS_DebugPrint( level, message ) F
+
+Internal function for printing debug messages. Uses the internal variable
+`MATRIXSS_DEBUGLEVEL', see "MATRIXSS_DEBUGLEVEL", to determine if the 
+message should be printed.
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Deterministic algorithm}
+
+
+
+
+
+These are the special routines for the deterministic version of 
+Schreier-Sims algorithm.
+
+
+
+\>`StabChainMatrixGroup( G )'{StabChainMatrixGroup}!{deterministic} A
+
+An implementation of the Schreier-Sims algorithm, for matrix groups,
+probabilistic version. See "StabChainMatrixGroup!general" for general information
+about the attribute.
+
+
+
+
+\>SchreierSims( ssInfo, partialSGS, level, identity ) F
+
+The main Schreier-Sims function, which is called for each level.
+\beginitems    
+`ssInfo' & main information structure for the current Schreier-Sims run
+  
+`partialSGS' & given partial strong generating set
+  
+`level' & the level of the call to Schreier-Sims
+
+`identity' & the group identity
+\enditems
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Probabilistic algorithm}
+
+
+
+
+
+These are the special routines for the probabilistic implementation of 
+Schreier-Sims algorithm.
+
+
+
+
+\>`StabChainMatrixGroup( G )'{StabChainMatrixGroup}!{probabilistic} A
+
+An implementation of the Schreier-Sims algorithm, for matrix groups,
+probabilistic version. See "StabChainMatrixGroup!general" for general information
+about the attribute.
+
+In addition to the general Options of the attribute `StabChainMatrixGroup',
+the probabilistic algorithm is aware of the following:
+\beginitems
+`Probability' & (lower bound for) probability of correct solution, which
+                  defaults to 3/4
+
+`Verify' & Boolean parameter which signifies if the base and SGS computed
+        using the random Schreir-Sims algorithm should be verified
+        using the Schreier-Todd-Coxeter-Sims algorithm.
+        Defaults to `false.'
+
+`OrderLowerBound' & Lower bound for the order of `G', must be $\geq$ 1.
+                 Defaults to 1.
+
+`OrderUpperBound' & Upper bound for the order of `G', or 0 if unknown.
+                 Defaults to 0.
+
+Note that if the order of `G' is known, so that 
+`OrderLowerBound' = `OrderUpperBound' = `Size(G)'
+then the randomized algorithm always produces a correct base and SGS, so
+there is no need of verification. Also, the verification will extend the
+given base and SGS to a complete base and SGS if needed.
+
+
+
+
+\>RandomSchreierSims( ssInfo, partialSGS, maxIdentitySifts, identity, low_order, high_order, nScrambles, RattleFactor ) F
+
+The main random Schreier-Sims function.
+\beginitems    
+`ssInfo' & main information structure for the Schreier-Sims 
+  
+`partialSGS' & given partial strong generating set
+
+`maxIdentitySifts' & maximum number of consecutive elements that sifts to 
+                  identity before the algorithm terminates
+  
+`identity' & the group identity
+  
+`low_order' & lower bound on the group order (must be $\geq$ 1)
+  
+`high_order' & upper bound on the group order, or 0 if not available
+
+`nScrambles' & number of initial scrambles of the Rattle pool each time
+            a new pool is created
+  
+`RattleFactor' & the Rattle pool is this many times bigger than the
+              partial SGS
+\enditems
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{STCS algorithm}
+
+
+
+
+
+These are the Schreier-Todd-Coxeter-Sims routines, ie Schreier-Sims 
+algorithm with additional calls to Todd-Coxeter coset enumeration to
+possibly speed up the process. It is known to be fast when the input is
+already a base and SGS, and therefore it is good for verifying a proposed
+base and SGS, for example the output of a probabilistic algorithm.
+
+
+
+
+\>MATRIXSS_SchreierToddCoxeterSims( ssInfo, partialSGS, level, identity ) F
+
+It has the same interface as the deterministic algorithm, see 
+"SchreierSims".
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Test and benchmark routines}
+
+
+
+
+
+These are the main routines for testing and benchmarking the package.
+
+
+
+
+\>MatrixSchreierSimsTest( maxDegree, maxFieldSize ) F
+
+Compares results of the above function with the built-in GAP Size method for
+a bunch of classical matrix groups. (`GL', `SL', etc)
+\beginitems
+`maxDegree' & maximum matrix size for classical matrix groups to be used
+           for testing
+
+`maxFieldSize' & maximum finite field size for classical matrix groups to be
+              used for testing
+\enditems
+
+
+
+
+\>MatrixSchreierSimsBenchmark( maxDegree, maxFieldSize, maxReeSize, maxSuzukiSize ) F
+
+Check speed of package routines against classical matrix groups and the
+matrix representations of Ree and Suzuki sporadic groups.
+\beginitems
+`maxDegree' & maximum matrix size for classical matrix groups to be used
+           for testing
+
+`maxFieldSize' & maximum finite field size for classical matrix groups to be
+              used for testing
+
+`maxReeSize' & maximum `ReeGroup' size, see "ref:Ree" in the reference 
+              manual.
+
+`maxSuzukiSize' & maximum `SuzukiGroup' size, see "ref:Sz" in the reference 
+                 manual.
+\enditems
+
+
+
+
+
+
+
+
+These are auxiliary functions for test and benchmark.
+
+
+
+
+\>MATRIXSS_GetTestGroups( maxDegree, maxFieldSize ) F
+
+Creates a list of classical matrix groups to use when testing the package.
+The groups are `GL', `SL', `GO' and `SO'.
+\beginitems
+`maxDegree' & maximum matrix size for classical matrix groups to be used
+           for testing
+
+`maxFieldSize' & maximum finite field size for classical matrix groups to be
+              used for testing
+\enditems
+
+
+
+
+\>MATRIXSS_GetBenchmarkGroups( maxDegree, maxFieldSize ) F
+
+Creates a list of classical matrix groups and sporadic groups to use when 
+benchmarking the package.
+The classical groups are `GL', `SL', `GO' and `SO'. The sporadic groups are
+`Ree' and `Sz'.
+\beginitems
+`maxDegree' & maximum matrix size for classical matrix groups to be used
+           for testing
+
+`maxFieldSize' & maximum finite field size for classical matrix groups to be
+              used for testing
+
+`maxReeSize' & maximum `ReeGroup' size, see "ref:Ree" in the reference 
+              manual.
+
+`maxSuzukiSize' & maximum `SuzukiGroup' size, see "ref:Sz" in the reference 
+                 manual.
+\enditems
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%E  code.msk  . . . . . . . . . . . . . . . . . . . . . . . . . .ends here
