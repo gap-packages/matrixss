@@ -56,12 +56,12 @@ Revision.("matrixss/lib/random_gi") :=
 InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2, 
         function(G)
     local ssInfo, list, generators, level, points, element, RandomSchreierSims,
-          identitySifts, UpdateSchreierTrees, Rattle, InitRattle,
-          ScrambleRattle, AddRattleGenerator, low_order, high_order, p, verify;
+          identitySifts, UpdateSchreierTrees, lowOrder, highOrder, p, verify,
+          cosetFactor, ret;
     
     # Updates the given Schreier trees w.r.t. to the given partial SGS
     UpdateSchreierTrees := function(ssInfo, dropoutLevel, partialSGS, identity)
-        local SGS, level;
+        local SGS, level, ret;
         
         for level in [1 .. dropoutLevel] do
             if level > 1 then
@@ -71,81 +71,17 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
             fi;
             MakeImmutable(SGS);
             
-            if ValueOption("ExtendSchreierTree") <> fail then
-                ssInfo[level].schreierTree := 
-                  MATRIXSS_ExtendSchreierTree(
-                          ssInfo[level].schreierTree, 
-                          SGS, ssInfo[level].oldSGS, 
-                          ssInfo[level].action, 
-                          ssInfo[level].hash);
-            else
-                ssInfo[level].schreierTree := 
-                  MATRIXSS_CreateInitialSchreierTree(
-                          ssInfo[level].partialBase,
-                          ssInfo[level].hash, identity);
-                ssInfo[level].schreierTree :=
-                  MATRIXSS_ComputeSchreierTree(
-                          ssInfo[level].schreierTree, 
-                          SGS, ssInfo[level].action);
-            fi;
-            
-            ssInfo[level].oldSGS := SGS;
+            ssInfo[level].schreierTree := 
+              MATRIXSS_GetSchreierTree(ssInfo[level].schreierTree,
+                      ssInfo[level].partialBase, SGS, 
+                      ssInfo[level].oldSGS,
+                      ssInfo[level].action, ssInfo[level].hash, identity);
         od;
     end;
         
-    # Initialise Rattle random element generator
-    InitRattle := function(partialSGS, length, identity, nScrambles)
-        local i, RattleState;
-        
-        RattleState := [ShallowCopy(partialSGS), [identity, identity]];
-        for i in [Length(partialSGS) + 1 .. length] do
-            Add(RattleState[1], Immutable([identity, identity]));
-        od;
-        
-        ScrambleRattle(RattleState, nScrambles);
-        return RattleState;
-    end;
-    
-    # Scramble the Rattle state
-    ScrambleRattle := function(RattleState, nScrambles)
-        while nScrambles > 0 do
-            Rattle(RattleState);
-            nScrambles := nScrambles - 1;
-        od;
-    end;
-    
-    # Generate a random group element using the given Rattle state
-    Rattle := function(RattleState)
-        local i, j;
-        
-        i := Random([1 .. Length(RattleState[1])]);
-        RattleState[2] := [RattleState[2][1] * 
-                           RattleState[1][i][1],
-                           RattleState[1][i][2] * 
-                           RattleState[2][2]];
-        
-        i := Random([1 .. Length(RattleState[1])]);
-        
-        repeat
-            j := Random([1 .. Length(RattleState[1])]);
-        until i <> j;
-        
-        if Random([true, false]) then
-            RattleState[1][i] := 
-              Immutable([RattleState[1][i][1] * RattleState[1][j][1], 
-                      RattleState[1][j][2] * RattleState[1][i][2]]);
-        else
-            RattleState[1][i] := 
-              Immutable([RattleState[1][j][1] * RattleState[1][i][1], 
-                      RattleState[1][i][2] * RattleState[1][j][2]]);
-        fi;
-        
-        return RattleState[2];
-    end;
-    
 ###############################################################################
 ##
-#F RandomSchreierSims(ssInfo, partialSGS, maxIdentitySifts, identity, low_order, high_order, nScrambles, RattleFactor)
+#F RandomSchreierSims(ssInfo, partialSGS, maxIdentitySifts, identity, low_order, high_order)
 ##    
 ## The main random Schreier-Sims function.
 ## \beginitems    
@@ -158,28 +94,23 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
 ##    
 ## `identity' & the group identity
 ##    
-## `low_order' & lower bound on the group order (must be $\geq$ 1)
+## `lowOrder' & lower bound on the group order (must be $\geq$ 1)
 ##    
-## `high_order' & upper bound on the group order, or 0 if not available
-##
-## `nScrambles' & number of initial scrambles of the Rattle pool each time
-##              a new pool is created
-##    
-## `RattleFactor' & the Rattle pool is this many times bigger than the
-##                partial SGS
+## `highOrder' & upper bound on the group order, or 0 if not available
 ## \enditems
 ##
 ###############################################################################
     RandomSchreierSims := 
       function(ssInfo, partialSGS, maxIdentitySifts, identity, 
-              low_order, high_order, nScrambles, RattleFactor)
+              lowOrder, highOrder)
       local nIdentitySifts, element, strip, newInverseGenerator, level, order,
-            RattleState;
+            point;
         
         # Check if we are already done
-        if high_order > 0 or low_order > 1 then
+        if highOrder > 0 or lowOrder > 1 then
            order := MATRIXSS_ComputeOrder(ssInfo);
-            if order >= high_order then
+           MATRIXSS_DebugPrint(3, ["Order is : ", order]);
+            if order >= highOrder then
                 return;
             fi;
         else
@@ -189,23 +120,20 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         nIdentitySifts := 0;
         
         # Sanity check
-        Assert(1, low_order >= 1 and high_order >= 0 and 
-               (low_order <= high_order or high_order = 0));
-        
-        RattleState := InitRattle(partialSGS, RattleFactor * 
-                               Length(partialSGS), identity, nScrambles);
+        Assert(1, lowOrder >= 1 and highOrder >= 0 and 
+               (lowOrder <= highOrder or highOrder = 0));
         
         # Loop until our order meets the lower bound and we have sifted the
         # given number of consecutive random elements to identity
-        while (nIdentitySifts <= maxIdentitySifts or
-               order < low_order) do
+        while (nIdentitySifts < maxIdentitySifts or
+               order < lowOrder) do
             
             # Get a random element, from a hopefully uniform distribution
-            element := Rattle(RattleState);
+            element := MATRIXSS_RandomSubproduct(partialSGS, identity);
             
             # Our functions expect the elements to be vectors with the element
             # and its inverse
-            MATRIXSS_DebugPrint(8, ["Random element to sift : ", element]);
+            MATRIXSS_DebugPrint(4, ["Random element to sift : ", element]);
             
             # Sift the random element
             strip := MATRIXSS_Membership(ssInfo, element, identity);
@@ -216,31 +144,32 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 newInverseGenerator := Immutable(Reversed(strip[1]));
                 AddSet(partialSGS, strip[1]);
                 AddSet(partialSGS, newInverseGenerator);
-                
-                RattleState := InitRattle(partialSGS, 
-                                       RattleFactor * Length(partialSGS),
-                                       identity, nScrambles);
-                
+                                                
                 # Update partial SGS at each level
                 for level in [1 .. strip[2] - 1] do
-                    AddSet(ssInfo[level].partialSGS, strip[1]);
-                    AddSet(ssInfo[level].partialSGS, newInverseGenerator);
+                    point := ssInfo[level].partialBase;
+                    if ssInfo[level].action(point, strip[1][1]) = point then
+                        AddSet(ssInfo[level].partialSGS, strip[1]);
+                        AddSet(ssInfo[level].partialSGS, newInverseGenerator);
+                    else
+                        break;
+                    fi;
                 od;
                 
                 # Extend base if needed
                 if strip[2] > Length(ssInfo) then
                     MATRIXSS_ExtendBase(ssInfo, strip[1], identity);
                 fi;
-                
+                                
                 # Recompute Schreier trees
                 UpdateSchreierTrees(ssInfo, strip[2], partialSGS, 
                         identity);
-                if high_order > 0 or low_order > 1 then
+                if highOrder > 0 or lowOrder > 1 then
                     order := MATRIXSS_ComputeOrder(ssInfo);
                 
                     # Check if we are done
-                    MATRIXSS_DebugPrint(4, ["Order is : ", order]);
-                    if order >= high_order then
+                    MATRIXSS_DebugPrint(3, ["Order is : ", order]);
+                    if order >= highOrder then
                         return;
                     fi;
                 fi;
@@ -249,7 +178,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
             else
                 nIdentitySifts := nIdentitySifts + 1;
                 
-                MATRIXSS_DebugPrint(6, ["Sift to identity! Number : ", 
+                MATRIXSS_DebugPrint(4, ["Sift to identity! Number : ", 
                         nIdentitySifts]);
             fi;
         od;
@@ -262,12 +191,20 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         TryNextMethod();
     fi;
     
+    if IsBoundGlobal("MATRIXSS_PROFILE") then
+        ProfileFunctions([UpdateSchreierTrees, RandomSchreierSims]);
+    fi;
+    
     p := ValueOption("Probability");
     verify := ValueOption("Verify");
-    low_order := ValueOption("OrderLowerBound");
-    high_order := ValueOption("OrderUpperBound");
+    lowOrder := ValueOption("OrderLowerBound");
+    highOrder := ValueOption("OrderUpperBound");
+    cosetFactor := ValueOption("CosetFactor");
     
-    if p = fail or not IsRat(p) or p = 0 or p >= 1 then
+    MATRIXSS_DebugPrint(2, ["Prob: ", p]);
+    MATRIXSS_DebugPrint(2, ["Verify: ", verify]);
+    
+    if not IsRat(p) or p = 0 or p >= 1 then
         p := 3/4;
     fi;
     
@@ -275,34 +212,31 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         verify := false;
     fi;
     
-    if low_order = fail or not IsPosInt(low_order) then
-        low_order := 1;
+    if not IsPosInt(lowOrder) then
+        lowOrder := 1;
     fi;
     
-    if high_order = fail or not IsPosInt(high_order) or 
-       high_order < low_order then
-        high_order := 0;
+    if not IsPosInt(highOrder) or 
+       highOrder < lowOrder then
+        highOrder := 0;
     fi;
-
+    
+    if cosetFactor = fail or not IsRat(cosetFactor) then
+        cosetFactor := 6/5;
+    fi;
+    
     # Get initial set of generators, to be extended to a partial SGS
     generators := GeneratorsOfGroup(G);
-    
-    if ValueOption("CleverBasePoints") <> fail then
-        # Get a list of possibly good base points for this group
-        MATRIXSS_BasePointStore := BasisVectorsForMatrixAction(G);
-    fi;
-    
+        
     # The vector space on which the group acts
     points := FullRowSpace(FieldOfMatrixGroup(G), DimensionOfMatrixGroup(G));
     
-    # Main structure holding information needed by the algorithm
-    ssInfo := [];
-    
     MATRIXSS_DebugPrint(3, ["Group generators : ", generators]);
     
-    # Compute initial partial SGS and base and fill ssInfo
-    generators := MATRIXSS_GetPartialBaseSGS(generators, ssInfo, Identity(G), 
-                          points);
+      # Compute initial partial SGS and base and fill ssInfo
+    ret := MATRIXSS_GetPartialBaseSGS(generators, Identity(G), points);
+    generators := ret[1];
+    ssInfo     := ret[2];
     
     # Calculate number of needed identity sifts to meet the required 
     # probability of correctness
@@ -320,20 +254,30 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
     Assert(1, identitySifts >= 1);
     
     # Call Schreier-Sims algorithm for each level (starting from top)
-    RandomSchreierSims(ssInfo, generators, identitySifts, Identity(G), 
-            low_order, high_order, 1000, 10);
+    RandomSchreierSims(ssInfo, generators, 30, Identity(G), 
+            lowOrder, highOrder);
     
     MATRIXSS_DebugPrint(2, ["Random matrix Schreier-Sims done"]);
+    MATRIXSS_DebugPrint(2, ["Order is : ", MATRIXSS_ComputeOrder(ssInfo)]);
     
     if verify then
+        for level in [1 .. Length(ssInfo)] do
+            ssInfo[level].oldSGS := AsSSortedList([]); 
+            ssInfo[level].schreierTree := 
+              MATRIXSS_CreateInitialSchreierTree(
+                      ssInfo[level].partialBase, ssInfo[level].hash, 
+                      Identity(G));
+        od;
+            
         MATRIXSS_DebugPrint(2, ["Verifying using STCS"]);
         
         # Call Schreier-Sims algorithm for each level (starting from top)
         for level in Reversed([1 .. Length(ssInfo)]) do
             MATRIXSS_SchreierToddCoxeterSims(ssInfo, generators, level, 
-                    Identity(G));
+                    Identity(G), cosetFactor);
         od;
     fi;
+    MATRIXSS_DebugPrint(2, ["Order is : ", MATRIXSS_ComputeOrder(ssInfo)]);
     
     return Immutable(ssInfo);
 end);
