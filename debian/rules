@@ -28,7 +28,7 @@ install: build
 binary-indep: build install
 	dh_testdir
 	dh_testroot
-	dh_installdocs
+	dh_installdocs --exclude=INSTALL
 	dh_link /usr/share/gap/pkg/matrixss/doc /usr/share/doc/gap-matrix-schreiersims/doc
 	dh_installchangelogs 
 	dh_link
