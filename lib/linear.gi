@@ -116,18 +116,18 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 3,
                           ssInfo[level].action, identity);
                 MATRIXSS_DebugPrint(8, ["Random Schreier gen: ", schreierGen]);
                 
-                if not ssInfo[level].IsIdentity(schreierGen[1], identity) then
+                if not ssInfo[level].IsIdentity(schreierGen, identity) then
                     ret := MATRIXSS_Membership(ssInfo{[level .. 
                                    Length(ssInfo)]},
                                    schreierGen, identity);
                     residue := ret[1];
                     dropoutLevel := ret[2] + level - 1;
                     
-                    if residue[1] <> identity then
+                    if residue <> identity then
                         nonTrivialResidue := true;
                         
                         MATRIXSS_DebugPrint(2, ["Non-trivial residue! ", 
-                                residue[1]]);
+                                residue]);
                         MATRIXSS_DebugPrint(2, ["Dropout level ", 
                                 dropoutLevel]);
                         
@@ -182,11 +182,11 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 3,
         MATRIXSS_DebugPrint(2, ["First run"]);
         
         for element in partialSGS do
-            ret := MATRIXSS_Membership(ssInfo, element, identity);
+            ret := MATRIXSS_Membership(ssInfo, element[1], identity);
             residue := ret[1];
             dropoutLevel := ret[2];
             
-            if residue[1] <> identity then
+            if residue <> identity then
                 if dropoutLevel > Length(ssInfo) then
                     MATRIXSS_ExtendBase(ssInfo, residue, identity);
                 fi;

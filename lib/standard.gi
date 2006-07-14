@@ -31,7 +31,8 @@ Revision.("matrixss/lib/standard_gi") :=
 ###############################################################################
 InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1, 
         function(G)
-    local ssInfo, list, generators, level, points, element, SchreierSims, ret;
+    local ssInfo, list, generators, level, points, element, SchreierSims, ret,
+          identity;
         
 ###############################################################################
 ##
@@ -53,10 +54,9 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
         local generator, point, orbit, strip, schreierGenerator, element, 
               action, recursiveLevel, schreierTree, SGS, oldSGS, points, 
               newPoint, oldSchreierTree, newBasePoint, oldOrbit,
-              newInverseGenerator, newSGS, residue, dropoutLevel;
+              newSGS, residue, dropoutLevel, newGen;
         
-        MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);
-        
+        MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);        
         action := ssInfo[level].action;
                 
         # S^(i + 1) = ssInfo[i].partialSGS
@@ -72,7 +72,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
         MakeImmutable(SGS);
         
         MATRIXSS_DebugPrint(3, ["Saved SGS that fixes first ", level - 1, 
-                " points ", Length(SGS)]);
+                " points ", SGS]);
         
         MATRIXSS_DebugPrint(4, ["Base point : ", ssInfo[level].partialBase]);
         MATRIXSS_DebugPrint(9, ["Hash func : ", ssInfo[level].hash]);
@@ -102,20 +102,25 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
         for point in orbit do
             for generator in SGS do
                 
+                MATRIXSS_DebugPrint(6, ["Consider", point, 
+                        " and ", generators]);
+                
                 # Avoid rechecking Schreier generators
                 if not MATRIXSS_IsPointInOrbit(oldSchreierTree.Tree, point) or 
                    not generator in ssInfo[level].oldSGS then
                                         
+                    MATRIXSS_DebugPrint(6, ["Get Schreier Generator"]);
+                    
                     # Compute Schreier generator g for current level
                     schreierGenerator := 
                       MATRIXSS_GetSchreierGenerator(
                               ssInfo[level].schreierTree.Tree,
-                              generator, point, action, identity);
+                              generator[1], point, action, identity);
                                         
-                    MATRIXSS_DebugPrint(6, ["Schreier Generator : ", 
+                    MATRIXSS_DebugPrint(3, ["Schreier Generator : ", 
                             schreierGenerator]);
                                         
-                    if schreierGenerator[1] = identity then
+                    if schreierGenerator = identity then
                         continue;
                     fi;
                     
@@ -135,37 +140,43 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
                     
                     MATRIXSS_DebugPrint(5, ["Dropout level : ", dropoutLevel]);
                     
-                    if residue[1] <> identity then
-                        MATRIXSS_DebugPrint(3, ["Residue found"]);
+                    if residue <> identity then
+                        MATRIXSS_DebugPrint(3, ["Residue found", residue]);
                         
                         # We have found a Schreier generator which is not in
                         # the stabiliser of the current level, and so we must
                         # add the residue of this generator to our partial SGS
                         # in order to make it into a real SGS
-                        newInverseGenerator := Immutable(Reversed(residue));
                         
                         # Add residue to partial SGS
                         # This makes some levels incomplete and so we must
                         # recompute them recursively
-                        AddSet(partialSGS, residue);
-                        AddSet(partialSGS, newInverseGenerator);
+                        newGen := 
+                          Immutable([residue, Inverse(residue)]); 
+                                  #rec(mat := Inverse(residue.mat),
+                                  #    slp := InverseOfStraightLineProgram(
+                                  #            residue.slp))]);
+                        AddSet(partialSGS, newGen);
+                        AddSet(partialSGS, 
+                               Immutable(Reversed(ShallowCopy(newGen))));
                         
                         # Possibly extend the base if the Schreier generator
                         # fixes all points in our base
                         if dropoutLevel > Length(ssInfo) then
-                            MATRIXSS_ExtendBase(ssInfo, residue, identity);
+                            MATRIXSS_ExtendBase(ssInfo, newGen[1], 
+                                    identity);
                         fi;
                         
                         # Update partial SGS at each level
                         for recursiveLevel in [level .. dropoutLevel - 1] do
                             if ssInfo[recursiveLevel].action(
                                        ssInfo[recursiveLevel].partialBase,
-                                       residue[1]) = 
+                                       newGen[1]) = 
                                ssInfo[recursiveLevel].partialBase then
                                 AddSet(ssInfo[recursiveLevel].partialSGS, 
-                                       residue);
-                                AddSet(ssInfo[recursiveLevel].partialSGS, 
-                                       newInverseGenerator);
+                                       newGen);
+                                AddSet(partialSGS, 
+                                       Immutable(Reversed(ShallowCopy(newGen))));
                             else
                                 break;
                             fi;
@@ -177,6 +188,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
                                 dropoutLevel]) do
                             oldSGS := ssInfo[level].oldSGS;
                             ssInfo[level].oldSGS := SGS;
+                            
                             SchreierSims(ssInfo, partialSGS,
                                     recursiveLevel, identity);
                             ssInfo[level].oldSGS := oldSGS;
@@ -204,10 +216,13 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
     
     MATRIXSS_DebugPrint(3, ["Group generators : ", generators]);
     
+    #idSLP := StraightLineProgramNC([[1, 1, 1, -1]], Length(generators));
+    
     # Compute initial partial SGS and base and fill ssInfo
-    ret := MATRIXSS_GetPartialBaseSGS(generators, Identity(G), points);
+    ret := MATRIXSS_GetPartialBaseSGS(generators, points);
     generators := ret[1];
     ssInfo     := ret[2];
+    identity   := ret[3];
     
     MATRIXSS_DebugPrint(3, ["Partial sgs : ", generators]);
     MATRIXSS_DebugPrint(3, ["Initial base length : ", Length(ssInfo)]);
@@ -215,7 +230,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
     
     # Call Schreier-Sims algorithm for each level (starting from top)
     for level in Reversed([1 .. Length(ssInfo)]) do
-        SchreierSims(ssInfo, generators, level, Identity(G));
+        SchreierSims(ssInfo, generators, level, identity);
     od;
     
     MATRIXSS_DebugPrint(2, ["Matrix Schreier-Sims done"]);

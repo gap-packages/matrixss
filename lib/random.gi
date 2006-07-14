@@ -57,7 +57,8 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         function(G)
     local ssInfo, list, generators, level, points, element, RandomSchreierSims,
           identitySifts, UpdateSchreierTrees, lowOrder, highOrder, p, verify,
-          cosetFactor, ret, SchreierSims, RandomElement, residue, dropoutLevel;
+          cosetFactor, ret, SchreierSims, RandomElement, residue, dropoutLevel,
+          identity;
     
     # Updates the given Schreier trees w.r.t. to the given partial SGS
     UpdateSchreierTrees := function(ssInfo, dropoutLevel, partialSGS, identity)
@@ -107,9 +108,11 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
       function(ssInfo, partialSGS, maxIdentitySifts, identity, 
               lowOrder, highOrder)
       local nIdentitySifts, element, strip, newInverseGenerator, level, order,
-            point, sgsGroup;
+            point, sgsGroup, newGen, invGen, gens;
         
+        MATRIXSS_DebugPrint(2, ["Update Schreier trees "]);
         UpdateSchreierTrees(ssInfo, Length(ssInfo), partialSGS, identity);
+        MATRIXSS_DebugPrint(2, ["Done updating Schreier trees "]);
         
         # Check if we are already done
         if highOrder > 0 or lowOrder > 1 then
@@ -128,7 +131,9 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
         Assert(1, lowOrder >= 1 and highOrder >= 0 and 
                (lowOrder <= highOrder or highOrder = 0));
         
-        sgsGroup := Group(List(partialSGS, i -> i[1]), identity);
+        gens := List(partialSGS, i -> i[1]);
+        MATRIXSS_DebugPrint(4, ["Generators1 : ", gens]);
+        sgsGroup := Group(gens);
         
         # Loop until our order meets the lower bound and we have sifted the
         # given number of consecutive random elements to identity
@@ -137,7 +142,6 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
             
             # Get a random element, from a hopefully uniform distribution
             element := PseudoRandom(sgsGroup);
-            element := [element, Inverse(element)];
             
             # Our functions expect the elements to be vectors with the element
             # and its inverse
@@ -148,27 +152,33 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
             dropoutLevel := strip[2];
             residue := strip[1];
                              
-            if residue[1] <> identity then
+            if residue <> identity then
                 
                 # Add residue to our partial SGS
-                newInverseGenerator := Immutable(Reversed(residue));
-                AddSet(partialSGS, residue);
-                AddSet(partialSGS, newInverseGenerator);
-                sgsGroup := Group(List(partialSGS, i -> i[1]), identity);
+                newGen := Immutable([residue, Inverse(residue)]);
+                invGen := Immutable(Reversed(ShallowCopy(newGen)));
+                AddSet(partialSGS, newGen);
+                AddSet(partialSGS, invGen);
+                
+                MATRIXSS_DebugPrint(4, ["New gens : ", newGen, invGen]);
+                
+                gens := List(partialSGS, i -> i[1]);
+                MATRIXSS_DebugPrint(4, ["Generators2 : ", gens]);
+                sgsGroup := Group(gens);
                 
                 MATRIXSS_DebugPrint(3, ["Dropout level : ", dropoutLevel]);
                                 
                 # Extend base if needed
                 if dropoutLevel > Length(ssInfo) then
-                    MATRIXSS_ExtendBase(ssInfo, residue, identity);
+                    MATRIXSS_ExtendBase(ssInfo, newGen[1], identity);
                 fi;
                                 
                 # Update partial SGS at each level
                 for level in [1 .. dropoutLevel - 1] do
                     if ssInfo[level].action(ssInfo[level].partialBase,
-                               residue[1]) = ssInfo[level].partialBase then
-                        AddSet(ssInfo[level].partialSGS, residue);
-                        AddSet(ssInfo[level].partialSGS, newInverseGenerator);
+                               newGen[1]) = ssInfo[level].partialBase then
+                        AddSet(ssInfo[level].partialSGS, newGen);
+                        AddSet(ssInfo[level].partialSGS, invGen);
                     fi;
                 od;
                 
@@ -258,9 +268,10 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
     MATRIXSS_DebugPrint(3, ["Group generators : ", generators]);
     
       # Compute initial partial SGS and base and fill ssInfo
-    ret := MATRIXSS_GetPartialBaseSGS(generators, Identity(G), points);
+    ret := MATRIXSS_GetPartialBaseSGS(generators, points);
     generators := ret[1];
     ssInfo     := ret[2];
+    identity   := ret[3];
     
     # Calculate number of needed identity sifts to meet the required 
     # probability of correctness
@@ -279,7 +290,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
     
     # Call probabilistic Schreier-Sims algorithm 
     RandomSchreierSims(ssInfo, generators, identitySifts, 
-            Identity(G), lowOrder, highOrder);
+            identity, lowOrder, highOrder);
     
     MATRIXSS_DebugPrint(2, ["Random matrix Schreier-Sims done"]);
     MATRIXSS_DebugPrint(2, ["Order is : ", MatrixGroupOrderStabChain(ssInfo)]);
@@ -293,14 +304,14 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 ssInfo[level].schreierTree := 
                   MATRIXSS_CreateInitialSchreierTree(
                           ssInfo[level].partialBase, ssInfo[level].hash, 
-                          Identity(G));
+                          identity);
             od;
             
         
             # Call Schreier-Sims algorithm for each level (starting from top)
             for level in Reversed([1 .. Length(ssInfo)]) do
                 MATRIXSS_SchreierToddCoxeterSims(ssInfo, generators, level, 
-                        Identity(G), cosetFactor);
+                        identity, cosetFactor);
             od;
         else
             repeat
@@ -310,7 +321,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 2,
                 if element.Level > 0 then
                     # Continue probabilistic Schreier-Sims...
                     RandomSchreierSims(ssInfo, generators, identitySifts, 
-                            Identity(G), lowOrder, highOrder);
+                            identity, lowOrder, highOrder);
                 fi;
             until element.Level = 0;
         fi;

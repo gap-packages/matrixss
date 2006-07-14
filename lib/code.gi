@@ -20,6 +20,31 @@
 Revision.("matrixss/lib/code_gi") := 
   "@(#)$Id$";
 
+#ProductOfStraightLinePrograms := function(slp1, slp2)
+#    local product, prod, int;
+#    
+#    Assert(1, NrInputsOfStraightLineProgram(slp1) =
+#           NrInputsOfStraightLineProgram(slp2));
+#    
+#    int := IntegratedStraightLineProgram([slp1, slp2]);
+#    prod := StraightLineProgramNC([[1, 1, 2, 1]], 2);
+#    product := CompositionOfStraightLinePrograms(prod, int);
+#    Assert(1, not IsBool(product));
+#    
+#    return product;
+#end;
+
+InverseOfStraightLineProgram := function(slp)
+    local inversion, comp;
+    
+    inversion := StraightLineProgramNC([[[1, -1], 1]], 1);
+    Assert(1, not IsBool(inversion));
+    comp := CompositionOfStraightLinePrograms(inversion, slp);
+    Assert(1, not IsBool(comp));
+    
+    return comp;
+end;
+
 ###############################################################################
 ##
 #F MATRIXSS_DebugPrint(level, message)
@@ -125,6 +150,7 @@ end;
 MATRIXSS_IsPointInOrbit := function(schreierTree, point)
     MATRIXSS_DebugPrint(9, ["Lookup ", point]);
     MATRIXSS_DebugPrint(9, ["Schreier tree ", schreierTree]);
+    
     if KnowsDictionary(schreierTree, point) then
         return true;
     else
@@ -189,7 +215,7 @@ MATRIXSS_CreateInitialSchreierTree := function(root, dictinfo, identity)
     # Make the root point to itself 
     edge := [identity, identity];
     AddDictionary(tree, root, 
-            Immutable(rec(Edge  := edge,
+            Immutable(rec(Edge  := edge, 
                           Depth := 0)));
     
     MATRIXSS_DebugPrint(9, ["Tree: ", tree]);
@@ -217,6 +243,7 @@ MATRIXSS_CopySchreierTree := function(tree, dictinfo)
     # all keys and values explicitly
     copyTree := NewDictionary(dictinfo[1], dictinfo[2], dictinfo[3]);
     keys := HashKeyEnumerator(tree);
+    
     for key in keys do
         value := LookupDictionary(tree, key);
         AddDictionary(copyTree, key, value);
@@ -248,33 +275,50 @@ end;
 ###############################################################################
 MATRIXSS_OrbitElement := 
   function(schreierTree, point, action, identity)
-    local element, edge;
+    local element, edge, accumulate;
     
     if ValueOption("SimpleSchreierTree") = fail then
         # the group element and its inverse
-        element := [identity, identity];
+        
+        #edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
+        #MATRIXSS_DebugPrint(3, ["edge", edge]);
+        element := identity;
+        
+        # Do we want the element or its inverse?
+        if ValueOption("Inverse") = fail then
+            accumulate := function(element, edge)
+                return edge[1] * element;
+            end;
+        else
+            accumulate := function(element, edge)
+                return element * edge[2];
+            end;
+        fi;
         
         repeat
             edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
             Assert(1, not IsBool(edge), "Point not in orbit!\n");
             
-            MATRIXSS_DebugPrint(9, ["Found edge : ", edge]);
+            MATRIXSS_DebugPrint(8, ["Found edge : ", edge]);
             if edge.Depth = 0 then
                 return element;
             fi;
             
             point := action(point, edge.Edge[2]);
-            element[1] := edge.Edge[1] * element[1];
-            element[2] := element[2] * edge.Edge[2];
+            element := accumulate(element, edge.Edge);
         until false;
     else
         # In this case the tree has height 1, so we are done with one
         # single lookup
         
         edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
+        Assert(1, not IsBool(edge));
         
-        Assert(1, not IsBool(edge), "Point not in orbit!\n");
-        return edge.Edge;
+        if ValueOption("Inverse") = fail then
+            return edge.Edge[1];
+        else
+            return edge.Edge[2];
+        fi;
     fi;
 end;
 
@@ -288,9 +332,12 @@ end;
 ###############################################################################
 MATRIXSS_RandomCosetRepresentative :=   
   function(schreierTree, action, identity)
-    return MATRIXSS_OrbitElement(schreierTree, 
-                   MATRIXSS_RandomOrbitPoint(schreierTree),
-                   action, identity);
+    local element;
+    
+    element := MATRIXSS_OrbitElement(schreierTree, 
+                       MATRIXSS_RandomOrbitPoint(schreierTree),
+                       action, identity);
+    return element;
 end;
 
 ###############################################################################
@@ -318,12 +365,13 @@ MATRIXSS_MonotoneTree := function(root, elements, action, identity, dictinfo)
           point, depth;
     
     # Add inverses to edge labels
-    gens := [];
-    for element in Reversed(elements) do
-        Add(gens, Reversed(element));
-    od;
-    Append(gens, elements);
-    MakeImmutable(gens);
+    #gens := [];
+    #for element in Reversed(elements) do
+    #    Add(gens, Inverse(element));
+    #od;
+    #Append(gens, elements);
+    #MakeImmutable(gens);
+    gens := elements;
     depth := 0;
     
     MATRIXSS_DebugPrint(4, ["Building monotone tree using gens : ", gens]);
@@ -377,7 +425,8 @@ end;
 ###############################################################################
 MATRIXSS_CreateShallowSchreierTree := 
   function(orbitTree, root, generators, labels, action, identity, hash)
-    local tree, element, point, orbit, newPoint, generator, height, ret;
+    local tree, element, point, orbit, newPoint, generator, height, ret,
+          element1, element2;
     
     tree := MATRIXSS_CreateInitialSchreierTree(root, hash, identity).Tree;
     height := 0;
@@ -389,11 +438,15 @@ MATRIXSS_CreateShallowSchreierTree :=
         for point in orbit do
             for generator in generators do
                 newPoint := action(point, generator[1]);
+                
                 if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
-                    element := MATRIXSS_OrbitElement(tree, point, 
+                    element1 := MATRIXSS_OrbitElement(tree, point, 
                                        action, identity);
-                    element[1] := element[1] * generator[1];
-                    element[2] := generator[2] * element[2];
+                    element2 := MATRIXSS_OrbitElement(tree, point, 
+                                       action, identity : Inverse := true);
+                    #element[1] := element[1] * generator[1];
+                    element := [element1 * generator[1], 
+                                generator[2] * element2];
                     break;
                 fi;
             od;
@@ -402,6 +455,7 @@ MATRIXSS_CreateShallowSchreierTree :=
                 break;
             fi;
         od;
+        
         if element <> fail then
             AddSet(labels, Immutable(element));
             ret := MATRIXSS_MonotoneTree(root, labels, action,
@@ -410,6 +464,7 @@ MATRIXSS_CreateShallowSchreierTree :=
             height := ret[2];
             orbit := MATRIXSS_GetOrbit(tree);
         fi;
+        
     until Size(tree) = Size(orbitTree) or element = fail;
     MATRIXSS_DebugPrint(4, ["Size1 : ", Size(tree), " Size2 : ", 
             Size(orbitTree), " element : ", element]);
@@ -453,7 +508,7 @@ MATRIXSS_ExtendSchreierTree :=
     
     if ValueOption("SimpleSchreierTree") = fail then
         height := 0;
-        #labels := oldTree.Labels;
+
         repeat
             newPoints := [];
             for point in orbit do
@@ -467,8 +522,9 @@ MATRIXSS_ExtendSchreierTree :=
                         
                         if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
                             AddDictionary(tree, newPoint, 
-                                    rec(Edge := Immutable(ShallowCopy(generator)),
-                                                Depth := edge.Depth + 1));
+                                    rec(Edge := 
+                                        generator,
+                                        Depth := edge.Depth + 1));
                             height := Maximum([height, edge.Depth + 1]);
                             Add(newPoints, newPoint);
                             AddSet(labels, generator);
@@ -498,12 +554,16 @@ MATRIXSS_ExtendSchreierTree :=
                         
                         # Make Schreier tree have height 1
                         if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
-                            element := ShallowCopy(edge);
-                            element[1] := element[1] * generator[1];
-                            element[2] := generator[2] * element[2];
+                            element := edge.Edge;
+
+                            element := 
+                              [element[1] * generator[1], 
+                               generator[2] * element[2]];
+                            
                             AddDictionary(tree, newPoint, 
                                     Immutable(rec(Edge := Immutable(element),
-                                                  Depth := 1)));
+                                                          Depth := 1)));
+                            
                             Add(newPoints, newPoint);
                             AddSet(labels, generator);
                         fi;
@@ -545,7 +605,7 @@ MATRIXSS_ComputeSchreierTree :=
   function(tree, generators, action, root, hash, identity)
     local point, generator, newPoint, newPoints, orbit, element, 
           elements, level, newElements, orbitTree, depth, edge, height, ret,
-          labels;
+          labels, invGen;
         
     orbit := MATRIXSS_GetOrbit(tree);
     depth := 0;
@@ -557,20 +617,24 @@ MATRIXSS_ComputeSchreierTree :=
             newPoints := [];
             for point in orbit do
                 edge := MATRIXSS_GetSchreierTreeEdge(tree, point);
+                
                 for generator in generators do
-                    
                     newPoint := action(point, generator[1]);
                     
                     # Make Schreier tree edge labels be coset representatives
                     # rather than generators
                     if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
-                        element := ShallowCopy(edge.Edge);
-                        element[1] := element[1] * generator[1];
-                        element[2] := generator[2] * element[2];
+                        MATRIXSS_DebugPrint(3, ["Edge : ", edge.Edge]);
+                        MATRIXSS_DebugPrint(3, ["Gen : ", generator]);
+                        element := edge.Edge;
+                        
+                        element := 
+                          [element[1] * generator[1], 
+                           generator[2] * element[2]];
+                        
                         AddDictionary(tree, newPoint, 
-                                Immutable(rec(Edge := 
-                                        element,
-                                              Depth := 1)));
+                                Immutable(rec(Edge := Immutable(element),
+                                                      Depth := 1)));
                         AddSet(labels, element);
                         Add(newPoints, newPoint);
                     fi;
@@ -584,9 +648,9 @@ MATRIXSS_ComputeSchreierTree :=
         repeat
             newPoints := [];
             depth := depth + 1;
+            
             for point in orbit do
                 for generator in generators do
-                    
                     newPoint := action(point, generator[1]);
                     
                     if not MATRIXSS_IsPointInOrbit(tree, newPoint) then
@@ -645,6 +709,7 @@ MATRIXSS_GetSchreierTree :=
                        oldGenerators, action, identity, hash);
     else
         oldTree := MATRIXSS_CreateInitialSchreierTree(root, hash, identity);
+        
         return MATRIXSS_ComputeSchreierTree(oldTree.Tree, generators, action, 
                        root, hash, identity);
     fi;
@@ -684,44 +749,75 @@ end;
 ###############################################################################
 MATRIXSS_OrbitElement_ToddCoxeter := 
   function(schreierTree, point, action, identity, freeGroup,
-          genMap)
-    local element, edge, word;
+          genMap, word2elt)
+    local element, edge, word, accumulate, accumulateWord;
     
     if ValueOption("SimpleSchreierTree") = fail then
         # the group element and its inverse
-        element := [identity, identity];
-        word := [Identity(freeGroup), Identity(freeGroup)];
+        element := identity;
+        word := Identity(freeGroup);
+        
+        # Do we want the element or its inverse?
+        if ValueOption("Inverse") = fail then
+            accumulate := function(element, edge)
+                return edge[1] * element;
+            end;
+            
+            accumulateWord := function(word, edge)
+                return genMap.FreeGenerators[Position(genMap.Generators, 
+                               edge[1])] * word;
+            end;
+        else
+            accumulate := function(element, edge)
+                return element * edge[2];
+            end;
+            
+            accumulateWord := function(word, edge)
+                MATRIXSS_DebugPrint(9, ["gens : ", genMap.Generators, 
+                        " gen ", edge[2]]);
+                return word * 
+                       genMap.FreeGenerators[Position(genMap.Generators, 
+                               edge[2])];
+            end;
+        fi;
+        
         repeat
             edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
             Assert(1, not IsBool(edge), "Point not in orbit!\n");
             
+            MATRIXSS_DebugPrint(8, ["Found edge : ", edge]);
             if edge.Depth = 0 then
                 return [element, word];
             fi;
             
             point := action(point, edge.Edge[2]);
-            element[1] := edge.Edge[1] * element[1];
-            element[2] := element[2] * edge.Edge[2];
-            
-            MATRIXSS_DebugPrint(4, ["Looking up ", edge.Edge[1], " in ",
-                    genMap.Generators]);
-            word[1] := genMap.FreeGenerators[Position(genMap.Generators, 
-                               edge.Edge[1])] * word[1];
-            word[2] := word[2] * 
-                       genMap.FreeGenerators[Position(genMap.Generators, 
-                               edge.Edge[2])];
-        until false;
+            element := accumulate(element, edge.Edge);
+            word := accumulateWord(word, edge.Edge);
+          
+        until false;        
     else
         # In this case the tree has height 1, so we are done with one
         # single lookup
         
-        edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point);
+        edge := MATRIXSS_GetSchreierTreeEdge(schreierTree, point); 
+        MATRIXSS_DebugPrint(8, ["Found edge : ", edge]);
+        MATRIXSS_DebugPrint(8, ["Generators : ", genMap.Generators]);
         Assert(1, not IsBool(edge), "Point not in orbit!\n");
         
-        return [edge.Edge, [genMap.FreeGenerators[Position(genMap.Generators, 
-                       edge.Edge[1])],
-                       genMap.FreeGenerators[Position(genMap.Generators, 
-                               edge.Edge[2])]]];
+        if edge.Edge[1] = identity then
+            word := Identity(freeGroup);
+            element := edge.Edge[1];
+        else
+            if ValueOption("Inverse") = fail then
+                element := edge.Edge[1];
+                word := PreImagesRepresentative(word2elt, edge.Edge[1]);
+            else
+                element := edge.Edge[2];
+                word := PreImagesRepresentative(word2elt, edge.Edge[2]);
+            fi;
+        fi;
+        
+        return [element, word];
     fi;
 end;
 
@@ -744,16 +840,17 @@ MATRIXSS_Membership :=
   function(ssInfo, element, identity)
     local level, residue, word, point;
     
-    residue := ShallowCopy(element);
+    residue := element;
+    Assert(1, IsObjWithMemory(residue));
     
     # Find an expression of element in terms of the generators of the
     # groups in our stabiliser chain, using the Schreier trees
     for level in [1 .. Length(ssInfo)] do
-        MATRIXSS_DebugPrint(9, ["residue: ", residue[1], "\nbase: ", 
+        MATRIXSS_DebugPrint(9, ["residue: ", residue, "\nbase: ", 
                 ssInfo[level].partialBase, "\naction", 
                 ssInfo[level].action]);
         point := ssInfo[level].action(ssInfo[level].partialBase, 
-                         residue[1]);
+                         residue);
         
         if not MATRIXSS_IsPointInOrbit(ssInfo[level].schreierTree.Tree, 
                    point) then
@@ -761,9 +858,13 @@ MATRIXSS_Membership :=
         fi;
         
         word := MATRIXSS_OrbitElement(ssInfo[level].schreierTree.Tree, point, 
-                        ssInfo[level].action, identity);
-        residue[1] := residue[1] * word[2];
-        residue[2] := word[1] * residue[2];
+                        ssInfo[level].action, identity : 
+                        Inverse := true);
+        
+        residue := residue * word;
+        Assert(1, IsObjWithMemory(residue));
+#                       slp := ProductOfStraightLinePrograms(residue.slp,
+#                               word.slp));
     od;
     
     level := Length(ssInfo) + 1;
@@ -771,6 +872,7 @@ MATRIXSS_Membership :=
         level := level + 1;
     fi;
 
+    MATRIXSS_DebugPrint(9, ["residue: ", residue]);
     return [Immutable(residue), level];
 end; 
 
@@ -799,7 +901,7 @@ MATRIXSS_Membership_ToddCoxeter :=
     
     # Apart from calculating the group element, calculate the word of the
     # element in the generators
-    word := [Identity(freeGroup), Identity(freeGroup), freeGroup];
+    word := [Identity(freeGroup), freeGroup];
     residue := [element, word];
     
     # Find an expression of element in terms of the generators of the
@@ -809,7 +911,7 @@ MATRIXSS_Membership_ToddCoxeter :=
                 ssInfo[level].partialBase, "\naction", 
                 ssInfo[level].action]);
         point := ssInfo[level].action(ssInfo[level].partialBase, 
-                         residue[1][1]);
+                         residue[1]);
         
         MATRIXSS_DebugPrint(9, ["Check if point ", point, " is in orbit"]);
         MATRIXSS_DebugPrint(9, ["Orbit is ", ssInfo[level].schreierTree]);
@@ -823,30 +925,32 @@ MATRIXSS_Membership_ToddCoxeter :=
         representative := 
           MATRIXSS_OrbitElement_ToddCoxeter(ssInfo[level].schreierTree.Tree, 
                   point, ssInfo[level].action, identity, 
-                  ssInfo[level].freeGroup, ssInfo[level].genMap);
+                  ssInfo[level].freeGroup, ssInfo[level].genMap,
+                  ssInfo[level].word2elt : Inverse := true);
         
         MATRIXSS_DebugPrint(9, ["residue : ", residue]);
         MATRIXSS_DebugPrint(9, ["representative : ", representative]);
         
-        residue[1][1] := residue[1][1] * representative[1][2];
-        residue[1][2] := representative[1][1] * residue[1][2];
+        residue[1] := residue[1] * representative[1];
+        #residue[1] := representative[1][1] * residue[1][2];
         
         gens1 := GeneratorsOfGroup(ssInfo[level].freeGroup);
         gens2 := GeneratorsOfGroup(freeGroup);
         
+        MATRIXSS_DebugPrint(9, ["gens : ", gens1, gens2]);
         # Map the words to the same free group
         if Length(gens2) >= Length(gens1) and Length(gens1) > 0 then
-            word := MappedWord(representative[2][2], gens1, 
+            word := MappedWord(representative[2], gens1, 
                             gens2{[1 .. Length(gens1)]});
             residue[2][1] := residue[2][1] * word;
             
-            word := MappedWord(representative[2][1], gens1, 
-                            gens2{[1 .. Length(gens1)]});
-            residue[2][2] := word * residue[2][2];
+            #word := MappedWord(representative[2], gens1, 
+             #               gens2{[1 .. Length(gens1)]});
+            #residue[2][2] := word * residue[2][2];
         fi;
     od;
     
-    if residue[1][1] <> identity then
+    if residue[1] <> identity then
         level := Length(ssInfo) + 1;
         if ValueOption("AlternatingActions") <> fail then
             level := level + 1;
@@ -946,15 +1050,24 @@ MATRIXSS_GetSchreierGenerator :=
   function(schreierTree, generator, point, action, identity)
     local element1, element2, edge, inv_edge;
     
+    MATRIXSS_DebugPrint(5, ["Get first element"]);           
     element1 := MATRIXSS_OrbitElement(schreierTree, point, action,
                         identity);
+    
+    MATRIXSS_DebugPrint(5, ["Get second element"]);           
     element2 := MATRIXSS_OrbitElement(schreierTree, 
-                        action(point, generator[1]), action, identity);
+                        action(point, generator), action, identity 
+                        : Inverse := true);
     
-    edge := element1[1] * generator[1] * element2[2];
-    inv_edge := element2[1] * generator[2] * element1[2];
+    MATRIXSS_DebugPrint(3, ["First ", element1, " gen ", generator, " second ",
+            element2]);
+    edge := element1 * generator * element2;
+#                slp := ProductOfStraightLinePrograms(
+#                        ProductOfStraightLinePrograms(element1.slp, 
+#                                generator.slp), element2.slp));
+    #inv_edge := element2[1] * generator[2] * element1[2];
     
-    return [edge, inv_edge];
+    return edge;
 end;
 
 ###############################################################################
@@ -969,26 +1082,32 @@ end;
 ###############################################################################
 MATRIXSS_GetSchreierGenerator_ToddCoxeter := 
   function(schreierTree, generator, point, action, identity, 
-          freeGroup, genMap)
+          freeGroup, genMap, word2elt)
     local element1, element2, edge, inv_edge;
     
     element1 := MATRIXSS_OrbitElement_ToddCoxeter(schreierTree, point, action,
-                        identity, freeGroup, genMap);
+                        identity, freeGroup, genMap, word2elt);
+    
+    MATRIXSS_DebugPrint(5, ["Found first element", element1, generator]); 
     element2 := MATRIXSS_OrbitElement_ToddCoxeter(schreierTree, 
-                        action(point, generator[1]), action, identity,
-                        freeGroup, genMap);
+                        action(point, generator), action, identity,
+                        freeGroup, genMap, word2elt : Inverse := true);
     
-    edge := [element1[1][1] * generator[1] * element2[1][2],
-             element1[2][1] * genMap.FreeGenerators[Position(genMap.Generators,
-                     generator[1])] *
-             element2[2][2]];
-    inv_edge := [element2[1][1] * generator[2] * element1[1][2],
-                 element2[2][1] * 
-                 genMap.FreeGenerators[Position(genMap.Generators, 
-                         generator[2])] *
-                 element1[2][2]];
+    MATRIXSS_DebugPrint(5, ["Found second element", element2]);           
+    MATRIXSS_DebugPrint(5, ["Generators : ", generator, 
+            genMap.Generators]);
+    edge := [element1[1] * generator * element2[1],
+             element1[2] * 
+             genMap.FreeGenerators[Position(genMap.Generators,
+                     generator)] *
+             element2[2]];
+    #inv_edge := [element2[1][1] * generator[2] * element1[1][2],
+    #             element2[2][1] * 
+    #             genMap.FreeGenerators[Position(genMap.Generators, 
+    #                     generator[2])] *
+    #             element1[2][2]];
     
-    return [[edge[1], inv_edge[1]], [edge[2], inv_edge[2], freeGroup]];
+    return [edge[1], [edge[2], freeGroup]];
 end;
 
 ###############################################################################
@@ -1017,11 +1136,11 @@ MATRIXSS_RandomSubproduct := function(elements, identity)
     od;
     
     # create random subproduct of elements
-    product := [identity, identity];
+    product := identity;#, identity];
     for element in elements do
         if Random([true, false]) then
-            product[1] := product[1] * element[1];
-            product[2] := element[2] * product[2];
+            product := product * element;
+            #product[2] := element[2] * product[2];
         fi;
     od;
     
@@ -1140,7 +1259,8 @@ MATRIXSS_ExtendBase := function(ssInfo, badElement, identity)
     length := Length(ssInfo);
     
     # Find new base point
-    newPoint := MATRIXSS_NewBasePoint(badElement[1], identity, 
+    newPoint := MATRIXSS_NewBasePoint(badElement, 
+                        identity, 
                         ssInfo[length].points);
     
     MATRIXSS_AugmentBase(ssInfo, newPoint, MATRIXSS_PointAction, 
@@ -1164,9 +1284,9 @@ end;
 ##
 ###############################################################################
 MATRIXSS_GetPartialBaseSGS := 
-  function(generators, identity, field)
+  function(generators, field)
     local newPoint, element, gen, invGen, newSGS, level, dictinfo, 
-          levelStruct, point, ssInfo;
+          levelStruct, point, ssInfo, i, identity;
     
 ###############################################################################
 ##
@@ -1217,9 +1337,14 @@ MATRIXSS_GetPartialBaseSGS :=
           BasisVectorsForMatrixAction(Group(generators));
     fi;
     
+    generators := GeneratorsWithMemory(generators);
+    identity := Identity(Group(generators));
+    
     # we make a partial strong generating set which also contain
     # inverses of all elements
-    for element in generators do
+    for i in [1 .. Length(generators)] do
+        element := generators[i];
+        
         if element = identity then
             continue;
         fi;
@@ -1227,16 +1352,18 @@ MATRIXSS_GetPartialBaseSGS :=
         MATRIXSS_DebugPrint(3, ["Considering generator ", element]);
         
         gen := Immutable([element, Inverse(element)]);
-        invGen := Immutable(Reversed(gen));
+        invGen := Immutable(Reversed(ShallowCopy(gen)));
         level := 1;
         MATRIXSS_DebugPrint(3, ["Length of ssInfo : ", Length(ssInfo)]);
         for level in [1 .. Length(ssInfo)] do
             MATRIXSS_DebugPrint(9, ["ssInfo at level ", level, " is ", 
                     ssInfo[level]]);
             point := ssInfo[level].partialBase;
+            
             if ssInfo[level].action(point, element) = point then
                 AddSet(ssInfo[level].partialSGS, gen);
                 AddSet(ssInfo[level].partialSGS, invGen);
+                
             else
                 level := level - 1;
                 break;
@@ -1247,18 +1374,21 @@ MATRIXSS_GetPartialBaseSGS :=
             MATRIXSS_DebugPrint(8, ["Matrix ", element, " fixes all points "]);
             
             if Length(ssInfo) > 0 then
-                MATRIXSS_ExtendBase(ssInfo, gen, identity);
+                MATRIXSS_ExtendBase(ssInfo, gen[1], identity);
             else              
                 # Get initial point
-                newPoint := MATRIXSS_NewBasePoint(gen[1], identity, field);
+                newPoint := MATRIXSS_NewBasePoint(gen[1], 
+                                    identity, field);
                 dictinfo := [newPoint, true, field];
                 
                 MATRIXSS_AugmentBase(ssInfo, newPoint, MATRIXSS_PointAction, 
                         dictinfo, identity);
             fi;
             
-            MATRIXSS_DebugPrint(7, ["Adding ", gen, " to SGS"]);
         fi;
+        
+        MATRIXSS_DebugPrint(7, ["Adding ", gen[1], " and ", 
+                invGen[1], " to SGS"]);
         
         # Save reference to generator and its inverse
         # Then inverses need not be calculated later
@@ -1266,7 +1396,7 @@ MATRIXSS_GetPartialBaseSGS :=
         AddSet(newSGS, invGen);
     od;
     
-    return [newSGS, ssInfo];
+    return [newSGS, ssInfo, identity];
 end;
 
 ###############################################################################
@@ -1313,5 +1443,25 @@ if not IsBoundGlobal("MATRIXSS_TEST") then
     end);
 fi;
 
+#function(rec1, rec2) 
+#    if RecNames(rec1) = RecNames(rec2) and RecNames(rec1) = ["mat", "slp"] then
+#        return true;
+#    else
+#        return false;
+#    fi; end,
+
+#InstallMethod(EQ, "for MatSLP", 
+##        [IsRecord, IsRecord], function(rec1, rec2)
+#    if RecNames(rec1) = RecNames(rec2) and RecNames(rec1) = ["mat", "slp"] then
+#        if rec1.mat = rec2.mat then
+#            return true;
+#        else
+#            return false;
+#        fi;
+#    else
+#        TryNextMethod();
+#    fi;
+#    end);
+    
 ###############################################################################
 #E

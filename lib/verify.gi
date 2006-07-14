@@ -581,11 +581,11 @@ MATRIXSS_VerifyMultipleGenerators :=
         MATRIXSS_DebugPrint(3, ["Verifying ", level, " generators"]);
         residue := MATRIXSS_Membership(ssInfoNew, subGenerators[level], 
                            identity);
-        if residue[1][1] <> identity then
+        if residue[1] <> identity then
             MATRIXSS_DebugPrint(3, ["Residue found"]);
             
-            if action(point, residue[1][1]) = point then
-                return residue[1];
+            if action(point, residue[1]) = point then
+                return residue;
             fi;
             
             MATRIXSS_DebugPrint(3, ["Residue does not fix base point"]);

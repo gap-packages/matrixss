@@ -84,31 +84,43 @@ end;
 ##
 ###############################################################################
 MATRIXSS_GetTestGroups := 
-  function(maxDegree, maxFieldSize) 
-    local degree, power, primeNr, prime, groups, groupTypes, type;
+  function(startDeg, stopDeg, startField, stopField) 
+    local degree, power, primeNr, prime, groups, groupTypes, type, gl, group,
+          conj, tits;
     
     # Use the following group creation functions to make some test groups
     groupTypes := 
       Immutable([GeneralLinearGroup, SpecialLinearGroup, 
-              GeneralOrthogonalGroup, SpecialOrthogonalGroup]);
-#              GeneralUnitaryGroup, SpecialUnitaryGroup]);
+              GeneralOrthogonalGroup, SpecialOrthogonalGroup,
+              GeneralUnitaryGroup, SpecialUnitaryGroup]);
     
     # List of test groups
     groups := [];
     
-    for degree in [2 .. maxDegree] do
+    for degree in [startDeg .. stopDeg] do
         primeNr := 1;
-        while primeNr <= 168 and Primes[primeNr] <= maxFieldSize do
+        while primeNr <= 168 and Primes[primeNr] <= stopField and 
+          Primes[primeNr] >= startField do
             prime := Primes[primeNr];
             
             power := 1;
-            while Primes[primeNr]^power <= maxFieldSize do
+            while Primes[primeNr]^power <= stopField and 
+              Primes[primeNr]^power >= startField do
+                gl := GL(degree, prime^power);
+                
                 for type in groupTypes do
                     if (type = GO or type = SO) and IsEvenInt(degree) then
-                        Add(groups, type(1, degree, prime^power));
-                        Add(groups, type(-1, degree, prime^power));
+                        group := type(1, degree, prime^power);
+                        conj := PseudoRandom(gl);
+                        Add(groups, group^conj);
+                        
+                        group := type(-1, degree, prime^power);
+                        conj := PseudoRandom(gl);
+                        Add(groups, group^conj);
                     else
-                        Add(groups, type(degree, prime^power));
+                        group := type(degree, prime^power);
+                        conj := PseudoRandom(gl);
+                        Add(groups, group^conj);
                     fi;
                 od;
                 
@@ -118,6 +130,9 @@ MATRIXSS_GetTestGroups :=
             primeNr := primeNr + 1;
         od;
     od;
+    
+    #tits := TitsGroup();
+    #Add(groups, tits[1]);
     
     return groups;
 end;
@@ -147,7 +162,7 @@ end;
 ###############################################################################
 MATRIXSS_GetBenchmarkGroups := 
   function(maxDegree, maxFieldSize, maxReeGroupSize, maxSuzukiSize)
-  local groups, size;
+  local groups, size, group, gl;
     
     # Use all test groups as benchmark groups
     groups := MATRIXSS_GetTestGroups(maxDegree, maxFieldSize);
@@ -155,14 +170,20 @@ MATRIXSS_GetBenchmarkGroups :=
     # Also use some sporadic matrix groups as benchmark groups
     size := 1;
     while 3^(1 + 2 * size) <= maxReeGroupSize do
-        Add(groups, ReeGroup(3^(1 + 2 * size)));
+        group := ReeGroup(3^(1 + 2 * size));
+        gl := GL(7, 3^(1 + 2 * size));
+        
+        Add(groups, group^PseudoRandom(gl));
         size := size + 1;
     od;
     
-    size := 3;
+    size := 1;
     while 2^size <= maxSuzukiSize do
-        Add(groups, SuzukiGroup(2^size));
-        size := size + 2;
+        group := SuzukiGroup(2^(1 + 2 * size));
+        gl := GL(4, 2^(1 + 2 * size));
+        
+        Add(groups, group^PseudoRandom(gl));
+        size := size + 1;
     od;
     
     return groups;
@@ -215,11 +236,12 @@ InstallGlobalFunction(MatrixSchreierSimsSetBenchmark,
     Print("Benchmark completed\n");
 end);             
 
-InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
+InstallGlobalFunction(MatrixSchreierSimsTest, function(startDeg, stopDeg, 
+        startField, stopField)
     local groups, group, size1, size2;
     
     # Get list of test groups
-    groups := MATRIXSS_GetTestGroups(maxDegree, maxFieldSize);
+    groups := MATRIXSS_GetTestGroups(startDeg, stopDeg, startField, stopField);
     
     # Compute order of all groups using GAP:s builtin Order and using our
     # Schreier-Sims algorithm
@@ -240,13 +262,13 @@ InstallGlobalFunction(MatrixSchreierSimsTest, function(maxDegree, maxFieldSize)
     return true;
 end);
 
-InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(maxDegree, 
-        maxFieldSize, maxReeSize, maxSuzukiSize)
+InstallGlobalFunction(MatrixSchreierSimsBenchmark, function(startDeg, stopDeg,
+        startField, stopField, maxReeSize, maxSuzukiSize)
     local groups, group, test_time, size, schreierSims;
         
     # Get list of benchmark groups
-    groups := MATRIXSS_GetBenchmarkGroups(maxDegree, maxFieldSize, 
-                      maxReeSize, maxSuzukiSize);
+    groups := MATRIXSS_GetBenchmarkGroups(startDeg, stopDeg, startField, 
+                      stopField, maxReeSize, maxSuzukiSize);
     
     Print("Group\t\tTime [ms]\n\n");
     
