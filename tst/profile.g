@@ -20,7 +20,7 @@ BindGlobal("MATRIXSS_PROFILE", true);;
 LoadPackage("matrixss");;
 
 SetAssertionLevel(0);
-MATRIXSS_DEBUGLEVEL := 0;;
+MATRIXSS_DEBUGLEVEL := 2;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
 functionNames := Filtered(NamesUserGVars(), function(element)
     return IsMatchingSublist(element, "MATRIXSS_");
@@ -30,7 +30,7 @@ ProfileFunctions(Filtered(List(functionNames, EvalString), IsFunction));
 #ProfileOperations(true);
 ProfileGlobalFunctions(true);
 
-ReadTest("tst/profile.tst");;
+ReadTest("tst/standard.tst");;
 DisplayProfile();
 
 ###############################################################################

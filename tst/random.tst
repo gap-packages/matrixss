@@ -16,17 +16,14 @@
 
 gap> START_TEST("$Id$");;
 
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify);;
+gap> MatrixSchreierSimsTest(2, 3, 2, 3 : Random, Verify, STCS);;
 No order differences
 
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, AlternatingActions);;
-No order differences
+#gap> MatrixSchreierSimsTest(2, 3, 2, 3 : Random, Verify, AlternatingActions);;
+#No order differences
 
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, STCS);;
-No order differences
-
-gap> MatrixSchreierSimsTest(3, 3 : Random, Verify, STCS, AlternatingActions);;
-No order differences
+#gap> MatrixSchreierSimsTest(2, 3, 2, 3 : Random, Verify, STCS, AlternatingActions);;
+#No order differences
 
 gap> STOP_TEST("random.tst", 0);;
 $Id$

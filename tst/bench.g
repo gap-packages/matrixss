@@ -26,12 +26,12 @@ MATRIXSS_DEBUGLEVEL := 0;;
 SetInfoLevel(MatrixSchreierSimsInfo, MATRIXSS_DEBUGLEVEL);
 
 MATRIXSS_RandomSchreierSimsBenchmark := 
-  function(maxDegree, maxFieldSize, maxReeSize, maxSuzukiSize)
+  function(startDeg, stopDeg, startField, stopField, maxReeSize, maxSuzukiSize)
     local groups, group, test_time, size, group_time, g;
     
     test_time := Runtime();
-    groups := MATRIXSS_GetBenchmarkGroups(maxDegree, maxFieldSize, 
-                      maxReeSize, maxSuzukiSize);
+    groups := MATRIXSS_GetBenchmarkGroups(startDeg, stopDeg, startField, 
+                      stopField, maxReeSize, maxSuzukiSize);
     
     Print("Group\t\tTime [ms]\n\n");
     
