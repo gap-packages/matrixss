@@ -121,4 +121,13 @@ MATRIXSS_SubProdGroups := NewDictionary(10, true, Integers);
 ###############################################################################
 DeclareGlobalFunction("MatrixGroupOrderStabChain");
 
+###############################################################################
+##
+#F ElementToSLP(G, g)
+##
+## Computes an SLP of g in the generators of G, using StabChainMatrixGroup.
+##
+###############################################################################
+DeclareGlobalFunction("ElementToSLP");
+
 #E

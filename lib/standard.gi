@@ -114,7 +114,7 @@ InstallMethod(StabChainMatrixGroup, [IsMatrixGroup and IsFinite], 1,
                     # Compute Schreier generator g for current level
                     schreierGenerator := 
                       MATRIXSS_GetSchreierGenerator(
-                              ssInfo[level].schreierTree.Tree,
+                              ssInfo[level].schreierTree,
                               generator[1], point, action, identity);
                                         
                     MATRIXSS_DebugPrint(3, ["Schreier Generator : ", 

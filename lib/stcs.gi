@@ -53,7 +53,7 @@ MATRIXSS_SchreierToddCoxeterSims :=
           subgroupGens, relation, gens1, gens2, gens3, relations, 
           levelGroup, freeGroupHomo, gen, relHomo, ret, dropoutLevel, residue,
           newGen, wordGen, oldFreeGroup, labels, res, slp, baseFreeGens, i,
-          gens, freeGens;
+          gens, freeGens, j, subGens, subFreeGens;
     
     MATRIXSS_DebugPrint(2, ["Schreier-Sims at level ", level]);
     
@@ -79,6 +79,8 @@ MATRIXSS_SchreierToddCoxeterSims :=
       MATRIXSS_GetSchreierTree(ssInfo[level].schreierTree,
               ssInfo[level].partialBase, SGS, ssInfo[level].oldSGS,
               action, ssInfo[level].hash, identity);
+    
+    Assert(1, IsSubset(SGS, ssInfo[level].partialSGS));
     
     #labels := ssInfo[level].schreierTree.Labels;
     
@@ -124,29 +126,43 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 #relations := [];
                 gens := List(SGS, i -> i[1]);
                 MATRIXSS_DebugPrint(4, ["Get gens as words : ", gens]);
-
-                slp := SLPOfElms(gens);
-                MATRIXSS_DebugPrint(4, ["Gens : ", Length(gens),
-                        " orig gens : ", NrInputsOfStraightLineProgram(slp)]);
                 
-                freeGroup := FreeGroup(Length(gens) + 
-                                     NrInputsOfStraightLineProgram(slp));
+                #slp := SLPOfElms(gens);
+                #MATRIXSS_DebugPrint(4, ["Gens : ", Length(gens),
+                #        " orig gens : ", NrInputsOfStraightLineProgram(slp)]);
+                
+                freeGroup := FreeGroup(Length(gens));
                 freeGens := ShallowCopy(GeneratorsOfGroup(freeGroup));
+                subGens := List(ssInfo[level].partialSGS, i -> i[1]);
+                subFreeGens := [];
+                j := 0;
+                for i in [1 .. Length(subGens)] do
+                    j := Position(gens, subGens[i]);
+                    Add(subFreeGens, freeGens[j]);
+                od;
+                
+                #NrInputsOfStraightLineProgram(slp));
                 #baseFreeGens := ssInfo[level].genMap.FreeGenerators{[1 .. 
                 #                        NrInputsOfStraightLineProgram(slp)]};
-                MATRIXSS_DebugPrint(4, ["Gens : ", freeGens{[1 .. 
-                        NrInputsOfStraightLineProgram(slp)]},
-                        " slp : ", slp]);
+                MATRIXSS_DebugPrint(4, ["Gens : ", freeGens,
+                        " relations : ", ssInfo[level].relations]);
+                if Length(ssInfo[level].relations) > 0 then
+                    #slp := ssInfo[level].relations[1]!.slp.prog;
+                    slp := SLPOfElm(ssInfo[level].relations[1]);
+                                        
+                    MATRIXSS_DebugPrint(4, ["Got SLP : ", slp]);
+                    relations := 
+                      [ResultOfStraightLineProgram(slp, freeGens)];
+                else
+                    relations := [];
+                fi;
+                #freeGens{[1 .. NrInputsOfStraightLineProgram(slp)]});
                 
-                relations := 
-                  ResultOfStraightLineProgram(slp, 
-                          freeGens{[1 .. NrInputsOfStraightLineProgram(slp)]});
-                
-                for i in [1 .. Length(relations)] do
-                    relations[i] := 
-                      relations[i] * Inverse(freeGens[
-                              NrInputsOfStraightLineProgram(slp) + i]);
-                od;
+                #for i in [1 .. Length(relations)] do
+                #    relations[i] := 
+                #      relations[i] * Inverse(freeGens[
+                #              NrInputsOfStraightLineProgram(slp) + i]);
+                #od;
                 
                 #gens2 := ssInfo[level].genMap.FreeGenerators;
                 
@@ -165,18 +181,18 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 
                 # Express subgroup generators as words in generators
                 # of free group
-                gens := List(ssInfo[level].partialSGS, i -> i[1]);
+                #gens := List(ssInfo[level].partialSGS, i -> i[1]);
                 
-                MATRIXSS_DebugPrint(4, ["Get subgroup gens as words", gens]);
-                if Length(gens) > 0 then
-                    slp := SLPOfElms(gens);
-                    subgroupGens := 
-                      ResultOfStraightLineProgram(slp, 
-                              freeGens{[1 .. 
-                                      NrInputsOfStraightLineProgram(slp)]});
-                else
-                    subgroupGens := [];
-                fi;
+                #MATRIXSS_DebugPrint(4, ["Get subgroup gens as words", gens]);
+                #if Length(gens) > 0 then
+                #    slp := SLPOfElms(gens);
+                #    subgroupGens := 
+                #      ResultOfStraightLineProgram(slp, 
+                #              freeGens{[1 .. 
+               #                       NrInputsOfStraightLineProgram(slp)]});
+                #else
+                #    subgroupGens := [];
+                #fi;
                 #for element in List(ssInfo[level].partialSGS, i -> i[1]) do
                 #    points := [level + 1 .. Length(ssInfo)];
                     
@@ -202,12 +218,12 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 
                 MATRIXSS_DebugPrint(2, ["Running coset enum with gens : ", 
                         freeGens, " relations ", relations, " subgroup gens ", 
-                        subgroupGens]);
+                        subFreeGens]);
                 
                 # Perform (interruptible) Todd-Coxeter coset enumeration
                 cosetTable := 
                   CosetTableFromGensAndRels(freeGens, AsSet(relations), 
-                          AsSet(subgroupGens) :
+                          AsSet(subFreeGens) :
                           max := 1 + Int(cosetFactor * 
                                   MATRIXSS_GetOrbitSize(
                                           ssInfo[level].schreierTree.Tree)),
@@ -235,8 +251,8 @@ MATRIXSS_SchreierToddCoxeterSims :=
                 # Compute Schreier generator g for current level
                 schreierGenerator := 
                   MATRIXSS_GetSchreierGenerator(
-                          ssInfo[level].schreierTree.Tree,
-                          generator[1], point, action, identity);
+                          ssInfo[level].schreierTree,
+                          generator[1], point, action, identity : MapLabels);
                           #ssInfo[level].freeGroup, ssInfo[level].genMap,
                           #ssInfo[level].word2elt);
                 
@@ -256,7 +272,7 @@ MATRIXSS_SchreierToddCoxeterSims :=
                         schreierGenerator, " on levels ", points]);
                 strip := MATRIXSS_Membership(ssInfo{points},
                                  schreierGenerator, 
-                                 identity);
+                                 identity : MapLabels);
                 MATRIXSS_DebugPrint(6, ["Got sift: ", strip]);
                 #word := ShallowCopy(strip[1]);
                 residue := strip[1];
@@ -325,7 +341,15 @@ MATRIXSS_SchreierToddCoxeterSims :=
                     od;
                 fi;
                 
-                #for recursiveLevel in [level .. dropoutLevel - 1] do
+                #Assert(1, Length(ssInfo) = dropoutLevel);
+                
+                #if ValueOption("AlternatingAction") <> fail then
+                #    maxRelLevel := dropoutLevel - 2;
+                #else
+                #    maxRelLevel := dropoutLevel - 1;
+                #fi;
+                
+                for recursiveLevel in [level .. Length(ssInfo)] do
                     #freeGroup := 
                     #  FreeGroup(Length(ssInfo[recursiveLevel].partialSGS));
                     
@@ -359,7 +383,7 @@ MATRIXSS_SchreierToddCoxeterSims :=
                     #if Length(gens2) >= Length(gens1) then
                         
                         # The identity is not among our generators
-                    #    if newGen[1] <> identity then
+                    #if newGen[1] <> identity then
                     #        MATRIXSS_DebugPrint(6, ["Looking up ", newGen[2],
                     #                " in ", ssInfo[recursiveLevel + 1].
                     #                genMap.Generators]);
@@ -369,10 +393,10 @@ MATRIXSS_SchreierToddCoxeterSims :=
                     #                          genMap.Generators, 
                     #                          newGen[2])];
                             
-                            # Map the words to the generators in the same
-                            # free group                            
-                    #        relation := 
-                    #          schreierGenerator[2][1] * wordGen[2] *
+                        # Map the words to the generators in the same
+                        # free group                            
+                    #    relation := 
+                    #      schreierGenerator[2][1] * wordGen[2] *
                     #          MappedWord(element, gens2, 
                     #                  gens1{[1 .. Length(gens2)]});
                     #    else
@@ -386,10 +410,11 @@ MATRIXSS_SchreierToddCoxeterSims :=
                         
                         # Save relation along with the its free group
                         # so that we can map its generators later
-                    #    AddSet(ssInfo[recursiveLevel + 1].relations,
-                    #        Immutable([relation, oldFreeGroup]));
+                    AddSet(ssInfo[recursiveLevel].relations,
+                           schreierGenerator * newGen[2]);
+                               #Immutable([relation, oldFreeGroup]));
                     #fi;
-                #od;
+                od;
                 
                 if newGen[1] <> identity then
                     # We must now recompute all levels downward from the

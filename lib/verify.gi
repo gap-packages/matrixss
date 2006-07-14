@@ -326,6 +326,7 @@ MATRIXSS_VerifySingleGenerator :=
             point, " with respect to ", subGens]);
     orbits := MATRIXSS_DecomposeOrbit(schreierTree, point, subGens,
                       action, hash, identity);
+    
     representatives := [];
     for orbit in orbits do
         Add(representatives, MATRIXSS_OrbitElement(schreierTree.Tree, 
@@ -348,12 +349,15 @@ MATRIXSS_VerifySingleGenerator :=
                 orbits[level].Point, stabGens, action, hash, identity));
         Add(subRepresentatives, []);
         Add(stabRepresentatives, []);
+        
         for subOrbit in subOrbits[Length(subOrbits)] do
             residue := MATRIXSS_OrbitElement(orbits[level].SchreierTree.Tree, 
                                subOrbit.Point, action, identity);
+            
             Add(subRepresentatives[Length(subRepresentatives)],
                 Immutable([representatives[level][1] * residue[1],
                         residue[2] * representatives[level][2]]));
+            
             Add(stabRepresentatives[Length(stabRepresentatives)],
                 MATRIXSS_OrbitElement(schreierTree.Tree, 
                         action(subOrbit.Point, subGenerator[1]), action, 
@@ -369,48 +373,40 @@ MATRIXSS_VerifySingleGenerator :=
                                  orbits[level].Point, action, hash, identity);
         for generator in orbitStabGens do
             residue := MATRIXSS_Membership(ssInfo, 
-                               Immutable([representatives[level][1] * 
-                                       generator[1] * 
-                                       representatives[level][2],
-                                       representatives[level][1] * 
-                                       generator[2] * 
-                                       representatives[level][2]]),
+                               representatives[level][1] * generator[1] * 
+                               representatives[level][2],
                                identity);
-            if residue[1][1] <> identity then
+            if residue <> identity then
                 MATRIXSS_DebugPrint(2, ["Cond1, Residue found : ", 
-                        residue[1]]);
-                return Immutable(residue[1]);
+                        residue]);
+                return Immutable([residue, Inverse(residue)]);
             fi;
         od;
         
         for subLevel in [1 .. Length(subOrbits[level])] do
             residue := 
-              MATRIXSS_Membership(ssInfo, Immutable(
-                      [subRepresentatives[level][subLevel][1] *
-                       subGenerator[1] *
-                       stabRepresentatives[level][subLevel][2],
-                       stabRepresentatives[level][subLevel][2] *
-                       subGenerator[2] *
-                       stabRepresentatives[level][subLevel][1]]),
+              MATRIXSS_Membership(ssInfo, 
+                      subRepresentatives[level][subLevel][1] *
+                      subGenerator[1] *
+                      stabRepresentatives[level][subLevel][2],
                       identity);
-            if residue[1][1] <> identity then
+            if residue <> identity then
                 MATRIXSS_DebugPrint(2, ["Cond2, Residue found : ", 
-                        residue[1]]);
-                return Immutable(residue[1]);
+                        residue]);
+                return Immutable([residue, Inverse(residue)]);
             fi;
         od;
     od;
     
     for generator in stabGens do
         residue := MATRIXSS_Membership(ssInfo, 
-                           Immutable([subGenerator[2] * generator[1] *
-                                   subGenerator[1],
-                                   subGenerator[2] * generator[2] *
-                                   subGenerator[1]]), identity);
-        if residue[1][1] <> identity then
+                           subGenerator[2] * generator[1] *
+                           subGenerator[1],
+                           identity);
+        if residue <> identity then
             MATRIXSS_DebugPrint(2, ["Cond3, Residue found : ", 
-                    residue[1]]);
-            return Immutable(residue[1]);
+                    residue]);
+            return Immutable([residue, Inverse(residue)]);
         fi;
     od;
     
