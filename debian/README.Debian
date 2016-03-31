@@ -1,7 +1,0 @@
-matrixss for Debian
--------------------
-
-In GAP, use the "LoadPackage" command to load the package, the
-package name being "matrixss". 
-
- -- Henrik Bäärnhielm <redstar@abc.se>, Tue, 13 Jul 2004 18:52:46 +0100
