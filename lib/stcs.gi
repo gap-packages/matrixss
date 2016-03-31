@@ -4,7 +4,7 @@
 #W             Schreier-Todd-Coxeter-Sims implementation
 ##
 #H    File      : $RCSfile$
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-07-05 
 ##
 #H    Version   : $Revision$

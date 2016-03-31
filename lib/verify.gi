@@ -4,7 +4,7 @@
 #W               The Verify routine by Sims.
 ##
 #H    File      : $RCSfile$
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-08-14 
 ##
 #H    Version   : $Revision$

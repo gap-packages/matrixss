@@ -4,7 +4,7 @@
 #W               Nearly linear-time implementation
 ##
 #H    File      : $RCSfile$
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-08-08 
 ##
 #H    Version   : $Revision$

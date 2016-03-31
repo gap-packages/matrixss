@@ -4,7 +4,7 @@
 #W                 Standard Schreier-Sims implementation
 ##
 #H    File      : $RCSfile$
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-07-01 
 ##
 #H    Version   : $Revision$

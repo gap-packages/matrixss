@@ -3,7 +3,7 @@
 #W    code.gd     The Matrix Schreier Sims package                
 ##
 #H    File      : $RCSfile$
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-01-10 
 ##
 #H    Version   : $Revision$

@@ -3,7 +3,7 @@
 #W    test.gd     The Matrix Schreier Sims package - Test & Benchmark routines
 ##
 #H    File      : $RCSfile$
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-07-01
 ##
 #H    Version   : $Revision$
