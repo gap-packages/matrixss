@@ -6,5 +6,5 @@ See the file USAGE for a short introduction to the package. For more
 information, see the manual in the "doc" subdirectory.
 
 The homepage of this package is 
-http://matrixss.sourceforge.net/
+https://gap-packages.github.io/matrixss/
 from where it can be downloaded.
