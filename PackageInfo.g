@@ -2,7 +2,7 @@
 ##
 #W    PackageInfo.g      The Matrix Schreier-Sims package
 ##
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-01-23
 ##
 
@@ -27,7 +27,7 @@ ArchiveFormats := ".tar.gz .tar.bz2",
 
 Persons := [
   rec(
-    LastName     := "B‰‰rnhielm",
+    LastName     := "B√§√§rnhielm",
     FirstNames   := "Henrik",
     IsAuthor     := true,
     IsMaintainer := true,

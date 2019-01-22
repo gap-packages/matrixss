@@ -3,7 +3,7 @@
 #W    linear.tst  The Matrix Schreier-Sims package                
 #W                Nearly linear time algorithm test
 ##
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-01-24 
 ##
 ###############################################################################

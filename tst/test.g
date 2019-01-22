@@ -2,7 +2,7 @@
 ##
 #W    test.g    The Matrix Schreier-Sims package                
 ##
-#H    Author    : Henrik B‰‰rnhielm
+#H    Author    : Henrik B√§√§rnhielm
 #H    Dev start : 2004-01-24 
 ##
 ###############################################################################
