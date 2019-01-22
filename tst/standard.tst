@@ -3,18 +3,12 @@
 #W    standard.tst The Matrix Schreier-Sims package                
 #W                 Deterministic algorithm test
 ##
-#H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
 #H    Dev start : 2004-01-24 
 ##
-#H    Version   : $Revision$
-#H    Date      : $Date$
-#H    Last edit : $Author$
-##
-#H    @(#)$Id$
 ###############################################################################
 
-gap> START_TEST("$Id$");;
+gap> START_TEST("standard.tst");;
 
 gap> MatrixSchreierSimsTest(2, 3, 2, 3);;
 No order differences
@@ -56,8 +50,6 @@ gap> MatrixSchreierSimsTest(2, 3, 2, 3 : AlternatingActions, ShallowSchreierTree
 No order differences
 
 gap> STOP_TEST("standard.tst", 0);;
-$Id$
-GAP4stones: 0
 
 ###############################################################################
 #E

@@ -2,23 +2,13 @@
 #1
 #W    code.gi     The Matrix Schreier Sims package - General functions
 ##
-#H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
 #H    Dev start : 2004-01-10 
-##
-#H    Version   : $Revision$
-#H    Date      : $Date$
-#H    Last edit : $Author$
-##
-#H    @(#)$Id$
 ##
 ## These are the common functions used by all the variants of the Schreier-Sims
 ## algorithm implemented in the package.
 ##
 ###############################################################################
-
-Revision.("matrixss/lib/code_gi") := 
-  "@(#)$Id$";
 
 #ProductOfStraightLinePrograms := function(slp1, slp2)
 #    local product, prod, int;

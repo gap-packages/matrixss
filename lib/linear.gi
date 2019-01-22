@@ -3,22 +3,12 @@
 #W    linear.gi  The Matrix Schreier Sims package 
 #W               Nearly linear-time implementation
 ##
-#H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
 #H    Dev start : 2004-08-08 
-##
-#H    Version   : $Revision$
-#H    Date      : $Date$
-#H    Last edit : $Author$
-##
-#H    @(#)$Id$
 ##
 ## These are the special routines for the nearly linear-time version, described
 ## in Babai et al, 1991.
 ###############################################################################
-
-Revision.("matrixss/lib/linear_gi") := 
-  "@(#)$Id$";
 
 ###############################################################################
 ##

@@ -3,15 +3,8 @@
 #W    stcs.gi  The Matrix Schreier Sims package 
 #W             Schreier-Todd-Coxeter-Sims implementation
 ##
-#H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
 #H    Dev start : 2004-07-05 
-##
-#H    Version   : $Revision$
-#H    Date      : $Date$
-#H    Last edit : $Author$
-##
-#H    @(#)$Id$
 ##
 ## These are the Schreier-Todd-Coxeter-Sims routines, ie Schreier-Sims 
 ## algorithm with additional calls to Todd-Coxeter coset enumeration to
@@ -20,9 +13,6 @@
 ## base and SGS, for example the output of a probabilistic algorithm.
 ##
 ###############################################################################
-
-Revision.("matrixss/lib/stcs_gi") := 
-  "@(#)$Id$";
 
 ###############################################################################
 ##

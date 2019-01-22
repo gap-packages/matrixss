@@ -2,22 +2,12 @@
 #1
 #W    test.gd     The Matrix Schreier Sims package - Test & Benchmark routines
 ##
-#H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
 #H    Dev start : 2004-07-01
-##
-#H    Version   : $Revision$
-#H    Date      : $Date$
-#H    Last edit : $Author$
-##
-#H    @(#)$Id$
 ##
 ## These are the main routines for testing and benchmarking the package.
 ##
 ###############################################################################
-
-Revision.("matrixss/lib/test_gd") := 
-  "@(#)$Id$";
 
 ###############################################################################
 ##

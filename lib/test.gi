@@ -2,22 +2,12 @@
 #1
 #W    test.gi     The Matrix Schreier Sims package - Test code                
 ##
-#H    File      : $RCSfile$
 #H    Author    : Henrik Bäärnhielm
 #H    Dev start : 2004-07-01
-##
-#H    Version   : $Revision$
-#H    Date      : $Date$
-#H    Last edit : $Author$
-##
-#H    @(#)$Id$
 ##
 ## These are auxiliary functions for test and benchmark.
 ##
 ###############################################################################
-
-Revision.("matrixss/lib/test_gi") := 
-  "@(#)$Id$";
 
 MATRIXSS_GetRandomGenSet :=
   function(field, dimension, length)
