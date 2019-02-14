@@ -11,7 +11,8 @@ SetPackageInfo( rec(
 PackageName := "matrixss",
 Subtitle := "The Schreier-Sims algorithm for matrix groups",
 Version := "0.9",
-Date := "11/09/2004",
+Date := "11/09/2004", # dd/mm/yyyy format
+License := "GPL-2.0-or-later",
 
 SourceRepository := rec(
                          Type := "git",
