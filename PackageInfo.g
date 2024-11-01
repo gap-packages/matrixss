@@ -80,7 +80,7 @@ PackageDoc := rec(
   PDFFile   := "doc/matrixss.pdf",
   SixFile   := "doc/manual.six",
   LongTitle := "The Schreier-Sims algorithm for matrix groups",
-  Autoload := true),
+),
 
 Dependencies := rec(
   GAP := ">=4.4",
@@ -89,7 +89,6 @@ Dependencies := rec(
   ExternalConditions := [] ),
 
 AvailabilityTest := ReturnTrue,
-Autoload := false,
 TestFile := "tst/test.g",
 Keywords := ["matrix group", "Schreier-Sims"]
 
